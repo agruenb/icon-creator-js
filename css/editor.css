@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap');
+:root{
+    --light-pastel-green:#D2D8B6;
+    --medium-pastel-green:#9fa77e;
+    --dark-pastel-green:#6f774d;
+
+    --light-cream: #FFF3DE;
+    
+    --panel-background:#ffffff;
+    --panel-outline:#ffffff;
+    --highlight:#307ffd;
+    --deep-blue:#0000ff;
+    --mute-gray:#505050;
+    --select-black:#000000;
+    
+    
+
+    --delete-red:#ff4040;
+    --default-button-color:#6a6a6a;
+
+    --viewport-background:#fff;
+    --contour-black:#000000;
+    --contour-grey:#ccc;
+
+    --white-text:#fff;
+}
+body{
+    margin:0;
+    padding:0;
+    font-family: "Roboto", "sans-serif";
+}
+button{
+    all:unset;
+}
+button img{
+    height:100%;
+    width:100%;
+}
+.anno-button{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+    --size:50px;
+    height:var(--size);
+    width:var(--size);
+    background-color: var(--panel-background);
+    border-radius:10px;
+    margin:5px;
+    box-shadow:0 2px 5px rgb(0 0 0 / 60%);
+}
+.anno-button:hover{
+    border-radius:20px;
+    background-color: var(--light-pastel-green);
+}
+.anno-button[selected="true"]{
+    border-radius:50%;
+    background-color: var(--medium-pastel-green);
+}
+.editor-container{
+    width:100vw;
+    height:100vh;
+}
+.editor-container .topbar{
+    background-color:#d2d2d2;
+    position:fixed;
+    top:0;
+    height:44px;
+    width:100%;
+    display:flex;
+    justify-content: center;
+}
+.editor-container .toolbar{
+    position:fixed;
+    top:44px;
+    left:0;
+}
+.editor-container .history-button{
+    width:60px;
+    height: 40px;
+}
+.editor-container .viewport{
+    height:100vh;
+    width:100vw;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.editor-container .sidebar{
+    position:fixed;
+    right:0;
+    top:44px;
+    width:370px;
+    height:calc(100vh - 44px);
+}
+.editor-container .bottom-bar{
+    position:fixed;
+    left:0;
+    bottom:0;
+}
+.editor-container .vert-scroll{
+    width:calc(100% - 10px);
+    padding:0 5px;
+    max-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+.editor-container .vert-scroll > *{
+    margin-bottom:5px;
+}
+
+.cursor-c{
+    cursor:all-scroll;
+}

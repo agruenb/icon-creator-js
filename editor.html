@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/contextMenu.css">
+    <link rel="stylesheet" href="css/infoBox.css">
+    <title>SVG editor</title>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="viewport" id="viewport">
+            <div id="drawingViewport" class="canvasContainer">
+
+            </div>
+        </div>
+        <div class="topbar">
+            <button id="historyBack" class="history-button">
+                <img src="img/arrow-hop.svg" alt="Arrow back">
+            </button>
+            <button id="historyForwards" class="history-button">
+                <img src="img/arrow-hop.svg" alt="Arrow back" style="transform:scaleX(-1)">
+            </button>
+
+            <button id="arangeView">Formen anordnen</button>
+            <button id="maskView">Form ausschneiden</button>
+            <input id="savePower" type="checkbox"><label for="savePower">save power</label>
+            <input type="range" id="gridsize" min="3" max="6" value="3">
+            <input type="color" id="paintColor" value="#660033">
+            <button id="ouputHTML">HTML</button>
+        </div>
+        <div class="toolbar">
+            <button id="cursor" class="anno-button"><span>C</span></button>
+            <button id="newRect" class="anno-button"><span>R</span></button>
+            <button id="newLine" class="anno-button"><span>L</span></button>
+            <button id="newCircle" class="anno-button"><span>K</span></button>
+            <button id="newEllipse" class="anno-button"><span>E</span></button>
+            <button id="newPath" class="anno-button"><span>P</span></button>
+        </div>
+        <div id="sidebar" class="sidebar">
+            <div id="elementOverview" class="vert-scroll">
+
+            </div>
+        </div>
+        <div id="output" class="bottom-bar">
+            <textarea name="#" id="outputHTMLtext"></textarea>
+        </div>
+    </div>
+    <div id="preview" style="display:none;height:200px;width:200px;"></div>
+    <!--<svg viewBox="0 0 512 512"><path d="M 96 320 L 128 320 Q 160 320 160 256 Q 256 224 352 256 Q 352 320 384 320 L 432 320 Q 464 320 448 256 Q 436 236 416 224 Q 256 128 96 224 Q 76 236 64 256 Q 48 320 96 320 Z" stroke="#000000" fill="#1c750a" stroke-width="4"/></svg>-->
+</body>
+<script src="iconCreatorGlobal.js"></script>
+<script src="HTMLeditor.js"></script>
+<script src="Project.js"></script>
+<script src="pattern.js"></script>
+<script src="Frame.js"></script>
+<script src="MaskFrame.js"></script>
+<script src="sidebar/PatternInfoBox.js"></script>
+<script src="sidebar/InfoBoxManager.js"></script>
+<script src="actionHistory.js"></script>
+<script src="helperPatterns/helperPattern.js"></script>
+<script src="helperPatterns/marker.js"></script>
+<script src="helperPatterns/outline.js"></script>
+<script src="helperPatterns/uiLine.js"></script>
+<script src="functionCollections/patternManipulator.js"></script>
+<script src="functionCollections/pointOperations.js"></script>
+<script src="functionCollections/universalOps.js"></script>
+<script src="uiElements/MenuButton.js"></script>
+<script src="uiElements/ContextMenu.js"></script>
+<script src="components/CustomColorInput.js"></script>
+<script src="components/CustomNumberInput.js"></script>
+<script src="components/CustomCheckboxInput.js"></script>
+<script src="components/ColorMachine.js"></script>
+
+<script>
+    let environment = {
+        layout:{
+            viewport:document.getElementById("viewport"),
+            resultViewport:document.getElementById("drawingViewport"),
+            elementOverview:document.getElementById("elementOverview")
+        },
+        control:{
+            editSVG:{
+                cursor:document.getElementById("cursor"),
+                newRect:document.getElementById("newRect"),
+                newCircle:document.getElementById("newCircle"),
+                newEllipse:document.getElementById("newEllipse"),
+                newLine:document.getElementById("newLine"),
+                newPath:document.getElementById("newPath")
+            },
+            view:{
+                arange:document.getElementById("arangeView"),
+                mask:document.getElementById("maskView")
+            },
+            history:{
+                back:document.getElementById("historyBack"),
+                forwards:document.getElementById("historyForwards")
+            },
+            meta:{
+                gridsize:document.getElementById("gridsize"),
+                paintColor:document.getElementById("paintColor")
+            },
+            output:{
+                cleanHTML:document.getElementById("ouputHTML")
+            }
+        },
+        config:{
+            savePower:document.getElementById("savePower")
+        },
+        output:{
+            text:document.getElementById("outputHTMLtext")
+        }
+    }
+    let e = new HTMLeditor(environment);
+    e.newProject();
+    let p = e.activeProjects[0]
+    p = document.getElementById("preview");
+
+</script>
+</html>
