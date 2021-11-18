@@ -25,4 +25,16 @@ class UniversalOps{
             return value;
         }
     }
+    static distributeEqually(max, steps, min = 0,forceInteger = false){
+        let ret = [];
+        let stepsize = (max - min) / steps
+        for(let i = 0; i < steps; i++){
+            if (forceInteger) {
+                ret.push(min + parseInt(i * stepsize));
+            } else {
+                ret.push(min + i * stepsize);
+            }
+        }
+        return ret;
+    }
 }

@@ -5,7 +5,10 @@ class HTMLeditor{
     detectMouseOnMarkerDistance = 15;
     rotationMarkerDistanceFromPattern = 20;
 
+    minCoordinate = -2048;
+
     savePower = true;
+    keepHistory = true;
 
     state = {
         currentAction:"none",
@@ -14,6 +17,24 @@ class HTMLeditor{
         view:"arange",
         currentProject: 0,
         gridsize: 1  
+    }
+
+    defaultSizing = {
+        rect:{
+            height:100,
+            width:100,
+        },
+        circle:{
+            radius:50
+        },
+        ellipse:{
+            xRadius:60,
+            yRadius:30
+        },
+        line:{
+            length:140,
+            width:6
+        }
     }
 
     constructor(environment){
@@ -27,23 +48,32 @@ class HTMLeditor{
         this.environment.config.savePower.addEventListener("change",(e) => {this.savePower = e.target.checked});
         //init control
         this.environment.control.editSVG.cursor.addEventListener("click",() => {this.focus();this.setDrawingType("none")});
-        this.environment.control.editSVG.newRect.addEventListener("click",() => {this.setDrawingType("rect0")});
-        this.environment.control.editSVG.newCircle.addEventListener("click",() => {this.setDrawingType("circle0")});
-        this.environment.control.editSVG.newEllipse.addEventListener("click",() => {this.setDrawingType("ellipse0")});
-        this.environment.control.editSVG.newLine.addEventListener("click",() => {this.setDrawingType("line0")});
+        this.environment.control.editSVG.newRect.addEventListener("mousedown",() => {this.setDrawingType("drag_rect0")});
+        this.environment.control.editSVG.newRect.addEventListener("mouseup",() => {this.setDrawingType("rect0")});
+
+        this.environment.control.editSVG.newCircle.addEventListener("mousedown",() => {this.setDrawingType("drag_circle0")});
+        this.environment.control.editSVG.newCircle.addEventListener("mouseup",() => {this.setDrawingType("circle0")});
+
+        this.environment.control.editSVG.newEllipse.addEventListener("mousedown",() => {this.setDrawingType("drag_ellipse0")});
+        this.environment.control.editSVG.newEllipse.addEventListener("mouseup",() => {this.setDrawingType("ellipse0")});
+
+        this.environment.control.editSVG.newLine.addEventListener("mousedown",() => {this.setDrawingType("drag_line0")});
+        this.environment.control.editSVG.newLine.addEventListener("mouseup",() => {this.setDrawingType("line0")});
+
         this.environment.control.editSVG.newPath.addEventListener("click",() => {this.setDrawingType("path0")});
         
         this.environment.control.meta.gridsize.addEventListener("change",() => {this.changeGrid(this.environment.control.meta.gridsize.value)});
-        this.environment.control.meta.paintColor.addEventListener("change",(e) => {this.setPaintColor(e.target.value)});
+        
+        let colorInput = new CustomColorInput("pseudo-input", "#660033");
+        this.environment.control.meta.paintColor.append(colorInput);
+        this.environment.control.meta.paintColor.addEventListener("click",()=>{this.setDrawingType("none")});
+        colorInput.addEventListener("change",(e) => {this.setPaintColor(e.target.value)});
+
+        this.environment.control.export.file.addEventListener("click",() => {this.exportFile()});
 
         this.environment.control.history.back.addEventListener("click",()=>{this.reverseLastAction()});
         this.environment.control.history.forwards.addEventListener("click",()=>{this.reInitLastReverse()});
-        
-        this.environment.control.view.arange.addEventListener("click",() => {this.changeView("arange")});
-        this.environment.control.view.mask.addEventListener("click",() => {this.changeView("mask")});
-        this.environment.control.view.arange.setAttribute("selected","true");
 
-        this.environment.control.output.cleanHTML.addEventListener("click",() => {this.environment.output.text.value = this.outputHTML()});
         //init mouse events
         this.environment.layout.viewport.addEventListener("contextmenu", event => {
             event.preventDefault();
@@ -68,31 +98,31 @@ class HTMLeditor{
             if(["edit0","path1"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
-            let id;
+            let pattern;
             switch (this.state.currentAction) {
                 case "rect0":
-                    id = this.addPattern("Rect",event.clientX,event.clientY);
-                    this.focus(this.patternById(id));
+                    pattern = this.addPattern("Rect",event.clientX,event.clientY);
+                    this.focus(pattern);
                     type = "rect1";
                     break;
                 case "circle0":
-                    id = this.addPattern("Circle",event.clientX,event.clientY);
-                    this.focus(this.patternById(id));
+                    pattern = this.addPattern("Circle",event.clientX,event.clientY);
+                    this.focus(pattern);
                     type = "circle1";
                     break;
                 case "ellipse0":
-                    id = this.addPattern("Ellipse", event.clientX,event.clientY);
-                    this.focus(this.patternById(id));
+                    pattern = this.addPattern("Ellipse", event.clientX,event.clientY);
+                    this.focus(pattern);
                     type = "ellipse1";
                     break;
                 case "line0":
-                    id = this.addPattern("Line", event.clientX,event.clientY);
-                    this.focus(this.patternById(id));
+                    pattern = this.addPattern("Line", event.clientX,event.clientY);
+                    this.focus(pattern);
                     type = "line1";
                     break;
                 case "path0":
-                    id = this.addPattern("Path", event.clientX,event.clientY);
-                    this.focus(this.patternById(id));
+                    pattern = this.addPattern("Path", event.clientX,event.clientY);
+                    this.focus(pattern);
                     type = "path1";
                     this.addHelperMarker(this.relX(event.clientX),this.relY(event.clientY),0,"check");
                     break;
@@ -107,15 +137,8 @@ class HTMLeditor{
                         this.state.editedObject = closestMarker.marker;
                         type = "dragMarker";
                     }else if(event.target.parentElement.id == this.focusedPattern().id){//start dragging pattern
-                        this.state.editedObject = this.currProj().frame().patterns[event.target.parentElement.id];
+                        this.setDraggingInfo(this.currProj().frame().patterns[event.target.parentElement.id], event);
                         type = "dragPattern";
-                        let mouseDownInfo = {
-                            x:this.relX(event.clientX,0,undefined,1),
-                            y:this.relX(event.clientY,0,undefined,1),
-                            relToPatternOriginX:this.relX(event.clientX,0,undefined,1) - this.state.editedObject.xOrigin,
-                            relToPatternOriginY:this.relY(event.clientY,0,undefined,1) - this.state.editedObject.yOrigin
-                        };
-                        this.state.mouseDownInfo = mouseDownInfo;
                     }else{//do nothing
                         type = "edit0";
                     }
@@ -155,8 +178,8 @@ class HTMLeditor{
                     this.addHelperOutline(pattern);
                 case "line1":
                     this.currProj().alterPattern(pattern,{
-                        yEnd:this.relY(event.clientY,0,2),
-                        xEnd:this.relX(event.clientX,0,2)
+                        yEnd:this.relY(event.clientY,0,this.minCoordinate),
+                        xEnd:this.relX(event.clientX,0,this.minCoordinate)
                     });
                     this.clearViewportUI()
                     this.addHelperOutline(pattern);
@@ -178,14 +201,34 @@ class HTMLeditor{
                     this.clearViewportUI()
                     this.addHelperOutline(pattern);
                     break;
+                //dragged from new pattern
+                case "drag_rect0":
+                    pattern = this.addPattern("Rect",event.clientX-parseInt(this.defaultSizing.rect.width/2),event.clientY-parseInt(this.defaultSizing.rect.height/2));
+                    this.currProj().alterPattern(pattern,this.defaultSizing.rect);
+                    this.finalizeDraggedInPattern(pattern, event);
+                    break;
+                case "drag_circle0":
+                    pattern = this.addPattern("Circle",event.clientX,event.clientY);
+                    this.currProj().alterPattern(pattern,this.defaultSizing.circle);
+                    this.finalizeDraggedInPattern(pattern, event);
+                    break;
+                case "drag_ellipse0":
+                    pattern = this.addPattern("Ellipse",event.clientX,event.clientY);
+                    this.currProj().alterPattern(pattern,this.defaultSizing.ellipse);
+                    this.finalizeDraggedInPattern(pattern, event);
+                    break;
+                case "drag_line0":
+                    pattern = this.addPattern("Line",event.clientX,event.clientY-parseInt(this.defaultSizing.line.length/2));
+                    this.currProj().alterPattern(pattern,{
+                        xEnd:this.relX(event.clientX),
+                        yEnd:this.relY(event.clientY+parseInt(this.defaultSizing.line.length/2)),
+                        width:this.defaultSizing.line.width
+                    });
+                    this.finalizeDraggedInPattern(pattern, event);
+                    break;
                 //edit
                 case "edit0":case "dragPattern":case "dragMarker":
-                    if(this.focusedPattern().id != this.currProj().frame().boundId){
-                        this.adjustPatternToOther(pattern, this.state.editedObject, event);
-                        break;
-                    }else{//if on maskLayser frame
-                        console.log("Cannot edit in ausschneide mode");
-                    }
+                    this.adjustPatternToOther(pattern, this.state.editedObject, event);
                     break;
                 default:
                     break;
@@ -205,16 +248,16 @@ class HTMLeditor{
                     }
                     break;
                 case "rect1":
-                    this.finishNewPattern(event,"rect0");
+                    this.finishNewPattern(event);
                     break;
                 case "circle1":
-                    this.finishNewPattern(event,"circle0");
+                    this.finishNewPattern(event);
                     break;
                 case "ellipse1":
-                    this.finishNewPattern(event,"ellipse0");
+                    this.finishNewPattern(event);
                     break;
                 case "line1":
-                    this.finishNewPattern(event,"line0");
+                    this.finishNewPattern(event);
                     break;
                 case "path1":
                     let points = JSON.parse(JSON.stringify(pattern.points));
@@ -224,7 +267,7 @@ class HTMLeditor{
                         points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10});
                         this.clearViewportUI();
                         this.setDrawingType("path0");
-                        this.infoBoxManager().newBox(pattern, this.currProj().frame());
+                        this.currProj().frame().newBox(pattern);
                         if(this.focusedPattern().points.length < 2 && this.relX(event.clientX) == this.focusedPattern().xOrigin && this.relY(event.clientY) == this.focusedPattern().yOrigin){//check for invalid path
                             this.removePattern(this.focusedPattern());
                             alert("Halte die Maus gedrückt und ziehe sie anschließend, um eine Form zu erstellen.");
@@ -250,7 +293,7 @@ class HTMLeditor{
                     break;
                 case "dragMarker":case "dragPattern":
                     this.state.currentAction = "edit0";
-                    this.currProj().frame().infoBoxManager.updateBox(pattern);
+                    this.currProj().frame().updateInfoBox(pattern);
                     this.saveToHistory();
                     break;
                 default:
@@ -261,7 +304,10 @@ class HTMLeditor{
     prepareEdit(pattern = this.focusedPattern()){
         if(["edit0","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
             this.addHelperOutline(pattern);
-            this.infoBoxManager().boxById(pattern.id).highlight();
+            let infoBox = this.infoBoxManager().boxById(pattern.id);
+            if(infoBox != undefined){
+                infoBox.highlight();
+            }
             let rotatePoint = (point)=>{return PointOperations.rotateAroundPoint(pattern.center, point, pattern.rotation)};
             switch (pattern.constructor.name) {
                 case "Rect":
@@ -458,7 +504,7 @@ class HTMLeditor{
                             }
                         }else if(editedObject.memorize == "width"){
                             changes = {
-                                width: 2* PointOperations.distance(PointOperations.halfway(pattern.xOrigin, pattern.xEnd),PointOperations.halfway(pattern.yOrigin, pattern.yEnd), this.relX(event.clientX,0,1,1), this.relY(event.clientY,0,1,1)) - 20
+                                width: 2* PointOperations.lineDistance(this.relX(event.clientX,0,this.minCoordinate,1), this.relY(event.clientY,0,this.minCoordinate,1), pattern.xOrigin, pattern.yOrigin, pattern.xEnd, pattern.yEnd) - 20
                             }
                         }
                         this.currProj().alterPattern(pattern, changes);
@@ -499,7 +545,7 @@ class HTMLeditor{
                 //repaint point and marker and outline
                 this.prepareEdit(pattern);
                 if(!this.savePower){
-                    this.currProj().frame().infoBoxManager.updateBox(pattern);
+                    this.currProj().frame().updateInfoBox(pattern);
                 }
                 break;
             case "dragPattern":
@@ -507,29 +553,11 @@ class HTMLeditor{
                 let newOriginY = this.relY(event.clientY,(this.state.mouseDownInfo.relToPatternOriginY));
                 if (newOriginX !== pattern.xOrigin || newOriginY !== pattern.yOrigin) {
                     this.clearViewportUI();
-                    switch (pattern.constructor.name) {
-                        case "Rect":
-                            pattern.translateTo(newOriginX, newOriginY);
-                            break;
-                        case "Circle":
-                            pattern.translateTo(newOriginX, newOriginY);
-                        break;
-                        case "Ellipse":
-                            pattern.translateTo(newOriginX, newOriginY);
-                        break;
-                        case "Line":
-                            pattern.translateTo(newOriginX, newOriginY);
-                        break;
-                        case "Path":
-                            pattern.translateTo(newOriginX, newOriginY);
-                            break;
-                        default:
-                            break;
-                    }
+                    pattern.translateTo(newOriginX, newOriginY);
                     //repaint point and marker
                     this.prepareEdit(pattern);
                     if(!this.savePower){
-                        this.currProj().frame().infoBoxManager.updateBox(pattern);
+                        this.currProj().frame().updateInfoBox(pattern);
                     }
                 }
                 break;
@@ -538,39 +566,77 @@ class HTMLeditor{
                 break;
         }
     }
-    finishNewPattern(event, to){
-        if(!this.invalidPattern(event)){
-            this.infoBoxManager().newBox(this.focusedPattern());
-            this.saveToHistory();
-            this.setDrawingType("none");
-            this.startEdit(this.focusedPattern());
-            
-            //TODO: remove filler box
-        }else{
-            this.focus();
-            this.setDrawingType(to);
-        }
+    finishNewPattern(event){
+        this.fixClickOnlyPattern(event);
+        this.currProj().frame().newBox(this.focusedPattern());
+        this.saveToHistory();
+        this.setDrawingType("none");
+        this.startEdit(this.focusedPattern());
+    }
+    setDraggingInfo(editedObject, event){
+        this.state.editedObject = editedObject;
+        let mouseDownInfo = {
+            x:this.relX(event.clientX,0,undefined,1),
+            y:this.relX(event.clientY,0,undefined,1),
+            relToPatternOriginX:this.relX(event.clientX,0,undefined,1) - this.state.editedObject.xOrigin,
+            relToPatternOriginY:this.relY(event.clientY,0,undefined,1) - this.state.editedObject.yOrigin
+        };
+        this.state.mouseDownInfo = mouseDownInfo;
+    }
+    finalizeDraggedInPattern(pattern, event){
+        this.currProj().frame().newBox(pattern);
+        this.focus(pattern);
+        this.state.currentAction = "dragPattern";
+        this.setDraggingInfo(pattern, event);
+        this.clearViewportUI();
+        this.addHelperOutline(pattern);
     }
     /**
-     * Checks if pattern origin equals last position input. If that is true the last pattern is removed and an alert is shown.
+     * Checks if the mouse position that finishes the pattern is the same as the one that started the pattern. If thats the case the pattern is assigned the default properties.
      * @param {MouseEvent} event last mouse event
-     * @returns true if invalid pattern is detected
      */
-    invalidPattern(event){
-        if(this.relX(event.clientX) == this.focusedPattern().xOrigin && this.relY(event.clientY) == this.focusedPattern().yOrigin){
-            this.removePattern(this.focusedPattern());
-            alert("Halte die Maus gedrückt und ziehe sie anschließend, um eine Form zu erstellen.");
-            return true;
-        }
-        //check if height and width are not 0
-        if(["Rect","Ellipse"].indexOf(this.focusedPattern().constructor.name) != -1){
-            if(this.relX(event.clientX) == this.focusedPattern().xOrigin || this.relY(event.clientY) == this.focusedPattern().yOrigin){
-                this.removePattern(this.focusedPattern());
-                alert("Diese Form kannst du so nicht malen");
-                return true;
+     fixClickOnlyPattern(event){
+        let pattern = this.focusedPattern();
+        //if mouse has not moved since pattern creation
+        if(this.relX(event.clientX) == pattern.xOrigin && this.relY(event.clientY) == pattern.yOrigin){
+            switch (pattern.constructor.name) {
+                case "Rect":
+                    this.currProj().alterPattern(pattern,
+                        {
+                            width:this.defaultSizing.rect.width,
+                            height:this.defaultSizing.rect.height,
+                            xOrigin:this.relX(event.clientX-parseInt(this.defaultSizing.rect.width/2)),
+                            yOrigin:this.relY(event.clientY-parseInt(this.defaultSizing.rect.height/2))
+                        });
+                    break;
+                case "Circle":
+                    this.currProj().alterPattern(pattern,
+                        {
+                            radius:this.defaultSizing.circle.radius,
+                            xOrigin:this.relX(event.clientX),
+                            yOrigin:this.relY(event.clientY)
+                        });
+                    break;
+                case "Ellipse":
+                    this.currProj().alterPattern(pattern,
+                        {
+                            xRadius:this.defaultSizing.ellipse.xRadius,
+                            yRadius:this.defaultSizing.ellipse.yRadius,
+                            xOrigin:this.relX(event.clientX),
+                            yOrigin:this.relY(event.clientY)
+                        });
+                    break;
+                case "Line":
+                    this.currProj().alterPattern(pattern,{
+                        xEnd:this.relX(event.clientX),
+                        yEnd:this.relY(event.clientY+parseInt(this.defaultSizing.line.length/2)),
+                        width:this.defaultSizing.line.width,
+                        xOrigin:this.relX(event.clientX),
+                        yOrigin:this.relY(event.clientY-parseInt(this.defaultSizing.line.length/2))
+                    });
+                    break;
             }
         }
-        return false;
     }
     newProject(){
         let newProject = new Project(this.environment.layout.elementOverview, this);
@@ -627,7 +693,6 @@ class HTMLeditor{
         }
     }
     mirrorCurrentPatternVertical(){
-        console.log(this.focusedPattern());
         if(this.focusedPattern() != undefined){
             this.focusedPattern().mirrorVertically();
             this.currProj().repaint(this.focusedPattern());
@@ -652,8 +717,8 @@ class HTMLeditor{
         }
     }
     addPattern(type,x,y){
-        let id = this.currProj().newPattern(type,this.relX(x),this.relY(y));
-        return id;
+        let pattern = this.currProj().newPattern(type,this.relX(x),this.relY(y));
+        return pattern;
     }
     addHelperMarker(...params){
         let marker = new Marker(this.drawingViewport,...params);
@@ -700,8 +765,7 @@ class HTMLeditor{
                     this.currProj().setFrame(this.currProj().keyframes[0]);
                     this.currProj().setContext();
                     this.saveToHistory();
-                    //ui
-                    this.selectRadio(this.environment.control.view.arange, this.environment.control.view);
+                    
                     break;
                 case "mask":
                     if(editPossible){
@@ -710,7 +774,8 @@ class HTMLeditor{
                             this.currProj().setContext(this.currProj().currentFrame);
                             this.currProj().setFrame(focusedPattern.maskLayer);
                             //ui
-                            this.selectRadio(this.environment.control.view.mask, this.environment.control.view);
+                            let callback = ()=>{this.changeView("arange")};
+                            this.environment.layout.container.append(new Banner("Punch out view", "Quit", callback));
                             
                         }else{
                             alert("Cannot mask this pattern");
@@ -723,14 +788,10 @@ class HTMLeditor{
         }
     }
     startEdit(pattern){
-        if(this.currProj().frame().boundId != pattern.id){
-            this.state.currentAction = "edit0";
-            this.focus(pattern);
-            this.prepareEdit(pattern);
-            this.currProj().repaint();
-        }else{
-            alert("Du kannst diese Form nicht im Ausschneidemodus bearbeiten");
-        }
+        this.state.currentAction = "edit0";
+        this.focus(pattern);
+        this.prepareEdit(pattern);
+        this.currProj().repaint();
     }
     stopEdit(){
         this.currProj().frame().stopEdit();
@@ -759,7 +820,7 @@ class HTMLeditor{
         dup.id = IconCreatorGlobal.id();
         this.currProj().frame().addPattern(dup);
         dup.translateTo(dup.xOrigin+20, dup.yOrigin+20);
-        this.infoBoxManager().newBox(dup);
+        this.currProj().frame().newBox(dup);
         this.stopEdit();
         this.startEdit(dup);
     }
@@ -791,7 +852,9 @@ class HTMLeditor{
         }
     }
     saveToHistory(){
-        this.currProj().frame().saveToHistory();
+        if(this.keepHistory){
+            this.currProj().frame().saveToHistory();
+        }
     }
     loadProject(projectJSON = {}){
         //TEMP
@@ -817,28 +880,24 @@ class HTMLeditor{
         if(this.state.currentAction == "edit0"){
             this.stopEdit();
         }
-        //ui changes
-        Object.keys(this.environment.control.editSVG).forEach(key => {
-            this.environment.control.editSVG[key].removeAttribute("selected");
-        });
         switch (type) {
             case "none":
-                this.environment.control.editSVG.cursor.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.cursor, this.environment.control.editSVG);
                 break;
             case "rect0":
-                this.environment.control.editSVG.newRect.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.newRect, this.environment.control.editSVG);
                 break;
             case "circle0":
-                this.environment.control.editSVG.newCircle.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.newCircle, this.environment.control.editSVG);
                 break;
             case "ellipse0":
-                this.environment.control.editSVG.newEllipse.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.newEllipse, this.environment.control.editSVG);
                 break;
             case "line0":
-                this.environment.control.editSVG.newLine.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.newLine, this.environment.control.editSVG);
                 break;
             case "path0":
-                this.environment.control.editSVG.newPath.setAttribute("selected","true");
+                this.selectRadio(this.environment.control.editSVG.newPath, this.environment.control.editSVG);
                 break;
             default:
                 break;
@@ -879,9 +938,6 @@ class HTMLeditor{
     setCursor(element,style = "cursor"){
         element.style.cursor = style;
     }
-    outputHTML(){
-        return this.currProj().outputHTML();
-    }
     getPatternClientRect(pattern,inViewport = false){
         if(inViewport){
             let rect = document.getElementById(String(pattern.id)).querySelector('[svg-editor-type="mainPattern"]').getBoundingClientRect();
@@ -919,7 +975,9 @@ class HTMLeditor{
         this.currProj().oneDown(pattern);
         this.infoBoxManager().oneDown(pattern);
     }
-    debugFrame(){
-        return this.currProj().frame();
+    exportFile(){
+        let content = Exporter.createSVGFileContent(this.currProj());
+        console.log(content);
+        Exporter.download("easy_svg_online_creation", content);
     }
 }

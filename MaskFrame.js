@@ -21,21 +21,23 @@ class MaskFrame extends Frame{
     }
     //@Override
     paint(pattern){
-        if(pattern === undefined){//render all
-            this.paintPanel.innerHTML = "";
-            this.renderOrder.forEach(id => {
-                if(this.patterns[id] == undefined){
-                    console.error("Tried to render not existing id "+id);
-                    return;
-                }
-                this.render(id);
-            });
-        }else{
-            if(document.getElementById(pattern.id) !== null){
-                document.getElementById(pattern.id).remove();
+        //mask frame always render all patterns again
+        this.paintPanel.innerHTML = "";
+        this.renderOrder.forEach(id => {
+            if(this.patterns[id] == undefined){
+                console.error("Tried to render not existing id "+id);
+                return;
             }
-            this.render(pattern.id);
-        }
+            this.render(id);
+        });
+    }
+    //@override
+    newBox(pattern){
+
+    }
+    //@override
+    updateInfoBox(pattern){
+
     }
     /**
      * Loads a Frame + patterns that hast been exported with Frame.get().
@@ -80,8 +82,8 @@ class MaskFrame extends Frame{
             //directly inject id
             if(trueCopy) pattern.id = patternJSON.attributes.id;
             delete patternJSON.attributes.id;
-            this.addPattern(pattern);
-            this.alterPattern(pattern, patternJSON.attributes,false);
+            this.append(pattern);
+            pattern.load(patternJSON);
         }
         //add render Order
         if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);

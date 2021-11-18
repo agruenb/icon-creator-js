@@ -56,6 +56,16 @@ class PointOperations{
         returnVector[oneIndex] = 1;
         return PointOperations.normalize(returnVector);
     }
+    /**
+     * Finds the shortest distance between a line and a point
+     * @param {*} pointX 
+     * @param {*} pointY 
+     * @param {*} lineX1 
+     * @param {*} lineY1 
+     * @param {*} lineX2 
+     * @param {*} lineY2 
+     * @returns 
+     */
     static lineDistance(pointX, pointY, lineX1, lineY1, lineX2, lineY2) {
         let C = lineX2 - lineX1;
         let D = lineY2 - lineY1;

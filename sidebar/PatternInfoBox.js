@@ -66,26 +66,37 @@ class PatternInfoBox{
         }
     }
     fillBody(){
-        let headline = this.el("div",this.name,"headline");
+        let headline = IconCreatorGlobal.el("div",this.name,"headline");
 
-        let topWrapper = this.el("div","", "top-wrapper");
+        let topWrapper = IconCreatorGlobal.el("div","", "top-wrapper");
 
-        let preview = this.el("div","", "preview");
+        let preview = IconCreatorGlobal.el("div","", "preview");
         this.previewWindow = preview;
-        let line = this.el("div","","line");
+        let line = IconCreatorGlobal.el("div","","line");
+        let upperLine = IconCreatorGlobal.el("div","","line");
         //order
-        let orderWrapper = this.el("div","","order-wrapper");
-        orderWrapper.classList.add("line");
-        let orderLabel = this.el("div","Anordnen","discr");
-        let toTop = this.el("button","A","toTop");
-        let oneUp = this.el("button","^","oneUp");
-        let toBottom = this.el("button","V","toBottom");
-        let oneDown = this.el("button","v","oneDown");
+        let orderWrapper = IconCreatorGlobal.el("div","","order-wrapper");
+        let orderLabel = IconCreatorGlobal.el("div","Anordnen","discr");
+        let toTop = IconCreatorGlobal.el("button","A","toTop");
+        let oneUp = IconCreatorGlobal.el("button","^","oneUp");
+        let toBottom = IconCreatorGlobal.el("button","V","toBottom");
+        let oneDown = IconCreatorGlobal.el("button","v","oneDown");
         orderWrapper.append(orderLabel, toTop, oneUp, toBottom, oneDown);
+        //delete
+        let deleteWrapper = IconCreatorGlobal.el("div","","delete-wrapper");
+        let deleteLabel = IconCreatorGlobal.el("div","Löschen","discr");
+        let deleteButton = IconCreatorGlobal.el("div", "U", "pseudo-input");
+        deleteButton.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            this.keyFrame.editor.removePattern(this.pattern);
+            this.keyFrame.editor.saveToHistory();
+        });
+        deleteWrapper.append(deleteLabel, deleteButton);
+        upperLine.append(orderWrapper, deleteWrapper);
         //fill
-        let colorWrapper = this.el("div","","color-wrapper");
+        let colorWrapper = IconCreatorGlobal.el("div","","color-wrapper");
         if(this.pattern.color != undefined){
-            let colorLabel = this.el("div","Füllen","discr");
+            let colorLabel = IconCreatorGlobal.el("div","Füllen","discr");
             let colorInput = new CustomColorInput("pseudo-input", (this.pattern.color == "transparent")?"#ffffff":this.pattern.color);
             this.fillColorLabel = colorInput;
             this.fillColor = colorInput.querySelector("input");
@@ -118,9 +129,9 @@ class PatternInfoBox{
             });
         }
         //border
-        let borderWrapper = this.el("div", "", "border-wrapper");
+        let borderWrapper = IconCreatorGlobal.el("div", "", "border-wrapper");
         if(this.pattern.borderWidth != undefined){
-            let borderColorLabel = this.el("div","Rahmen","discr");
+            let borderColorLabel = IconCreatorGlobal.el("div","Rahmen","discr");
             let borderColorInput = new CustomColorInput("pseudo-input", (this.pattern.borderColor == "transparent")?"#ffffff":this.pattern.borderColor);
             this.borderColorLabel = borderColorInput;
             this.borderColor = borderColorInput.querySelector("input");
@@ -168,10 +179,7 @@ class PatternInfoBox{
         }
         line.append(colorWrapper, borderWrapper);
 
-        topWrapper.append(preview, orderWrapper, line);
-
-        let deleteButton = this.el("div", "U", "delete-button");
-        this.element.append(deleteButton);
+        topWrapper.append(preview, upperLine, line);
 
         this.element.append(headline, topWrapper);
         toBottom.addEventListener("click",()=>{
@@ -190,21 +198,10 @@ class PatternInfoBox{
             this.keyFrame.editor.oneDown(this.pattern);
             this.keyFrame.editor.saveToHistory();
         });
-        deleteButton.addEventListener("click",(e)=>{
-            e.stopPropagation();
-            this.keyFrame.editor.removePattern(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-        });
         this.element.addEventListener("click", ()=>{
             this.keyFrame.editor.stopEdit();
             this.keyFrame.editor.startEdit(this.pattern);
         });
-    }
-    el(type,text,className){
-        let el = document.createElement(type);
-        el.classList.add(className);
-        el.innerHTML = text;
-        return el;
     }
     highlight(){
         this.element.classList.add("highlight");

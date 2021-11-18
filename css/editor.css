@@ -6,14 +6,16 @@
 
     --light-cream: #FFF3DE;
     
-    --panel-background:#ffffff;
+    --panel-background:#ececec;
     --panel-outline:#ffffff;
     --highlight:#307ffd;
     --deep-blue:#0000ff;
     --mute-gray:#505050;
     --select-black:#000000;
     
-    
+    --panel-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
+    --mute-grey:#ccc;
+    --header-panel-grey:rgb(146, 146, 146);
 
     --delete-red:#ff4040;
     --default-button-color:#6a6a6a;
@@ -31,10 +33,13 @@ body{
 }
 button{
     all:unset;
+    user-select: none;
+    cursor:pointer;
 }
 button img{
     height:100%;
     width:100%;
+    pointer-events:none;
 }
 .anno-button{
     display:flex;
@@ -44,35 +49,62 @@ button img{
     --size:50px;
     height:var(--size);
     width:var(--size);
-    background-color: var(--panel-background);
-    border-radius:10px;
-    margin:5px;
-    box-shadow:0 2px 5px rgb(0 0 0 / 60%);
+    overflow: hidden;;
+}
+.anno-button .pseudo-input{
+    width: 75%;
+    height: 75%;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+.anno-button:hover .pseudo-input{
+    border-radius: 15px;
+    cursor: pointer;
 }
 .anno-button:hover{
-    border-radius:20px;
-    background-color: var(--light-pastel-green);
+    padding-left:15px;
 }
 .anno-button[selected="true"]{
-    border-radius:50%;
-    background-color: var(--medium-pastel-green);
+    padding-left:5px;
+    border-left: 8px solid var(--highlight);
+}
+.editor-container .toolbar .tool-icon{
+    height:90%;
+    width:90%;
 }
 .editor-container{
     width:100vw;
     height:100vh;
+    position: relative;
 }
 .editor-container .topbar{
-    background-color:#d2d2d2;
+    box-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
+    background:var(--panel-background);
     position:fixed;
     top:0;
     height:44px;
     width:100%;
     display:flex;
+    justify-content: space-between;
+}
+.topbar .logo{
+    font-size: 28px;
+    font-weight:bold;
+    line-height: 44px;
+}
+.topbar .export-button{
+    height:100%;
+    width:200px;
+    background: var(--medium-pastel-green);
+    cursor:pointer;
+    display:flex;
     justify-content: center;
+    align-items: center;
+    color:var(--white-text);
 }
 .editor-container .toolbar{
     position:fixed;
-    top:44px;
+    top:54px;
     left:0;
 }
 .editor-container .history-button{
@@ -106,7 +138,7 @@ button img{
     overflow-y:auto;
 }
 .editor-container .vert-scroll > *{
-    margin-bottom:5px;
+    margin-bottom:8px;
 }
 
 .cursor-c{

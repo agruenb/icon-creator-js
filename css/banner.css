@@ -1,0 +1,44 @@
+.editor-container .banner{
+    width: 400px;
+    height: 44px;
+    padding: 5px;
+    top:60px;
+    left: calc(50% - 210px);
+    position: absolute;
+    background-color: var(--panel-background);
+    border-radius: 10px;
+    box-shadow: var(--panel-shadow);
+
+    animation-name:slideDown;
+    animation-duration:0.3s;
+}
+.editor-container .banner .top-wrapper{
+    display:flex;
+    width: 100%;
+    height:44px;
+}
+.editor-container .banner .title{
+    width:330px;
+    padding-left:10px;
+    height:44px;
+    line-height:44px;
+    font-size: 22px;
+    font-weight: 500;
+}
+.editor-container .banner .close-button{
+    width:60px;
+    height:44px;
+    color:var(--white-text);
+    background-color:var(--highlight);
+    border-radius:5px;
+    text-align: center;
+    font-size: 14px;
+}
+@keyframes slideDown {
+    0%{transform:translateY(-100px)}
+    100%{transform:translateY(0)}
+}
+@keyframes slideUp {
+    0%{transform:translateY(0)}
+    100%{transform:translateY(-200px)}
+}

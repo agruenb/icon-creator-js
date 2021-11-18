@@ -66,7 +66,9 @@ class Project extends IconCreatorGlobal{
         style.type = 'text/css';
         style.appendChild(document.createTextNode(css));
         //paintColor
-        this.editor.environment.control.meta.paintColor.value = this.colorMachine.pallet()[0];
+        this.editor.environment.control.meta.paintColor.querySelector("input").value = this.colorMachine.pallet()[0];
+        this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
+        this.colorMachine.next();
     }
     frame(){
         return this.currentFrame;
@@ -78,8 +80,10 @@ class Project extends IconCreatorGlobal{
     setFrame(frame){
         this.currentFrame.paintPanel.innerHTML = "";
         this.currentFrame.paintPanel.style.display = "none";
+        this.currentFrame.hide();
         this.currentFrame = frame;
         this.currentFrame.paintPanel.style.display = "block";
+        //frame.show();
         this.repaint();
     }
     /**
@@ -87,10 +91,11 @@ class Project extends IconCreatorGlobal{
      * @param {Frame} frame that should be seen as context. If frame is undefined the context is removed.
      */
     setContext(frame){
+        return
         if(frame){
             this.contextContainer.innerHTML = "";
             let contextFrame = new Frame(this.contextContainer, this.infoBoxContainer, this.editor);
-            contextFrame.load(frame.get(), false);
+            contextFrame.load(frame.get(), false, false);
             contextFrame.paintPanel.style.display = "block";
             contextFrame.repaint();
         }else{
@@ -160,19 +165,22 @@ class Project extends IconCreatorGlobal{
         }
     }
     newPattern(type,xOrigin,yOrigin){
+        let color;
         if(this.paintColor == "default" && this.generateColors){
-            var color = this.colorMachine.next();
-            this.editor.environment.control.meta.paintColor.value = color;
+            color = this.editor.environment.control.meta.paintColor.querySelector("input").value;
+            let newColor = this.colorMachine.next();
+            this.editor.environment.control.meta.paintColor.querySelector("input").value = newColor;
+            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
         }else{
-            var color = this.paintColor;
+            color = this.paintColor;
         }
         return this.frame().newPattern(type, xOrigin, yOrigin, color);
     }
     setColor(color = "#000000"){
         this.paintColor = color;
-        if(this.editor.environment.control.meta.paintColor.value != color){
-            this.editor.environment.control.meta.paintColor.value = color;
-            this.editor.environment.control.meta.paintColor.dispatchEvent(new Event('change'));
+        if(this.editor.environment.control.meta.paintColor.querySelector("input").value != color){
+            this.editor.environment.control.meta.paintColor.querySelector("input").value = color;
+            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
         }
     }
     /**
@@ -198,17 +206,6 @@ class Project extends IconCreatorGlobal{
     }
     oneDown(pattern){
         this.frame().oneDown(pattern);
-    }
-    outputHTML(){
-        let fileContent = '<svg viewBox="0 0 '+this.dimensions.width+' '+this.dimensions.height+'">';
-        for (let i = 0; i < this.keyframes.length; i++) {
-            let orderCopy = JSON.parse(JSON.stringify(this.keyframes[i].renderOrder));
-            while(orderCopy.length > 0){
-                fileContent += this.keyframes[i].patterns[orderCopy[0]].fullHTML();
-                orderCopy.splice(0,1);
-            }
-        }
-        return fileContent+'</svg>';
     }
     /**
      * Loads a project and its frames + patterns that hast been exported with project.get(). Note that the current project will be overwritten.

@@ -54,10 +54,22 @@ class Frame extends IconCreatorGlobal{
         let pattern = this.basicPattern(type,xOrigin,yOrigin,color);
         this.addPattern(pattern);
         this.repaint();
-        return pattern.id;
+        return pattern;
+    }
+    newBox(pattern){
+        this.infoBoxManager.newBox(pattern);
+    }
+    updateInfoBox(pattern){
+        this.infoBoxManager.updateBox(pattern);
+    }
+    hide(){
+        this.infoBoxManager.hide();
+    }
+    show(){
+        this.infoBoxManager.show();
     }
     /**
-     * Adds new maskLayer, f
+     * Adds new maskLayer, to patter, then appends it
      * @param {*} pattern 
      */
     addPattern(pattern){
@@ -237,8 +249,9 @@ class Frame extends IconCreatorGlobal{
      * Loads a Frame + patterns that hast been exported with Frame.get().
      * @param {JSON} FrameJSON a JSON Object that will be loaded
      * @param {boolean} trueCopy also copies the IDs if true
+     * @param {boolean} loadInfoBox should pattern InfoBoxes be created
      */
-    load(frameJSON = {}, trueCopy = true){
+    load(frameJSON = {}, trueCopy = true, loadInfoBox = true){
         //check valid
         if(frameJSON.version != this.version){
             console.warn("Loading frame from another version");
@@ -278,7 +291,9 @@ class Frame extends IconCreatorGlobal{
             this.addPattern(pattern);
             //handle mask layer / frame
             pattern.load(patternJSON);
-            this.infoBoxManager.newBox(pattern);
+            if(loadInfoBox){
+                this.infoBoxManager.newBox(pattern);
+            }
         }
         //add render Order
         if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);

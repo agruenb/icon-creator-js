@@ -2,6 +2,8 @@ class InfoBoxManager{
 
     boxes = new Array();
 
+    animationDuration = 0.6;
+
     constructor(container, keyframe){
         this.container = container;
         this.keyframe = keyframe;
@@ -16,11 +18,7 @@ class InfoBoxManager{
         thatBox.update();
     }
     add(box){
-        if(this.boxes.length == 0){
-            this.container.append(box.element);
-        }else{
-            this.container.insertBefore(box.element, this.container.children[0]);
-        }
+        this.appendTop(box);
         this.boxes.unshift(box);
     }
     remove(pattern){
@@ -31,6 +29,27 @@ class InfoBoxManager{
             this.boxes.splice(remIndex,1);
         }else{
             console.warn("Tried to remove none existant PatternInfoBox.");
+        }
+    }
+    hide(){
+        for(let i in this.boxes){
+            this.boxes[i].element.remove();
+        }
+        console.log("Hid:", this.boxes);
+    }
+    show(){
+        for(let i in this.keyframe.renderOrder){
+            let box = this.boxes.filter((box)=>{
+                return box.boundId == i;
+            })[0];
+            this.appendTop(box);
+        }
+    }
+    appendTop(box){
+        if(this.boxes.length == 0){
+            this.container.append(box.element);
+        }else{
+            this.container.insertBefore(box.element, this.container.children[0]);
         }
     }
     muteAll(){
@@ -60,7 +79,10 @@ class InfoBoxManager{
         //if second to last object
         if(index == length - 2){
             console.log("second to last");
-            this.container.append(this.boxById(pattern.id).element);
+            Animator.switch(this.boxById(pattern.id).element,  this.container.children[this.container.children.length - 1], this.animationDuration);
+            setTimeout(()=>{
+                this.container.append(this.boxById(pattern.id).element);
+            },this.animationDuration * 1000);
         }else
         if(index != length - 1){//if not last
             this.container.insertBefore(this.boxById(pattern.id).element, this.container.children[index + 2]);

@@ -107,17 +107,16 @@ class Pattern extends IconCreatorGlobal{
     /**
      * Returns the JSON representation of this pattern.
      */
-    get(allowMask = true){
+    get(){
         let obj = super.get(); 
         let additionalAttributes = {
             type: "pattern",
-            version: this.version,
             attributes:{
                 id: this.id,
                 display: this.display,
                 isMask: this.isMask,
                 isFiller: this.isFiller,//the filler is always identical to the main pattern
-                maskLayer: (allowMask)?this.maskLayer.get():undefined,
+                maskLayer: (!this.isMask)?this.maskLayer.get():undefined,
                 boundId: this.boundId,
                 xOrigin: this.xOrigin,
                 yOrigin: this.yOrigin
@@ -136,7 +135,8 @@ class Pattern extends IconCreatorGlobal{
         //if this pattern has been given a mask layer, load the passed data into it
         if(this.maskLayer){
             this.maskLayer.load(patternJSON.attributes.maskLayer);
-            this.maskLayer.addPattern(this);
+            this.maskLayer.append(this);
+            console.log(this.maskLayer);
         }
         delete patternJSON.attributes.maskLayer;
         Object.assign(this,patternJSON.attributes);
@@ -282,7 +282,7 @@ class Circle extends Pattern{
         +' cx="'+this.xOrigin
         +'" cy="'+this.yOrigin
         +'" r="'+this.radius
-        +'" fill="'+this.color+'" '
+        +'" fill="'+this.color
         +'" '+(paintBorder?`stroke="${this.borderColor}" `:'')
         +(paintBorder?`stroke-width="${this.borderWidth}" `:'')
         +'/>';
@@ -354,8 +354,8 @@ class Ellipse extends Pattern{
         let defaultPattern = new Ellipse(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         let cleanHTML = ''
-        +'<ellipse '+ ((this.hasMask())?this.maskLink():'')
-        +' cx="'+this.xOrigin
+        +'<ellipse '+ ((this.hasMask())?this.maskLink()+' ':'')
+        +'cx="'+this.xOrigin
         +'" cy="'+this.yOrigin
         +'" rx="'+this.xRadius
         +'" ry="'+this.yRadius
@@ -416,12 +416,14 @@ class Line extends Pattern{
         let temp = this.xOrigin;
         this.xOrigin = this.xEnd;
         this.xEnd = temp;
+        this.updateProperties();
     }
     mirrorHorizontally(){
         super.mirrorHorizontally();
         let temp = this.yOrigin;
         this.yOrigin = this.yEnd;
         this.yEnd = temp;
+        this.updateProperties();
     }
     cleanHTML(){
         let defaultPattern = new Line(0,0);
@@ -585,7 +587,7 @@ class Path extends Pattern{
         let cleanHTML = ''
         +'<path '+ ((this.hasMask())?this.maskLink():'')
         +' d="M '+this.xOrigin+' '+this.yOrigin+' '+pointsString+'Z"'
-        +'" fill="'+this.color
+        +' fill="'+this.color
         +'" '+(paintBorder?`stroke="${this.borderColor}" `:'')
         +(paintBorder?`stroke-width="${this.borderWidth}" `:'')
         +((this.rotation%360 != defaultPattern.rotation)?` transform="rotate(${this.rotation},${this.center[0]},${this.center[1]})" `:'')
