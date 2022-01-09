@@ -1,6 +1,7 @@
 class PatternInfoBox{
 
     initialised = false;
+    selected = false;
 
     previewWindow;
     
@@ -33,6 +34,9 @@ class PatternInfoBox{
     updatePreview(){
         this.previewWindow.innerHTML = `<svg viewbox='0 0 ${this.keyFrame.width} ${this.keyFrame.height}'>${this.pattern.cleanHTML()}</svg>`
     }
+    updateAccentColor(){
+        this.accentBackground.style.backgroundColor = this.fillColor.value;
+    }
     updateFill(){
         if(this.pattern.color != undefined){
             if(this.fillColor.value != this.pattern.color && this.pattern.color != "transparent"){
@@ -42,6 +46,7 @@ class PatternInfoBox{
             if(this.pattern.color != "transparent"){
                 this.fillColorLabel.setAttribute("checked","true");
             }else{
+                this.accentBackground.style.backgroundColor = "#ffffff";
                 this.fillColorLabel.removeAttribute("checked");
             }
         }
@@ -65,48 +70,69 @@ class PatternInfoBox{
             }
         }
     }
+    getIconUrl(){
+        switch (this.pattern.constructor.name) {
+            case "Rect":
+                return "img/rect_icon.svg";
+            case "Circle":
+                return "img/circle_icon.svg";
+            case "Ellipse":
+                return "img/ellipse_icon.svg";
+            case "Line":
+                return "img/line_icon.svg";
+            case "Path":
+                return "img/path_icon.svg";
+            default:
+                break;
+        }
+    }
     fillBody(){
-        let headline = IconCreatorGlobal.el("div",this.name,"headline");
+        let headlineWrapper = IconCreatorGlobal.el("div","<img src='"+this.getIconUrl()+"'>"+this.name,"headline");
+
+        let coloredBackground = document.createElement("div");
+        this.accentBackground = coloredBackground;
+        coloredBackground.classList.add("accent-background");
+        coloredBackground.style.backgroundColor = this.pattern.color;
 
         let topWrapper = IconCreatorGlobal.el("div","", "top-wrapper");
 
         let preview = IconCreatorGlobal.el("div","", "preview");
         this.previewWindow = preview;
-        let line = IconCreatorGlobal.el("div","","line");
         let upperLine = IconCreatorGlobal.el("div","","line");
+        upperLine.classList.add("upper");
+        let line = IconCreatorGlobal.el("div","","line");
+        line.classList.add("lower");
         //order
         let orderWrapper = IconCreatorGlobal.el("div","","order-wrapper");
-        let orderLabel = IconCreatorGlobal.el("div","Anordnen","discr");
         let toTop = IconCreatorGlobal.el("button","A","toTop");
         let oneUp = IconCreatorGlobal.el("button","^","oneUp");
         let toBottom = IconCreatorGlobal.el("button","V","toBottom");
         let oneDown = IconCreatorGlobal.el("button","v","oneDown");
-        orderWrapper.append(orderLabel, toTop, oneUp, toBottom, oneDown);
+        orderWrapper.append(toTop, oneUp, toBottom, oneDown);
         //delete
         let deleteWrapper = IconCreatorGlobal.el("div","","delete-wrapper");
-        let deleteLabel = IconCreatorGlobal.el("div","Löschen","discr");
-        let deleteButton = IconCreatorGlobal.el("div", "U", "pseudo-input");
+        let deleteButton = IconCreatorGlobal.el("button", "U", "delete-button");
         deleteButton.addEventListener("click",(e)=>{
             e.stopPropagation();
             this.keyFrame.editor.removePattern(this.pattern);
             this.keyFrame.editor.saveToHistory();
         });
-        deleteWrapper.append(deleteLabel, deleteButton);
+        deleteWrapper.append(deleteButton);
         upperLine.append(orderWrapper, deleteWrapper);
         //fill
         let colorWrapper = IconCreatorGlobal.el("div","","color-wrapper");
         if(this.pattern.color != undefined){
-            let colorLabel = IconCreatorGlobal.el("div","Füllen","discr");
             let colorInput = new CustomColorInput("pseudo-input", (this.pattern.color == "transparent")?"#ffffff":this.pattern.color);
             this.fillColorLabel = colorInput;
             this.fillColor = colorInput.querySelector("input");
             let fillTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.color == "transparent", "X");
             fillTransLabel.setAttribute("title","remove filling");
             this.fillTrans = fillTransLabel.querySelector("input");
-            colorWrapper.append(colorLabel, colorInput, fillTransLabel);
+            colorWrapper.append(colorInput, fillTransLabel);
             this.fillColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {color:e.target.value}, true);
                 this.updatePreview();
+                this.updateAccentColor();
                 this.keyFrame.editor.saveToHistory();
             });
             this.fillColor.addEventListener("click", ()=>{
@@ -131,7 +157,6 @@ class PatternInfoBox{
         //border
         let borderWrapper = IconCreatorGlobal.el("div", "", "border-wrapper");
         if(this.pattern.borderWidth != undefined){
-            let borderColorLabel = IconCreatorGlobal.el("div","Rahmen","discr");
             let borderColorInput = new CustomColorInput("pseudo-input", (this.pattern.borderColor == "transparent")?"#ffffff":this.pattern.borderColor);
             this.borderColorLabel = borderColorInput;
             this.borderColor = borderColorInput.querySelector("input");
@@ -141,7 +166,7 @@ class PatternInfoBox{
             this.borderWidthLabel = borderWidthInput;
             borderTransLabel.setAttribute("title","remove border");
             this.borderTrans = borderTransLabel.querySelector("input");
-            borderWrapper.append(borderColorLabel, borderColorInput, borderWidthInput, borderTransLabel);
+            borderWrapper.append(borderColorInput, borderWidthInput, borderTransLabel);
             this.borderColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {borderColor:e.target.value}, true);
                 this.updatePreview();
@@ -181,22 +206,26 @@ class PatternInfoBox{
 
         topWrapper.append(preview, upperLine, line);
 
-        this.element.append(headline, topWrapper);
-        toBottom.addEventListener("click",()=>{
+        this.element.append(coloredBackground, headlineWrapper, topWrapper);
+        toBottom.addEventListener("click",(e)=>{
             this.keyFrame.editor.toBottom(this.pattern);
             this.keyFrame.editor.saveToHistory();
+            e.stopPropagation();
         });
-        toTop.addEventListener("click",()=>{
+        toTop.addEventListener("click",(e)=>{
             this.keyFrame.editor.toTop(this.pattern);
             this.keyFrame.editor.saveToHistory();
+            e.stopPropagation();
         });
-        oneUp.addEventListener("click",()=>{
+        oneUp.addEventListener("click",(e)=>{
             this.keyFrame.editor.oneUp(this.pattern);
             this.keyFrame.editor.saveToHistory();
+            e.stopPropagation();
         });
-        oneDown.addEventListener("click",()=>{
+        oneDown.addEventListener("click",(e)=>{
             this.keyFrame.editor.oneDown(this.pattern);
             this.keyFrame.editor.saveToHistory();
+            e.stopPropagation();
         });
         this.element.addEventListener("click", ()=>{
             this.keyFrame.editor.stopEdit();
@@ -205,8 +234,16 @@ class PatternInfoBox{
     }
     highlight(){
         this.element.classList.add("highlight");
+        this.revealContent();
+    }
+    revealContent(){
+        this.element.classList.add("expanded");
     }
     mute(){
         this.element.classList.remove("highlight");
+        this.hideContent();
+    }
+    hideContent(){
+        this.element.classList.remove("expanded");
     }
 }

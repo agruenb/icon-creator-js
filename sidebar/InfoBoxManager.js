@@ -2,7 +2,8 @@ class InfoBoxManager{
 
     boxes = new Array();
 
-    animationDuration = 0.6;
+    animationDuration = 0.4;
+    padding = 7;
 
     constructor(container, keyframe){
         this.container = container;
@@ -53,8 +54,8 @@ class InfoBoxManager{
         }
     }
     muteAll(){
-        this.container.querySelectorAll(".highlight").forEach(element => {
-            element.classList.remove("highlight");
+        this.boxes.forEach(element => {
+            element.mute();
         });
     }
     boxById(id){
@@ -70,7 +71,10 @@ class InfoBoxManager{
         let index = [...this.container.children].indexOf(this.boxById(pattern.id).element);
         //if not first object
         if(index != 0){
-            this.container.insertBefore(this.boxById(pattern.id).element,this.container.children[index - 1]);
+            Animator.switchStack(this.container.children[index -1], this.boxById(pattern.id).element, this.animationDuration, this.padding);
+            setTimeout(()=>{
+                this.container.insertBefore(this.boxById(pattern.id).element,this.container.children[index - 1]);
+            },this.animationDuration * 1000);
         }
     }
     oneDown(pattern){
@@ -78,14 +82,16 @@ class InfoBoxManager{
         let index = [...this.container.children].indexOf(this.boxById(pattern.id).element);
         //if second to last object
         if(index == length - 2){
-            console.log("second to last");
-            Animator.switch(this.boxById(pattern.id).element,  this.container.children[this.container.children.length - 1], this.animationDuration);
+            Animator.switchStack(this.boxById(pattern.id).element,  this.container.children[this.container.children.length - 1], this.animationDuration, this.padding);
             setTimeout(()=>{
                 this.container.append(this.boxById(pattern.id).element);
             },this.animationDuration * 1000);
         }else
         if(index != length - 1){//if not last
-            this.container.insertBefore(this.boxById(pattern.id).element, this.container.children[index + 2]);
+            Animator.switchStack(this.boxById(pattern.id).element,  this.container.children[index + 1], this.animationDuration, this.padding);
+            setTimeout(()=>{
+                this.container.insertBefore(this.boxById(pattern.id).element, this.container.children[index + 2]);
+            },this.animationDuration * 1000);
         }
     }
 }

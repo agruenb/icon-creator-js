@@ -187,7 +187,9 @@ class HTMLeditor{
                 case "path1":
                     points = JSON.parse(JSON.stringify(pattern.points));
                     points.pop();
-                    points.push({method:"L",x:this.relX(event.clientX,0),y:this.relY(event.clientY,0),extraX:10,extraY:10});
+                    points.pop();
+                    points.push({method:"L",x:this.relX(event.clientX,0),y:this.relY(event.clientY,0),extraX:10,extraY:10, type:"round"});
+                    points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
                     this.currProj().alterPattern(pattern,{points:points});
                     this.clearViewportUI()
                     this.addHelperOutline(pattern);
@@ -264,10 +266,13 @@ class HTMLeditor{
                     if (this.detectMouseOnMarkerDistance > PointOperations.distance(pattern.xOrigin,pattern.yOrigin,this.relX(event.clientX,0,undefined,1),this.relY(event.clientY,0,undefined,1))) {//finish pattern
                         //path finished
                         points.pop();
-                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10});
+                        points.pop();
+                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
+                        console.log(points);
                         this.clearViewportUI();
                         this.setDrawingType("path0");
                         this.currProj().frame().newBox(pattern);
+                        //TODO replace with default path
                         if(this.focusedPattern().points.length < 2 && this.relX(event.clientX) == this.focusedPattern().xOrigin && this.relY(event.clientY) == this.focusedPattern().yOrigin){//check for invalid path
                             this.removePattern(this.focusedPattern());
                             alert("Halte die Maus gedrückt und ziehe sie anschließend, um eine Form zu erstellen.");
@@ -275,11 +280,16 @@ class HTMLeditor{
                         }
                         this.saveToHistory();
                         this.setDrawingType("none");
+                        this.currProj().alterPattern(pattern, {points:points}, true);
+                        this.currProj().repaint(pattern);
                         this.startEdit(this.focusedPattern());
                     } else {
-                        points.push({method:"L",x:this.relX(event.clientX,0,2),y:this.relY(event.clientY,0,2),extraX:10,extraY:10});
+                        points.pop();
+                        points.push({method:"L",x:this.relX(event.clientX,0,2),y:this.relY(event.clientY,0,2),extraX:10,extraY:10,type:"round"});
+                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
+                        this.currProj().alterPattern(pattern, {points:points}, true);
+                        this.currProj().repaint(pattern);
                     }
-                    this.currProj().alterPattern(pattern, {points:points}, true);
                     break;
                 //edit
                 case "edit0":
@@ -771,8 +781,9 @@ class HTMLeditor{
                     if(editPossible){
                         if(focusedPattern.allowMask){
                             this.state.view = view;
-                            this.currProj().setContext(this.currProj().currentFrame);
+                            //this.currProj().setContext(this.currProj().currentFrame);
                             this.currProj().setFrame(focusedPattern.maskLayer);
+                            console.log(focusedPattern);
                             //ui
                             let callback = ()=>{this.changeView("arange")};
                             this.environment.layout.container.append(new Banner("Punch out view", "Quit", callback));
@@ -816,9 +827,10 @@ class HTMLeditor{
         this.currProj().frame().clearUI();
     }
     duplicate(pattern){
-        let dup = PatternManipulator.duplicate(pattern);
-        dup.id = IconCreatorGlobal.id();
-        this.currProj().frame().addPattern(dup);
+        let dup = PatternManipulator.createWithSameClass(pattern);
+        this.currProj().frame().append(dup);
+        dup.addMaskFrame(this.currProj().frame().parentElement, this.currProj().frame().infoBoxContainer, this.currProj().frame().editor);
+        dup.load(pattern.get(), false);
         dup.translateTo(dup.xOrigin+20, dup.yOrigin+20);
         this.currProj().frame().newBox(dup);
         this.stopEdit();

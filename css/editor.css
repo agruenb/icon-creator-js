@@ -84,6 +84,7 @@ button img{
     top:0;
     height:44px;
     width:100%;
+    z-index: 4;
     display:flex;
     justify-content: space-between;
 }
@@ -106,6 +107,7 @@ button img{
     position:fixed;
     top:54px;
     left:0;
+    z-index: 4;
 }
 .editor-container .history-button{
     width:60px;
@@ -122,8 +124,10 @@ button img{
     position:fixed;
     right:0;
     top:44px;
+    padding-top: 10px;
+    z-index: 4;
     width:370px;
-    height:calc(100vh - 44px);
+    height: calc(100vh - 54px);
 }
 .editor-container .bottom-bar{
     position:fixed;

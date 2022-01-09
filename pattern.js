@@ -19,13 +19,32 @@ class Pattern extends IconCreatorGlobal{
                 let id = this.maskLayer.renderOrder[pos];
                 let maskItem = this.maskLayer.patterns[id];
                 if(maskItem.id != this.id){//if not the pattern that this mask belongs to
-                    
                     let xDiff = maskItem.xOrigin - this.xOrigin;
                     let yDiff = maskItem.yOrigin - this.yOrigin;
                     maskItem.translateTo(newMainOriginX + xDiff,newMainOriginY + yDiff);
                 }
             }
         }
+    }
+    /**
+     * Add a maskLayer to this pattern
+     * @param {*} pattern 
+     */
+    addMaskFrame(parentElement, infoBoxContainer, editor){
+        //create mask layer
+        this.maskLayer = new MaskFrame(parentElement, infoBoxContainer, editor);
+        this.maskLayer.boundId = this.id;
+        this.maskLayer.history.firstPreserved = 1;//if set to 0 the frame is somehow reset
+        //add to mask view
+        this.maskLayer.append(this);
+        //newPatternMaskFill object is the background filler for the mask property
+        let newPatternMaskFill = PatternManipulator.duplicate(this);
+        newPatternMaskFill.id = this.id+"filler";
+        newPatternMaskFill.display = false;
+        newPatternMaskFill.isMask = true;
+        newPatternMaskFill.isFiller = true;
+        this.maskLayer.append(newPatternMaskFill);
+        console.log("After creation", this.maskLayer.renderOrder);
     }
     hasMask(){
         //console.log(this.maskLayer); TODO unparsed maskLayer in maskLayer attribute
@@ -85,6 +104,8 @@ class Pattern extends IconCreatorGlobal{
                         maskItem.borderColor = "#000000";
                     }else{//filler only
                         maskItem.rotation = 0;
+                        maskItem.color = "#ffffff";
+                        maskItem.borderColor = "#ffffff";
                     }
                     maskPatterns += maskItem.cleanHTML();
                     maskItem.color = tempC;
@@ -125,7 +146,7 @@ class Pattern extends IconCreatorGlobal{
         Object.assign(obj, additionalAttributes);
         return obj;
     }
-    load(patternJSON){
+    load(patternJSON, trueCopy = true){
         //check for correct data-type
         if(this.constructor.name != patternJSON.subtype){
             console.trace();
@@ -134,12 +155,19 @@ class Pattern extends IconCreatorGlobal{
         }
         //if this pattern has been given a mask layer, load the passed data into it
         if(this.maskLayer){
-            this.maskLayer.load(patternJSON.attributes.maskLayer);
-            this.maskLayer.append(this);
-            console.log(this.maskLayer);
+            this.maskLayer.load(patternJSON.attributes.maskLayer, trueCopy);
         }
         delete patternJSON.attributes.maskLayer;
+        if(!trueCopy) delete patternJSON.attributes.id;
         Object.assign(this,patternJSON.attributes);
+        if(this.maskLayer){
+            let filler = this.maskLayer.patterns[this.id+"filler"];
+            Object.assign(filler,this);
+            filler.id = this.id+"filler";
+            filler.display = false;
+            filler.isMask = true;
+            filler.isFiller = true;
+        }
     }
 }
 class Rect extends Pattern{
@@ -493,6 +521,17 @@ class Path extends Pattern{
         this.boundingRect = this.getBoundingRect();
         this.center = this.getCenterUntransformed();
     }
+    getPoint(index){
+        if(index < this.points.length && index >= 0){
+            return this.points[index];
+        }
+        if(index === -1){
+            return {x:this.xOrigin, y:this.yOrigin};
+        }
+        console.trace();
+        console.error("Tryed to access not existant point in path");
+        return undefined;
+    }
     updateProperties(){
         this.boundingRect = this.getBoundingRect();
         if(this.rotation != 0){
@@ -571,22 +610,77 @@ class Path extends Pattern{
         console.log(this.rotation);
         this.rotation = 360-this.rotation;
     }
-    cleanHTML(){
-        let defaultPattern = new Path(0,0);
-        let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
+    getPointsString(){
         let pointsString = new Array();
-        this.points.forEach(point => {
+        this.points.forEach((point, index) => {
             let elementString = new String();
+            //method
             elementString += point.method+" ";
+            //curve point
             if(["Q"].indexOf(point.method) !== -1){
                 elementString += point.extraX+" "+point.extraY+" ";
             }
-            elementString += point.x+ " "+point.y+" ";
+            let distance = 100;
+            switch (point.type) {
+                case "round":
+                    //the main point will be replaced by two points witha curve between them
+                    if(index != this.points.length - 1 && this.points.length > 1){
+                        //get the last point a line was draw to before the main point
+                        let lastPoint = (point.method == "L")?[this.getPoint(index-1).x, this.getPoint(index-1).y]:[point.extraX,point.extraY];
+                        //get the next point a line will be draw to after the main point
+                        let nextPoint = (this.points[index+1].method == "L")?[this.points[index+1].x, this.points[index+1].y]:[this.points[index+1].extraX,this.points[index+1].extraY];
+                        //get the 2 new points to round of the single point
+                        let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
+                        let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
+                        //set the distance of the rounder points from the main point
+                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, distance);
+                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, distance);
+                        let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
+                        let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
+                        elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
+                        elementString += "Q "+point.x+" "+point.y+" ";
+                        elementString += secondRounderPoint[0]+" "+secondRounderPoint[1]+" ";
+                        break;
+                    }else if(index === this.points.length - 1){
+                        //last point (equals the position of origin)
+                        //get the last point a line was draw to before the main point
+                        let lastPoint = (point.method == "L")?[this.getPoint(index-1).x, this.getPoint(index-1).y]:[point.extraX,point.extraY];
+                        //get the next point a line will be draw to after the main point (which is the first point again)
+                        let nextPoint = (this.points[0].method == "L")?[this.points[0].x, this.points[0].y]:[this.points[0].extraX,this.points[0].extraY];
+                        //get the 2 new points to round of the single point
+                        let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
+                        let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
+                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, distance);
+                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, distance);
+                        let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
+                        let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
+                        elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
+                        elementString += "Q "+point.x+" "+point.y+" ";
+                        elementString += secondRounderPoint[0]+" "+secondRounderPoint[1]+" ";
+                        //start pointsString with the last point (start point = end point)
+                        pointsString = secondRounderPoint[0]+" "+secondRounderPoint[1]+" "+pointsString;
+                        break;
+                    }
+                default:
+                    //main point
+                    elementString += point.x+" "+point.y+" ";
+                    //if last element, add final point as first point (start point = end point)
+                    if(index === this.points.length - 1){
+                        pointsString = point.x+" "+point.y+" "+pointsString;
+                    }
+                    break;
+            }
             pointsString += elementString;
         });
+        return pointsString;
+    }
+    cleanHTML(){
+        let defaultPattern = new Path(0,0);
+        let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
+        let pointsString = this.getPointsString();
         let cleanHTML = ''
         +'<path '+ ((this.hasMask())?this.maskLink():'')
-        +' d="M '+this.xOrigin+' '+this.yOrigin+' '+pointsString+'Z"'
+        +' d="M '+pointsString+'Z"'
         +' fill="'+this.color
         +'" '+(paintBorder?`stroke="${this.borderColor}" `:'')
         +(paintBorder?`stroke-width="${this.borderWidth}" `:'')

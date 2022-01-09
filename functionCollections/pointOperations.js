@@ -167,6 +167,13 @@ class PointOperations{
         }
         return preferedVector;
     }
+    /**
+     * Rotate a point around another point
+     * @param {*} anchorPoint the point to rotate around
+     * @param {*} rotatePoint the point that should be rotated
+     * @param {*} degree the degree how much should be rotated
+     * @returns the rotated point as array [x,y]
+     */
     static rotateAroundPoint(anchorPoint,rotatePoint,degree){
         let rad = degree * (Math.PI / 180);//get bogenmaß
         //move to relative [0,0]
@@ -203,9 +210,19 @@ class PointOperations{
             return (360+angle);//angle is negative
         }
     }
+    /**
+     * Resize a vector to a specific length. If the vector has length 0, [0,0] is returned.
+     * @param {*} vector the vector to resize
+     * @param {*} targetLength the target length
+     * @returns the resized vector
+     */
     static trimVectorLength(vector, targetLength = 1){
         let vectorLength = PointOperations.vectorLength(vector);
-        let targetRatio = targetLength/vectorLength;
-        return [targetRatio*vector[0],targetRatio*vector[1]]
+        if(vectorLength === 0){
+            return [0,0];
+        }else{
+            let targetRatio = targetLength/vectorLength;
+            return [targetRatio*vector[0],targetRatio*vector[1]]
+        }
     }
 }

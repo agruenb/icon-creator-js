@@ -52,7 +52,8 @@ class Frame extends IconCreatorGlobal{
     newPattern(type,xOrigin,yOrigin,color = "#ffee00"){
         //this object is the main pattern object for dragging ect.
         let pattern = this.basicPattern(type,xOrigin,yOrigin,color);
-        this.addPattern(pattern);
+        pattern.addMaskFrame(this.parentElement, this.infoBoxContainer, this.editor);
+        this.append(pattern);
         this.repaint();
         return pattern;
     }
@@ -67,32 +68,6 @@ class Frame extends IconCreatorGlobal{
     }
     show(){
         this.infoBoxManager.show();
-    }
-    /**
-     * Adds new maskLayer, to patter, then appends it
-     * @param {*} pattern 
-     */
-    addPattern(pattern){
-        this.addMaskFrameToPattern(pattern);
-        this.append(pattern);
-    }
-    /**
-     * Add a maskLayer to a Pattern
-     * @param {*} pattern 
-     */
-    addMaskFrameToPattern(pattern){
-        //create mask layer
-        let id = pattern.id;
-        pattern.maskLayer = new MaskFrame(this.parentElement,this.infoBoxContainer, this.editor);
-        pattern.maskLayer.boundId = id;
-        pattern.maskLayer.history.firstPreserved = 1;//if set to 0 the frame is somehow reset
-        //add to mask view
-        pattern.maskLayer.append(pattern);
-        //newPatternMaskFill object is the background filler for the mask property
-        let newPatternMaskFill = this.basicPattern(pattern.constructor.name,pattern.xOrigin,pattern.yOrigin, "#ffffff");
-        newPatternMaskFill.id = id+"filler";
-        this.makeMaskFiller(newPatternMaskFill);
-        pattern.maskLayer.append(newPatternMaskFill);
     }
     basicPattern(type,xOrigin,yOrigin,color){
         let pattern;
@@ -187,6 +162,7 @@ class Frame extends IconCreatorGlobal{
             let copy = JSON.parse(JSON.stringify(attrObject));
             this.makeMaskFiller(copy);
             Object.assign(pattern.maskLayer.patterns[pattern.id+"filler"],copy);
+            //console.log(pattern.maskLayer.patterns[pattern.id+"filler"]);
         }
         pattern.updateProperties();
         if(repaint){
@@ -288,8 +264,8 @@ class Frame extends IconCreatorGlobal{
             //directly inject id
             if(trueCopy) pattern.id = patternJSON.attributes.id;
             delete patternJSON.attributes.id;
-            this.addPattern(pattern);
-            //handle mask layer / frame
+            this.append(pattern);
+            pattern.addMaskFrame(this.parentElement, this.infoBoxContainer, this.editor);
             pattern.load(patternJSON);
             if(loadInfoBox){
                 this.infoBoxManager.newBox(pattern);

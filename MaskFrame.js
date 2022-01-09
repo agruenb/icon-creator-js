@@ -12,12 +12,16 @@ class MaskFrame extends Frame{
     }
     //@Override
     append(patternObj){
-        if(this.boundId != patternObj.id){
+        if(this.boundId != patternObj.id && !patternObj.isFiller){
             this.makeMask(patternObj);
         }
         let id = patternObj.id;
         this.patterns[id] = patternObj;
         this.renderOrder.push(String(id));
+    }
+    //@Override
+    saveToHistory(){
+        
     }
     //@Override
     paint(pattern){
@@ -40,22 +44,24 @@ class MaskFrame extends Frame{
 
     }
     /**
+     * !!! only loads mask patterns, not loading the main pattern or the filler, they have to be there already or added manuelly
      * Loads a Frame + patterns that hast been exported with Frame.get().
      * @param {JSON} FrameJSON a JSON Object that will be loaded
      * @param {boolean} trueCopy also copies the IDs if true
      */
      load(frameJSON = {}, trueCopy = true){
+         console.log("Pre",this.renderOrder);
         //check valid
         if(frameJSON.version != this.version){
             console.warn("Loading MaskFrame from another version");
         }
         if(frameJSON.subtype != "MaskFrame"){
-            console.error("MaskFrame cannot load save of type "+frameJSON.type);
+            console.error("MaskFrame cannot load save of type "+frameJSON.type, frameJSON);
             return;
         }
         //load
-        this.id = frameJSON.attributes.id;
-        this.boundId = frameJSON.attributes.boundId;
+        if(trueCopy) this.id = frameJSON.attributes.id;
+        if(trueCopy) this.boundId = frameJSON.attributes.boundId;
         for(let id in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
             let patternJSON = this.copy(frameJSON.attributes.patterns[id]);
             let pattern;
@@ -85,20 +91,19 @@ class MaskFrame extends Frame{
             this.append(pattern);
             pattern.load(patternJSON);
         }
-        //add render Order
-        if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);
+        console.log("Post",this.renderOrder);
     }
     /**
      * Returns the JSON representation of this frame.
      */
-     get(){
+     get(full = false){
         //get patterns (without main pattern and filler)
         let passPatterns = {};
         for(let key in this.patterns){
             let currPat = this.patterns[key];
-            if(currPat.isMask){
+            if(full || (currPat.isMask && !currPat.isFiller)){
                 passPatterns[key] = currPat.get(false);
-            }
+            } 
         }
         let global = new IconCreatorGlobal();
         let obj = {
@@ -112,7 +117,6 @@ class MaskFrame extends Frame{
             attributes:{
                 id:this.id,
                 patterns: this.copy(passPatterns),
-                renderOrder: this.copy(this.renderOrder),
                 boundId: this.boundId,
             }
         });
