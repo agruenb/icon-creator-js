@@ -62,7 +62,9 @@ class HTMLeditor{
 
         this.environment.control.editSVG.newPath.addEventListener("click",() => {this.setDrawingType("path0")});
         
-        this.environment.control.meta.gridsize.addEventListener("change",() => {this.changeGrid(this.environment.control.meta.gridsize.value)});
+        for(let key in this.environment.control.meta.gridsize){
+            this.environment.control.meta.gridsize[key].addEventListener("click",() => {this.changeGrid(this.environment.control.meta.gridsize[key].value)});
+        }
         
         let colorInput = new CustomColorInput("pseudo-input", "#660033");
         this.environment.control.meta.paintColor.append(colorInput);

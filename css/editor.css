@@ -37,8 +37,8 @@ button{
     cursor:pointer;
 }
 button img{
-    height:100%;
-    width:100%;
+    height: 100%;
+    width: 100%;
     pointer-events:none;
 }
 .anno-button{
@@ -78,40 +78,75 @@ button img{
     position: relative;
 }
 .editor-container .topbar{
-    box-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
-    background:var(--panel-background);
     position:fixed;
     top:0;
     height:44px;
     width:100%;
     z-index: 4;
     display:flex;
-    justify-content: space-between;
+    justify-content: flex-end;
 }
 .topbar .logo{
     font-size: 28px;
     font-weight:bold;
     line-height: 44px;
 }
+.topbar .logo .bg-image{
+    position: absolute;
+    top: 0;
+    left: 0;
+    --size: 230px;
+    height: var(--size);
+    width: var(--size);
+}
+.topbar .logo .header-text{
+    position: absolute;
+    top: 13px;
+    left: 169px;
+    font-family: 'Fredoka One', cursive;
+    color: #ca7fb0;
+    transform: rotate(-5deg);
+}
+.topbar .topbar-tools{
+    background:var(--panel-background);
+    border-radius:10px;
+    display: flex;
+    height: 60px;
+    margin: 5px;
+}
 .topbar .export-button{
-    height:100%;
-    width:200px;
-    background: var(--medium-pastel-green);
+    height: 60px;
+    width: 60px;
     cursor:pointer;
     display:flex;
     justify-content: center;
     align-items: center;
-    color:var(--white-text);
+    padding: 0 5px;
+    border-left: 2px solid #fff;
+}
+.topbar .export-button img{
+    --size: 70%;
+    height:var(--size);
+    width:var(--size);
 }
 .editor-container .toolbar{
     position:fixed;
-    top:54px;
+    top: 100px;
     left:0;
     z-index: 4;
 }
 .editor-container .history-button{
     width:60px;
-    height: 40px;
+    height: 60px;
+    padding: 0px 5px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+.editor-container .history-button img{
+    --size:75%;
+    width:var(--size);
+    height: var(--size);
 }
 .editor-container .viewport{
     height:100vh;
@@ -123,16 +158,52 @@ button img{
 .editor-container .sidebar{
     position:fixed;
     right:0;
-    top:44px;
+    top: 64px;
     padding-top: 10px;
     z-index: 4;
-    width:370px;
+    width: 360px;
     height: calc(100vh - 54px);
 }
 .editor-container .bottom-bar{
+    --content-height: 30px;
     position:fixed;
     left:0;
     bottom:0;
+    width:100vw;
+    height: 40px;
+    display: flex;
+    justify-content: space-evenly;
+    background-color:var(--panel-background);
+    user-select: none;
+}
+.editor-container .bottom-bar .gridsize-wrapper, .editor-container .bottom-bar .save-power-wrapper{
+    height: var(--content-height);
+    padding: 5px;
+    display: flex;
+}
+.editor-container .bottom-bar label{
+    height: var(--content-height);
+    width: var(--content-height);
+    cursor:pointer;
+    box-sizing: border-box;
+    border: 1px solid var(--contour-grey);
+    border-radius: 3px;
+    margin: 0 2px;
+    display: flex;
+    justify-content: center;
+    background: #fff;
+    align-items: center;
+}
+.editor-container .bottom-bar .gridsize-wrapper .gridsize-icon{
+    height: 90%;
+    width: 90%;
+}
+.editor-container .bottom-bar .save-power-wrapper .save-power-icon{
+    height: 90%;
+    width: 90%;
+}
+.editor-container .bottom-bar input:checked + label{
+    border: 2px solid var(--highlight);
 }
 .editor-container .vert-scroll{
     width:calc(100% - 10px);

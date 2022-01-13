@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/contextMenu.css">
     <link rel="stylesheet" href="css/infoBox.css">
     <link rel="stylesheet" href="css/banner.css">
+    <link rel="stylesheet" href="css/fonts.css">
     <title>SVG editor</title>
 </head>
 <body>
@@ -19,23 +20,24 @@
         </div>
         <div class="topbar">
             <div class="logo">
-                🍅 Easy Icon Online
+                <div class="bg-image">
+                    <img src="img/header_background.svg" alt="Header background">
+                </div>
+                <div class="header-text">
+                    Easy Icon Online
+                </div>
             </div>
-            <button id="historyBack" class="history-button">
-                <img src="img/arrow-hop.svg" alt="Arrow back">
-            </button>
-            <button id="historyForwards" class="history-button">
-                <img src="img/arrow-hop.svg" alt="Arrow back" style="transform:scaleX(-1)">
-            </button>
-            <input id="savePower" type="checkbox"><label for="savePower">save power</label>
-            <label for="gridsize">Alignment grid</label>
-            <select id="gridsize">
-                <option value="3">None</option>
-                <option value="4">Fine</option>
-                <option value="5">Medium</option>
-                <option value="6">Large</option>
-            </select>
-            <div class="export-button" id="exportFile"><div>Export</div></div>
+            <div class="topbar-tools">
+                <div id="historyBack" class="history-button">
+                    <img src="img/arrow-hop.svg" alt="Arrow back">
+                </div>
+                <div id="historyForwards" class="history-button">
+                    <img src="img/arrow-hop.svg" alt="Arrow back" style="transform:scaleX(-1)">
+                </div>
+                <div class="export-button" id="exportFile">
+                    <img src="img/download.svg" alt="Download icon">
+                </div>
+            </div>
         </div>
         <div class="toolbar">
             <button id="cursor" class="anno-button"><div class="tool-icon"><img src="img/cursor_icon.svg" alt="circle"></div></button>
@@ -51,6 +53,33 @@
         </div>
         <div id="sidebar" class="sidebar">
             <div id="elementOverview" class="vert-scroll">
+
+            </div>
+        </div>
+        <div class="bottom-bar">
+            <div class="gridsize-wrapper">
+                <input type="radio" style="display:none;" value="3" id="gridsize_3" name="gridsize" checked></input>
+                <label for="gridsize_3">
+                    <div class="gridsize-icon"></div>
+                </label>
+                <input type="radio" style="display:none;" value="4" id="gridsize_4" name="gridsize"></input>
+                <label for="gridsize_4">
+                    <img class="gridsize-icon" src="img/grid_fine.svg" alt="Gridsize fine icon">
+                </label>
+                <input type="radio" style="display:none;" value="5" id="gridsize_5" name="gridsize"></input>
+                <label for="gridsize_5">
+                    <img class="gridsize-icon" src="img/grid_medium.svg" alt="Gridsize medium icon">
+                </label>
+                <input type="radio" style="display:none;" value="6" id="gridsize_6" name="gridsize"></input>
+                <label for="gridsize_6">
+                    <img class="gridsize-icon" src="img/grid_large.svg" alt="Gridsize large icon">
+                </label>
+            </div>
+            <div class="save-power-wrapper">
+                <input type="checkbox" style="display:none" id="savePower">
+                <label for="savePower">
+                    <img class="save-power-icon" src="img/save_power.svg" alt="Save power icon">
+                </label>
 
             </div>
         </div>
@@ -106,7 +135,12 @@
                 forwards:document.getElementById("historyForwards")
             },
             meta:{
-                gridsize:document.getElementById("gridsize"),
+                gridsize:{
+                    none:document.getElementById("gridsize_3"),
+                    size_4:document.getElementById("gridsize_4"),
+                    size_5:document.getElementById("gridsize_5"),
+                    size_6:document.getElementById("gridsize_6")
+                },
                 paintColor:document.getElementById("paintColor")
             },
             export:{

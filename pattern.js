@@ -18,7 +18,7 @@ class Pattern extends IconCreatorGlobal{
             for(let pos in this.maskLayer.renderOrder){
                 let id = this.maskLayer.renderOrder[pos];
                 let maskItem = this.maskLayer.patterns[id];
-                if(maskItem.id != this.id){//if not the pattern that this mask belongs to
+                if(maskItem.isMask){//only translate mask, because pattern itself is also in the MaskFrame
                     let xDiff = maskItem.xOrigin - this.xOrigin;
                     let yDiff = maskItem.yOrigin - this.yOrigin;
                     maskItem.translateTo(newMainOriginX + xDiff,newMainOriginY + yDiff);
@@ -147,6 +147,7 @@ class Pattern extends IconCreatorGlobal{
         return obj;
     }
     load(patternJSON, trueCopy = true){
+        patternJSON = this.copy(patternJSON);//copy attributes so no objects are shared between pattern and other pattern
         //check for correct data-type
         if(this.constructor.name != patternJSON.subtype){
             console.trace();
@@ -160,9 +161,10 @@ class Pattern extends IconCreatorGlobal{
         delete patternJSON.attributes.maskLayer;
         if(!trueCopy) delete patternJSON.attributes.id;
         Object.assign(this,patternJSON.attributes);
+        //add filler for mask
         if(this.maskLayer){
             let filler = this.maskLayer.patterns[this.id+"filler"];
-            Object.assign(filler,this);
+            filler.load(patternJSON, false);
             filler.id = this.id+"filler";
             filler.display = false;
             filler.isMask = true;
@@ -620,9 +622,10 @@ class Path extends Pattern{
             if(["Q"].indexOf(point.method) !== -1){
                 elementString += point.extraX+" "+point.extraY+" ";
             }
-            let distance = 100;
+            let distance = 10;
             switch (point.type) {
                 case "round":
+                    //BOTH IF and ELSE have to be adjusted
                     //the main point will be replaced by two points witha curve between them
                     if(index != this.points.length - 1 && this.points.length > 1){
                         //get the last point a line was draw to before the main point
@@ -632,9 +635,12 @@ class Path extends Pattern{
                         //get the 2 new points to round of the single point
                         let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
                         let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
+                        //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
+                        let maxRoundingDistancetoLast = Math.min(distance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - distance));
+                        let maxRoundingDistancetoNext = Math.min(distance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - distance));
                         //set the distance of the rounder points from the main point
-                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, distance);
-                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, distance);
+                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
+                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
                         let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
                         let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
                         elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
@@ -650,8 +656,12 @@ class Path extends Pattern{
                         //get the 2 new points to round of the single point
                         let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
                         let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
-                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, distance);
-                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, distance);
+                        //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
+                        let maxRoundingDistancetoLast = Math.min(distance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - distance));
+                        let maxRoundingDistancetoNext = Math.min(distance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - distance));
+                        //set the distance of the rounder points from the main point
+                        toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
+                        toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
                         let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
                         let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
                         elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
