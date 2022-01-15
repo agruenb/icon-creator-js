@@ -1,6 +1,9 @@
 class IconCreatorGlobal{
     version = "0";
     id;
+
+    rotationMarkerDistanceFromPattern = 20;
+    
     constructor(){
         this.id = IconCreatorGlobal.id();
     }

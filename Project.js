@@ -83,7 +83,7 @@ class Project extends IconCreatorGlobal{
         this.currentFrame.hide();
         this.currentFrame = frame;
         this.currentFrame.paintPanel.style.display = "block";
-        //frame.show();
+        this.currentFrame.show();
         this.repaint();
     }
     /**

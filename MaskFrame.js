@@ -1,6 +1,7 @@
 class MaskFrame extends Frame{
 
     boundId;
+    isMaskFrame = true;
 
     constructor(parentElement, infoBoxContainer, editor){
         super(parentElement, infoBoxContainer, editor);
@@ -42,6 +43,10 @@ class MaskFrame extends Frame{
     //@override
     updateInfoBox(pattern){
 
+    }
+    //@Override
+    show(){
+        
     }
     /**
      * !!! only loads mask patterns, not loading the main pattern or the filler, they have to be there already or added manuelly

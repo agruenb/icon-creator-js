@@ -1,27 +1,67 @@
 .context-container{
-    background-color: #ffffff;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
+    min-width: 180px;
     overflow: hidden;
     box-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
 }
-.contextmenu-button{
+.context-container .custom-options{
+    display:flex;
+    justify-content: space-evenly;
+    background: rgb(255 255 255 / 50%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.context-container .general-options{
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+.context-container .custom-options .contextmenu-button{
     all:unset;
     padding:5px;
     cursor:default;
     user-select: none;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 45px;
+    width: 45px;
 }
-.contextmenu-button .icon{
-    float:left;
-    margin: 5px;
+.context-container .custom-options .contextmenu-button .icon{
     height:20px;
     width:20px;
+    margin-top: 5px;
 }
-.contextmenu-button span{
-    line-height:30px;
+.context-container .custom-options .contextmenu-button span{
+    line-height: 15px;
+    font-size: 12px;
+    margin-top: 5px;
+    white-space: nowrap;
+    font-weight: bold;
+    text-align: center;
 }
-.contextmenu-button:hover{
+.context-container .custom-options .contextmenu-button:hover span{
+    color: var(--highlight);
+}
+.context-container .general-options .contextmenu-button{
+    all:unset;
+    padding:5px;
+    cursor:default;
+    height: 25px;
+    user-select: none;
+}
+.context-container .general-options .contextmenu-button .icon{
+    float:left;
+    margin: 3px 8px 0 2px;
+    height: 19px;
+    width: 19px;
+}
+.context-container .general-options .contextmenu-button span{
+    line-height: 25px;
+}
+.context-container .general-options .contextmenu-button:hover{
     background-color: var(--highlight);
     color:#ffffff;
 }

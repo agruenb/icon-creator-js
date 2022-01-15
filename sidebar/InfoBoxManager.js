@@ -41,7 +41,7 @@ class InfoBoxManager{
     show(){
         for(let i in this.keyframe.renderOrder){
             let box = this.boxes.filter((box)=>{
-                return box.boundId == i;
+                return box.boundId == this.keyframe.renderOrder[i];
             })[0];
             this.appendTop(box);
         }

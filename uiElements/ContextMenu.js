@@ -18,10 +18,19 @@ class ContextMenu{
     }
 
     deploy(options){
+        let customButtonWrapper = document.createElement("div");
+        customButtonWrapper.classList.add("custom-options");
+        let generalButtonWrapper = document.createElement("div");
+        generalButtonWrapper.classList.add("general-options");
         for(let i = 0;i < options.length; i++){
-            let button = new EditorButton(options[i].label, options[i].icon, options[i].clickHandler);
-            button.addTo(this.container);
+            let button = new MenuButton(options[i].label, options[i].icon, options[i].clickHandler);
+            if(options[i].type == "custom"){
+                button.addTo(customButtonWrapper);
+            }else{
+                button.addTo(generalButtonWrapper);
+            }
         }
+        this.container.append(customButtonWrapper, generalButtonWrapper);
         this.parentContainer.append(this.container);
     }
     setPosition(left, top){

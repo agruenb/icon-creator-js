@@ -1,19 +1,18 @@
-class EditorButton{
+class MenuButton{
 
     element;
 
     constructor(label, icon, clickHandler){
-        //this.top = top;
-        //this.left = left;
         this.element = document.createElement("div");
         let iconElement = document.createElement("div");
         iconElement.classList.add("icon");
+        let imgElement = document.createElement("img");
+        imgElement.src = icon;
         let labelElement = document.createElement("span");
-        iconElement.innerHTML = icon
+        iconElement.append(imgElement);
         labelElement.innerHTML = label;
         this.element.append(iconElement);
         this.element.append(labelElement);
-        //this.element.style.cssText = `top:${this.top}px;left:${this.left}px;`;
         this.element.classList.add("contextmenu-button");
         this.element.addEventListener("mousedown", (mouseEvent)=>{
             mouseEvent.stopPropagation();

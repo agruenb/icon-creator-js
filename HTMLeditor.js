@@ -2,8 +2,8 @@ class HTMLeditor{
 
     activeProjects = new Array();
 
-    detectMouseOnMarkerDistance = 15;
-    rotationMarkerDistanceFromPattern = 20;
+    detectMouseOnMarkerDistance = 12;
+    rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
 
@@ -248,7 +248,10 @@ class HTMLeditor{
                 case "none":
                     //if pattern is clicked -> start editing
                     if(event.target.parentElement.getAttribute("role") === "main"){
-                        this.startEdit(this.patternById(event.target.parentElement.id));
+                        //dont focus main pattern on mask frame
+                        if(this.currProj().frame().boundId != event.target.parentElement.id){
+                            this.startEdit(this.patternById(event.target.parentElement.id));
+                        }
                     }
                     break;
                 case "rect1":
@@ -300,7 +303,10 @@ class HTMLeditor{
                     this.stopEdit();
                     //if pattern is clicked -> start editing
                     if(event.target.parentElement.getAttribute("role") === "main"){
-                        this.startEdit(this.patternById(event.target.parentElement.id));
+                        //dont focus main pattern on mask frame
+                        if(this.currProj().frame().boundId != event.target.parentElement.id){
+                            this.startEdit(this.patternById(event.target.parentElement.id));
+                        }
                     }
                     break;
                 case "dragMarker":case "dragPattern":
@@ -320,87 +326,15 @@ class HTMLeditor{
             if(infoBox != undefined){
                 infoBox.highlight();
             }
-            let rotatePoint = (point)=>{return PointOperations.rotateAroundPoint(pattern.center, point, pattern.rotation)};
-            switch (pattern.constructor.name) {
-                case "Rect":
-                    this.addHelperMarker(...rotatePoint(PointOperations.orthogonalIcon(pattern.xOrigin,pattern.yOrigin,pattern.xOrigin+pattern.width,pattern.yOrigin, this.rotationMarkerDistanceFromPattern, "top")),"rotate","arrow-rotate", pattern.rotation);
-                    this.addHelperMarker(...pattern.topLeft(),"top left","point", pattern.rotation);
-                    this.addHelperMarker(...pattern.topRight(),"top right","point", pattern.rotation);
-                    this.addHelperMarker(...pattern.bottomLeft(),"bottom left","point", pattern.rotation);
-                    this.addHelperMarker(...pattern.bottomRight(),"bottom right","point", pattern.rotation);
-                    this.addHelperMarker(...rotatePoint(PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[pattern.xOrigin,pattern.yOrigin+pattern.height])),"left","arrow-double", pattern.rotation);
-                    this.addHelperMarker(...rotatePoint(PointOperations.halfwayVector([pattern.xOrigin+pattern.width,pattern.yOrigin],[pattern.xOrigin+pattern.width,pattern.yOrigin+pattern.height])),"right","arrow-double", pattern.rotation);
-                    this.addHelperMarker(...rotatePoint(PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[pattern.xOrigin+pattern.width,pattern.yOrigin])),"top","arrow-double", pattern.rotation +90);
-                    this.addHelperMarker(...rotatePoint(PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin+pattern.height],[pattern.xOrigin+pattern.width,pattern.yOrigin+pattern.height])),"bottom","arrow-double", pattern.rotation + 90);
-                    break;
-                case "Circle":
-                    this.addHelperMarker(pattern.xOrigin+pattern.radius,pattern.yOrigin,"radius", "arrow-double");
-                    this.addHelperMarker(pattern.xOrigin-pattern.radius,pattern.yOrigin,"radius", "arrow-double", );
-                    this.addHelperMarker(pattern.xOrigin,pattern.yOrigin+pattern.radius,"radius", "arrow-double", 90);
-                    this.addHelperMarker(pattern.xOrigin,pattern.yOrigin-pattern.radius,"radius", "arrow-double", 90);
-                    break;
-                case "Ellipse":
-                    let vectorFromCenter = PointOperations.trimVectorLength([0,-pattern.xRadius], pattern.yRadius + this.rotationMarkerDistanceFromPattern);
-                    let rotationMarkerPoint = [pattern.xOrigin + vectorFromCenter[0], pattern.yOrigin + vectorFromCenter[1]];
-                    this.addHelperMarker(...rotatePoint(rotationMarkerPoint),"rotate", "arrow-rotate", pattern.rotation);
-                    this.addHelperMarker(...pattern.top(),"yRadius", "arrow-double", pattern.rotation+90);
-                    this.addHelperMarker(...pattern.right(),"xRadius", "arrow-double", pattern.rotation);
-                    this.addHelperMarker(...pattern.left(),"xRadius", "arrow-double", pattern.rotation);
-                    this.addHelperMarker(...pattern.bottom(),"yRadius", "arrow-double", pattern.rotation+90);
-                    break;
-                case "Line":
-                    let angle = PointOperations.angle(pattern.vector);
-                    this.addHelperMarker(pattern.xOrigin,pattern.yOrigin,"start","point", angle);
-                    this.addHelperMarker(pattern.xEnd,pattern.yEnd,"end", "point", angle);
-                    let widthMarkerPos = PointOperations.orthogonalIcon(pattern.xOrigin,pattern.yOrigin,pattern.xEnd,pattern.yEnd, pattern.width/2 +10, "top");
-                    this.addHelperLine(PointOperations.halfway(pattern.xOrigin, pattern.xEnd),PointOperations.halfway(pattern.yOrigin, pattern.yEnd),widthMarkerPos[0],widthMarkerPos[1]);
-                    this.addHelperMarker(...widthMarkerPos,"width","arrow-double", angle);
-                    break;
-                case "Path":
-                    this.addHelperMarker(...rotatePoint(PointOperations.orthogonalIcon(pattern.boundingRect.x,pattern.boundingRect.y,pattern.boundingRect.x + pattern.boundingRect.width,pattern.boundingRect.y, this.rotationMarkerDistanceFromPattern, "top")),"rotate", "arrow-rotate", pattern.rotation);
-                    for(let index in pattern.points){
-                        index = parseInt(index);
-                        let point = pattern.points[index];
-                        let rotatedPoint = rotatePoint([point.x,point.y]);
-                        //normal point
-                        this.addHelperMarker(...rotatedPoint,index,"point");
-                        //for extra point
-                        let lastPoint;
-                        //if extra point is Quadratic
-                        if(["Q"].indexOf(point.method) !== -1){
-                            //add lines
-                            if(index === 0){
-                                lastPoint = {
-                                    x:pattern.xOrigin,
-                                    y:pattern.yOrigin
-                                }
-                            }else{
-                                lastPoint = pattern.points[index-1];
-                            }
-                            let rotatedLastPoint = rotatePoint([lastPoint.x,lastPoint.y]);
-                            let rotatedExtraPoint = rotatePoint([point.extraX, point.extraY]);
-                            this.addHelperLine(...rotatedLastPoint, ...rotatedExtraPoint);
-                            this.addHelperLine(...rotatedPoint,...rotatedExtraPoint);
-                            //add marker
-                            this.addHelperMarker(...rotatedExtraPoint,"extra"+index,"curve");
-                        }else{//if extra point is not Quadratic
-                            //first point is Origin
-                            if(index === 0){
-                                lastPoint = {
-                                    x:pattern.xOrigin,
-                                    y:pattern.yOrigin
-                                };
-                            //then points from points array
-                            }else{
-                                lastPoint = pattern.points[index-1];
-                            }
-                            let rotatedLastPoint = rotatePoint([lastPoint.x,lastPoint.y]);
-                            this.addHelperMarker(PointOperations.halfway(rotatedPoint[0],rotatedLastPoint[0]),PointOperations.halfway(rotatedPoint[1],rotatedLastPoint[1]),"extra"+index,"curve");
-                        }
-                    }
-                    break;
-                default:
-                    break;
+            let markers = pattern.getMarkers();
+            let lines = pattern.getLines();
+            for(let i in lines){
+                let lineParams = lines[i];
+                this.addHelperLine(...lineParams);
+            }
+            for(let i in markers){
+                let markerParams = markers[i];
+                this.addHelperMarker(...markerParams);
             }
         }else{
             console.warn(`Cannot prepare pattern for edit in ${this.state.currentAction} mode`);
@@ -414,7 +348,7 @@ class HTMLeditor{
                 editedObject.y = this.relY(event.clientY);
                 this.clearViewportUI();
                 let changes;
-                if(["Rect","Ellipse","Path"].indexOf(pattern.constructor.name) != -1){//multi selection
+                if(["Rect","Ellipse","Path", "Circle"].indexOf(pattern.constructor.name) != -1){//multi selection
                     if(editedObject.memorize == "rotate"){
                         let angle = PointOperations.angle([this.relX(event.clientX,0,undefined,1) - pattern.center[0],this.relY(event.clientY,0,undefined,1) - pattern.center[1]]);
                         changes = {
@@ -482,7 +416,7 @@ class HTMLeditor{
                         this.currProj().alterPattern(pattern, changes);
                         break;
                     case "Circle":
-                        if(editedObject.memorize = "radius"){
+                        if(editedObject.memorize == "radius"){
                             changes = {
                                 radius: Math.max(this.state.gridsize, PointOperations.distance(pattern.xOrigin,pattern.yOrigin,this.relX(event.clientX),this.relY(event.clientY)))
                             }
@@ -665,44 +599,75 @@ class HTMLeditor{
         }
     }
     openContextMenu(event){
-        this.stopEdit();
         this.closeContextMenu();
         this.contextMenu = new ContextMenu(event.clientX, event.clientY, this.environment.layout.viewport);
+        let options = [];
+        //if clicked on pattern
         if(event.target.parentElement.getAttribute("role") === "main"){
-            this.startEdit(this.patternById(event.target.parentElement.id));
-            let options = [
-                {
-                    label:"ausschneiden",
+            //dont focus main pattern on mask frame
+            if(this.currProj().frame().boundId != event.target.parentElement.id){
+                this.stopEdit();
+                this.startEdit(this.patternById(event.target.parentElement.id));
+                options.push({
+                    label:"carve out",
                     clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"nach Vorne",
+                    label:"move to front",
                     clickHandler:()=>{this.toTop(this.focusedPattern());this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"nach Hinten",
+                    label:"move to back",
                     clickHandler:()=>{this.toBottom(this.focusedPattern());this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"duplizieren",
+                    label:"duplicate",
                     clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"vertikal spiegeln",
+                    label:"mirror vertically",
                     clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"horizontal spiegeln",
+                    label:"mirror horizontally",
                     clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
-                    icon:"B"
+                    icon:"img/cut_out.svg",
+                    type:"general"
                 },{
-                    label:"löschen",
+                    label:"delete",
                     clickHandler:()=>{this.removePattern(this.focusedPattern());this.saveToHistory();this.closeContextMenu();},
-                    icon:"B"
-                }
-            ];
-            this.contextMenu.deploy(options);
+                    icon:"img/cut_out.svg",
+                    type:"general"
+                });
+            }
         }
+        //if a pattern is focussed
+        if(this.focusedPattern() != undefined){
+            options = [
+                ...this.focusedPattern().additionalOptions(this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1), ()=>{
+                    this.closeContextMenu();
+                    this.currProj().frame().repaint();
+                    this.clearViewportUI();
+                    this.saveToHistory();
+                    this.startEdit(this.focusedPattern());
+                }),
+                ...options
+            ];
+        }
+        //no options possible
+        if(options.length == 0){
+            options = [{
+                label:"no actions here",
+                clickHandler:()=>{this.closeContextMenu();},
+                icon:"X"
+            }]
+        }
+        this.contextMenu.deploy(options);
     }
     mirrorCurrentPatternVertical(){
         if(this.focusedPattern() != undefined){
