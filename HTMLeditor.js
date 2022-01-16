@@ -614,16 +614,6 @@ class HTMLeditor{
                     icon:"img/cut_out.svg",
                     type:"general"
                 },{
-                    label:"move to front",
-                    clickHandler:()=>{this.toTop(this.focusedPattern());this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
-                    label:"move to back",
-                    clickHandler:()=>{this.toBottom(this.focusedPattern());this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
                     label:"duplicate",
                     clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
                     icon:"img/cut_out.svg",

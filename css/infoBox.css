@@ -73,10 +73,9 @@
     position:absolute;
     display:flex;
     width:226px;
-    margin-bottom: 10px;
 }
 .infobox .line.upper{
-    transform: translate(116px, -30px);
+    transform: translate(110px, -35px);
 }
 .infobox .line.lower{
     display:none;
@@ -135,17 +134,18 @@
     box-sizing: border-box;
     margin:0;
     padding:0;
-    height:30px;
-    width:40px;
-    margin-right:2px;
+    height: 40px;
+    width: 40px;
+    margin-right: 4px;
     cursor: default;
-    background-color:var(--default-button-color);
+    /* background-color:var(--default-button-color); */
     color:var(--white-text);
     border-radius:8px;
+    cursor: pointer;
+    padding: 8px;
 }
 .infobox .order-wrapper button:hover{
-    background-color:var(--deep-blue);
-    color:var(--white-text);
+    background-color: #ffffff;
 }
 .infobox .pseudo-input[checked]{
     opacity: 1;

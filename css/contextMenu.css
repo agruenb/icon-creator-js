@@ -2,7 +2,6 @@
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    min-width: 180px;
     overflow: hidden;
     box-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
 }
@@ -20,8 +19,8 @@
 }
 .context-container .custom-options .contextmenu-button{
     all:unset;
-    padding:5px;
     cursor:default;
+    padding: 1px 5px;
     user-select: none;
     display: flex;
     align-items: center;
@@ -37,7 +36,7 @@
 .context-container .custom-options .contextmenu-button span{
     line-height: 15px;
     font-size: 12px;
-    margin-top: 5px;
+    margin-top: 3px;
     white-space: nowrap;
     font-weight: bold;
     text-align: center;
@@ -47,19 +46,19 @@
 }
 .context-container .general-options .contextmenu-button{
     all:unset;
-    padding:5px;
+    padding: 5px 10px 5px 5px;
     cursor:default;
-    height: 25px;
+    height: 30px;
     user-select: none;
 }
 .context-container .general-options .contextmenu-button .icon{
     float:left;
-    margin: 3px 8px 0 2px;
+    margin: 6px 8px 0 2px;
     height: 19px;
     width: 19px;
 }
 .context-container .general-options .contextmenu-button span{
-    line-height: 25px;
+    line-height: 30px;
 }
 .context-container .general-options .contextmenu-button:hover{
     background-color: var(--highlight);

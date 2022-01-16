@@ -104,11 +104,23 @@ class PatternInfoBox{
         line.classList.add("lower");
         //order
         let orderWrapper = IconCreatorGlobal.el("div","","order-wrapper");
-        let toTop = IconCreatorGlobal.el("button","A","toTop");
-        let oneUp = IconCreatorGlobal.el("button","^","oneUp");
-        let toBottom = IconCreatorGlobal.el("button","V","toBottom");
-        let oneDown = IconCreatorGlobal.el("button","v","oneDown");
-        orderWrapper.append(toTop, oneUp, toBottom, oneDown);
+        let toTop = IconCreatorGlobal.el("button","","toTop");
+        let toTopIcon = document.createElement("img");
+        toTopIcon.src = "img/to_front.svg";
+        toTop.append(toTopIcon);
+        let oneUp = IconCreatorGlobal.el("button","","oneUp");
+        let oneUpIcon = document.createElement("img");
+        oneUpIcon.src = "img/one_up_2.svg";
+        oneUp.append(oneUpIcon);
+        let toBottom = IconCreatorGlobal.el("button","","toBottom");
+        let toBottomIcon = document.createElement("img");
+        toBottomIcon.src = "img/to_back.svg";
+        toBottom.append(toBottomIcon);
+        let oneDown = IconCreatorGlobal.el("button","","oneDown");
+        let oneDownIcon = document.createElement("img");
+        oneDownIcon.src = "img/one_down_2.svg";
+        oneDown.append(oneDownIcon);
+        orderWrapper.append(toTop, oneUp, oneDown, toBottom);
         //delete
         let deleteWrapper = IconCreatorGlobal.el("div","","delete-wrapper");
         let deleteButton = IconCreatorGlobal.el("button", "U", "delete-button");

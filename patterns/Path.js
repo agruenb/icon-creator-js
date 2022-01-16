@@ -1,6 +1,7 @@
 class Path extends Pattern{
 
     displayCurveMarkersSpaceLimit = 40;
+    allowManuelPointDeleteDistance = 20;
 
     rotation = 0;
     center = [0,0];
@@ -128,25 +129,26 @@ class Path extends Pattern{
     }
     //@Override
     additionalOptions(x, y, callback){
-        return [
+        let options =  [
             {
                 label:"add",
                 icon:"img/add_plus.svg",
                 clickHandler:()=>{this.addPoint(x, y);this.updateProperties();callback();},
                 type:"custom"
-            },
-            {
-                label:"remove",
-                icon:"img/remove_minus.svg",
-                clickHandler:()=>{this.updateProperties();callback();},
-                type:"custom"
             }
         ]
+        if(this.getPointsByDistance(x, y).distance[0] <= this.allowManuelPointDeleteDistance){
+            options.push({
+                    label:"remove",
+                    icon:"img/remove_minus.svg",
+                    clickHandler:()=>{this.removePoint(x, y);this.updateProperties();callback();},
+                    type:"custom"
+                })
+        }
+        return options;
     }
     addPoint(x, y){
-        console.log(x, y);
-        //get 2 closest points
-        let byDistance = [];
+        //get the closest edge
         let distances = [];
         let originalPosPointA = [];
         for(let i = 0; i < this.points.length; i++){
@@ -157,10 +159,6 @@ class Path extends Pattern{
             while(distances[index] != undefined && distances[index] < distance){
                 index++;
             }
-            byDistance.splice(index, 0, {
-                pointA,
-                pointB
-            });
             distances.splice(index, 0, distance);
             originalPosPointA.splice(index, 0, parseInt(i)-1);
         }
@@ -174,7 +172,43 @@ class Path extends Pattern{
             type:"round"
         }
         this.points.splice(originalPosPointA[0]+1, 0, newPoint);
-        console.log(byDistance, distances, originalPosPointA);
+    }
+    getPointsByDistance(x, y){
+        //get the closest edge
+        let distances = [];
+        let originalPosPoint = [];
+        for(let i = 0; i < this.points.length; i++){
+            let point = this.points[i];
+            let distance = PointOperations.vectorLength([point.x - x,point.y - y]);
+            let index = 0;
+            while(distances[index] != undefined && distances[index] < distance){
+                index++;
+            }
+            distances.splice(index, 0, distance);
+            originalPosPoint.splice(index, 0, i);
+        }
+        return {
+            index:originalPosPoint,
+            distance:distances
+        }
+    }
+    removePoint(x, y, distanceLimit = 512){
+        //get the closest point
+        let byDistance = this.getPointsByDistance(x, y);
+        if(byDistance.distance[0] > distanceLimit){
+            return;
+        }
+        //keep at least 2 points
+        if(this.points.length < 3){
+            console.error("Cannot remove the last 2 points of path");
+            return;
+        }
+        //if last point, move origin
+        if(parseInt(byDistance.index[0]) === this.points.length - 1){
+            this.xOrigin = this.points[this.points.length - 2].x;
+            this.yOrigin = this.points[this.points.length - 2].y;
+        }
+        this.points.splice(byDistance.index[0], 1);
     }
     getPointsString(){
         let pointsString = new Array();
