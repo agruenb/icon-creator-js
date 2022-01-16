@@ -1,6 +1,7 @@
 class Frame extends IconCreatorGlobal{
 
     history = new ActionHistory(this);
+    opacity = 1;
     
     paintPanel = document.createElement("div");
     uiLayer = document.createElement("div");
@@ -109,6 +110,9 @@ class Frame extends IconCreatorGlobal{
             this.focusedPattern = undefined;
         }
     }
+    setOpacity(value){
+        this.opacity = value;
+    }
     stopEdit(){
         this.focus(undefined);
         this.infoBoxManager.muteAll();
@@ -210,6 +214,8 @@ class Frame extends IconCreatorGlobal{
             let template = document.createElement('template');
             domString = domString.trim();
             template.innerHTML = domString;
+            //opacity
+            template.content.firstChild.style.opacity = this.opacity;
             this.paintPanel.append(template.content.firstChild);
         }
     }

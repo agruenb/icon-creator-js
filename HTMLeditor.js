@@ -231,7 +231,11 @@ class HTMLeditor{
                     this.finalizeDraggedInPattern(pattern, event);
                     break;
                 //edit
-                case "edit0":case "dragPattern":case "dragMarker":
+                case "edit0":case "dragPattern":
+                    this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    break;
+                case "dragMarker":
+                    this.currProj().frame().setOpacity(0.8);
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
                     break;
                 default:
@@ -244,6 +248,7 @@ class HTMLeditor{
         this.closeContextMenu();
         if(event.which==1){
             let pattern = this.focusedPattern();
+            this.currProj().frame().setOpacity(1);
             switch (this.state.currentAction) {
                 case "none":
                     //if pattern is clicked -> start editing
@@ -352,9 +357,10 @@ class HTMLeditor{
                     if(editedObject.memorize == "rotate"){
                         let angle = PointOperations.angle([this.relX(event.clientX,0,undefined,1) - pattern.center[0],this.relY(event.clientY,0,undefined,1) - pattern.center[1]]);
                         changes = {
-                            rotation: UniversalOps.snap(angle, 3, [0, 45, 90, 135, 180, 225, 270, 315], true, 360)
+                            rotation: parseInt(UniversalOps.snap(angle, 3, [0, 45, 90, 135, 180, 225, 270, 315], true, 360))
                         }
                         this.currProj().alterPattern(pattern, changes);
+                        this.addHelperRotation(pattern);
                     }
                 }
                 switch (pattern.constructor.name) {//single selection
@@ -699,6 +705,10 @@ class HTMLeditor{
     addHelperLine(x,y,endX,endY){
         let uiline = new UILine(this.drawingViewport, x,y,endX,endY);
         this.uiLayer().append(uiline.container);
+    }
+    addHelperRotation(pattern){
+        let rot = new RotateDisplay(this.drawingViewport, pattern.center[0], pattern.center[1], pattern.rotation);
+        rot.addTo(this.uiLayer());
     }
     /**
      * DOES NOT SAVE TO HISTORY
