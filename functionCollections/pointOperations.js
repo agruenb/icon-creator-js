@@ -210,6 +210,12 @@ class PointOperations{
             return (360+angle);//angle is negative
         }
     }
+    /** 
+     * Umrechnung eines Winkels [DEG] in den Bogenmaß [RAD]
+     */
+    static radians(degrees) {
+        return degrees * (Math.PI / 180);
+    }
     /**
      * Resize a vector to a specific length. If the vector has length 0, [0,0] is returned.
      * @param {*} vector the vector to resize

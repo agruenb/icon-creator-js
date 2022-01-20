@@ -3,7 +3,7 @@ class CustomCheckboxInput extends IconCreatorGlobal{
     constructor(className = "", value, content = ""){
         super();
         let display = document.createElement("label");
-        display.classList.add(className);
+        display.classList.add(className, "custom-component");
         display.setAttribute("for",this.id);
         display.style.cssText = "position:relative;";
         display.innerHTML = "<div>"+content+"</div>";

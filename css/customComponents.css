@@ -1,0 +1,50 @@
+.custom-component.number-input:hover{
+    border-left:2px solid var(--icon-interactive);
+    border-right:2px solid var(--icon-interactive);
+}
+.custom-component  .adjust{
+    position:absolute;
+    height: 21px;
+    width: calc(100% + 4px);
+    left: -2px;
+    justify-content:center;
+    align-items:center;
+    display:none;
+    user-select:none;
+    background:#fff;
+    box-sizing:border-box;
+    border:2px solid var(--icon-interactive);
+}
+.custom-component .adjust.adjust-down{
+    bottom: -18px;
+    border-radius:0 0 8px 8px;
+    border-top-color: transparent;
+}
+.custom-component:hover .adjust{
+    display:flex;
+}
+.custom-component .adjust.adjust-down::before{
+    content:"";
+    background-image:url("../img/simple_arrow_grey.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    height:100%;
+    width:100%;
+}
+.custom-component .adjust.adjust-up{
+    top: -18px;
+    border-radius: 8px 8px 0 0;
+    border-bottom-color: transparent;
+}
+.custom-component .adjust.adjust-up::before{
+    content:"";
+    background-image:url("../img/simple_arrow_grey.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    height:100%;
+    width:100%;
+    transform:rotate(180deg);
+}
+.custom-component .adjust.adjust-up:hover::before, .custom-component .adjust.adjust-down:hover::before{
+    background-image:url("../img/simple_arrow_blue.svg");
+}

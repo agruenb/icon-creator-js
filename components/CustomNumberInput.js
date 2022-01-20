@@ -3,9 +3,9 @@ class CustomNumberInput extends IconCreatorGlobal{
         super();
         //display
         let display = document.createElement("label");
-        display.classList.add(className);
+        display.classList.add(className, "custom-component","number-input");
         display.setAttribute("for",this.id);
-        display.style.cssText = "position:relative;display:flex;justify-content:center;align-items:center;";
+        display.style.cssText = "position:relative;display:flex;justify-content:center;align-items:center;background:#fff;";
         //value
         let value = document.createElement("div");
         value.innerHTML = pValue;
@@ -21,26 +21,16 @@ class CustomNumberInput extends IconCreatorGlobal{
         });
         //hover buttons
         let up = document.createElement("div");
-        up.innerHTML = "^";
-        up.style.cssText = "position:absolute;height:50%;width:100%;top:0;left:0;justify-content:center;align-items:center;display:none;user-select:none;";
+        up.classList.add("adjust-up","adjust");
         up.addEventListener("click",(event)=>{
             input.value = parseInt(input.value) + 1;
             input.dispatchEvent(new Event('change'));
         });
         let down = document.createElement("div");
-        down.innerHTML = "v";
-        down.style.cssText = "position:absolute;height:50%;width:100%;top:50%;left:0;justify-content:center;align-items:center;display:none;user-select:none;";
+        down.classList.add("adjust-down","adjust");
         down.addEventListener("click",(event)=>{
             input.value = parseInt(input.value) - 1;
             input.dispatchEvent(new Event('change'));
-        });
-        display.addEventListener("mouseenter",()=>{
-            up.style.display = "flex";
-            down.style.display = "flex";
-        });
-        display.addEventListener("mouseleave",()=>{
-            up.style.display = "none";
-            down.style.display = "none";
         });
         display.append(value);
         display.append(up, down);

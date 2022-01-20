@@ -1,42 +1,42 @@
 class RotateDisplay{
 
     element = document.createElement("div");
+    canvas = document.createElement("canvas");
+    innerElement = document.createElement("div");
     size = 30;
-    background = "#ff6347";
-    progress = "#2f3439";
+    progressCircleWidth = 5;
+    color = "#000000";
+    background = "#ffffff";
 
     constructor(viewportElement, x, y, rotation = 0){
         this.viewport = viewportElement;
         this.x = x;
         this.y = y;
         this.rotation = rotation;
+        this.element.classList.add("rotate-display");
+        this.innerElement.classList.add("text-box");
+        this.canvas.height = this.size;
+        this.canvas.width = this.size;
+        this.canvas.style.cssText = "height:100%;width:100%;top:0;left:0;position:absolute;z-index:-1;";
+        this.element.append(this.canvas, this.innerElement);
         this.update();
     }
     update(){
         let viewRect = this.viewport.getBoundingClientRect();
         let style = `position:absolute;
             left:${viewRect.x + this.x - this.size/2}px;
-            top:${viewRect.y + this.y - this.size/2}px;
-            height:${this.size}px;
-            width:${this.size}px;
-            border-radius:${this.size/2}px;`;
-        if(this.rotation === 0){
-            style+= `background-color:${this.background};`;
-        }
-        else if(this.rotation <= 180){
-            style+= `
-                background-image: linear-gradient(90deg, ${this.background} 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), 
-                linear-gradient(${this.rotation - 90}deg, ${this.background} 50%, ${this.progress} 50%, #2f3439);
-                `;
-        }else{
-            style+= `
-                background-image: linear-gradient(270deg, ${this.progress} 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0)), 
-                linear-gradient(${this.rotation - 90}deg, ${this.background} 50%, ${this.progress} 50%, #2f3439);
-                `;
-        }
-        
+            top:${viewRect.y + this.y - this.size/2}px;`;
+        //draw progress circle
+        var ctx = this.canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.fillStyle = this.background;
+        ctx.strokeStyle = this.color;
+        ctx.fillRect(0,0,this.size,this.size);
+        ctx.lineWidth = this.progressCircleWidth;
+        ctx.arc(this.size/2, this.size/2, (this.size - this.progressCircleWidth )/2 + 2, Math.PI*1.5, PointOperations.radians(this.rotation)-Math.PI/2);
+        ctx.stroke();
         this.element.style.cssText = style;
-        //this.element.innerHTML = this.rotation;
+        this.innerElement.innerHTML = this.rotation+"°";
     }
     addTo(element){
         element.append(this.element);

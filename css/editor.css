@@ -19,6 +19,7 @@
 
     --delete-red:#ff4040;
     --default-button-color:#6a6a6a;
+    --icon-interactive:rgb(87,87,87);;
 
     --viewport-background:#fff;
     --contour-black:#000000;
@@ -167,6 +168,9 @@ button img{
     width: 360px;
     height: calc(100vh - 54px);
 }
+.editor-container .box-menu{
+    padding: 10px 5px 10px 0;
+}
 .editor-container .bottom-bar{
     --content-height: 30px;
     position:fixed;
@@ -210,10 +214,9 @@ button img{
 }
 .editor-container .vert-scroll{
     width:calc(100% - 10px);
-    padding:0 5px;
     max-height:100%;
-    overflow-x:hidden;
     overflow-y:auto;
+    overflow-x: hidden;
 }
 .editor-container .vert-scroll > *{
     margin-bottom:8px;

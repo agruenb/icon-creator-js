@@ -3,7 +3,6 @@
     padding:10px;
     width:330px;
     position:relative;
-    overflow:hidden;
     margin-top:5px;
     background:var(--panel-background);
     /* --animation-time: 0.5s; */
@@ -40,6 +39,7 @@
     top: 0;
     width: 112px;
     z-index: 0;
+    border-radius: 10px;
 }
 .infobox .preview{
     float:left;
@@ -83,24 +83,19 @@
 .infobox.expanded .line.lower{
     display:flex;
     flex-direction: column;
-    transform: translate(116px, 25px);
+    transform: translate(110px, 14px);
 }
 .infobox .pseudo-input{
     display: flex;
     justify-content: center;
     align-items: center;
-    box-sizing: content-box;
+    box-sizing: border-box;
     margin:0;
     padding:0;
-    height:30px;
+    height: 40px;
     width:40px;
     border:none;
-    margin-right:2px;
-    border-radius:8px;
-    background-color:var(--default-button-color);
-    color:var(--white-text);
     cursor: pointer;
-    opacity: 0.5;
 }
 .info-box .order-wrapper{
     width:180px;
@@ -112,11 +107,15 @@
     opacity:1;
 }
 .infobox .color-wrapper{
-    width:100px;
+    margin-left: 5px;
+    width: 80px;
+}
+.infobox .opacity_zero{
+    background: repeating-conic-gradient(#575757 0% 25%, #ffffff 0% 50%) 50% / 20px 20px;
 }
 .infobox .border-wrapper{
-    width:125px;
-    margin-top: 10px;
+    width: 120px;
+    margin: 10px 0 0 5px;
 }
 .infobox .order-wrapper button{
     all:unset;
@@ -138,15 +137,28 @@
     width: 40px;
     margin-right: 4px;
     cursor: default;
-    /* background-color:var(--default-button-color); */
     color:var(--white-text);
     border-radius:8px;
     cursor: pointer;
+    opacity: 0.6;
     padding: 8px;
+}
+.infobox.highlight .order-wrapper button, .infobox.highlight .delete-wrapper button, .infobox:hover .order-wrapper button, .infobox:hover .delete-wrapper button{
+    opacity: 1;
 }
 .infobox .order-wrapper button:hover{
     background-color: #ffffff;
 }
 .infobox .pseudo-input[checked]{
-    opacity: 1;
+    border: 4px solid var(--highlight);
+}
+.infobox .button-group{
+    display:flex;
+    justify-content: space-evenly;
+}
+.infobox .button-group *:first-child{
+    border-radius:8px 0 0 8px;
+}
+.infobox .button-group *:last-child{
+    border-radius:0 8px 8px 0;
 }

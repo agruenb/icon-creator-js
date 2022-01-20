@@ -13,7 +13,9 @@ class IconCreatorGlobal{
     static el(type,text,className){
         let el = document.createElement(type);
         el.classList.add(className);
-        el.innerHTML = text;
+        if(text){
+            el.innerHTML = text;
+        }
         return el;
     }
     /**

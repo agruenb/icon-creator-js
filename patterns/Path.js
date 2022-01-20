@@ -179,7 +179,8 @@ class Path extends Pattern{
         let originalPosPoint = [];
         for(let i = 0; i < this.points.length; i++){
             let point = this.points[i];
-            let distance = PointOperations.vectorLength([point.x - x,point.y - y]);
+            let realPoint = this.rotatePoint([point.x, point.y]);
+            let distance = PointOperations.vectorLength([realPoint[0] - x, realPoint[1] - y]);
             let index = 0;
             while(distances[index] != undefined && distances[index] < distance){
                 index++;
@@ -198,8 +199,8 @@ class Path extends Pattern{
         if(byDistance.distance[0] > distanceLimit){
             return;
         }
-        //keep at least 2 points
-        if(this.points.length < 3){
+        //keep at least 3 points
+        if(this.points.length <= 3){
             console.error("Cannot remove the last 2 points of path");
             return;
         }

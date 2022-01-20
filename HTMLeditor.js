@@ -246,6 +246,7 @@ class HTMLeditor{
     }
     mouseUp(event){
         this.closeContextMenu();
+        this.clearViewportUI("rotationDisplay");
         if(event.which==1){
             let pattern = this.focusedPattern();
             this.currProj().frame().setOpacity(1);
@@ -708,6 +709,7 @@ class HTMLeditor{
     }
     addHelperRotation(pattern){
         let rot = new RotateDisplay(this.drawingViewport, pattern.center[0], pattern.center[1], pattern.rotation);
+        this.rotateDisplay = rot;
         rot.addTo(this.uiLayer());
     }
     /**
@@ -790,8 +792,14 @@ class HTMLeditor{
     focus(pattern){
         this.currProj().frame().focus(pattern);
     }
-    clearViewportUI(){
-        this.currProj().frame().clearUI();
+    clearViewportUI(specificElement){
+        if(specificElement == "rotationDisplay"){
+            if(this.rotateDisplay != undefined){
+                this.rotateDisplay.element.remove();
+            }
+        }else{
+            this.currProj().frame().clearUI();
+        }
     }
     duplicate(pattern){
         let dup = PatternManipulator.createWithSameClass(pattern);

@@ -15,6 +15,13 @@ class PatternInfoBox{
     borderWidthLabel;
     borderTrans;
 
+    oneUpImg = "img/one_up_2.svg";
+    toTopImg = "img/to_front.svg";
+    oneDownImg = "img/one_down_2.svg";
+    toBottomImg = "img/to_back.svg";
+
+    seeThroughImg = "img/invisible.svg"
+
     constructor(pattern, keyFrame){
         this.pattern = pattern;
         this.keyFrame = keyFrame;
@@ -63,10 +70,8 @@ class PatternInfoBox{
             }
             if(this.pattern.borderColor != "transparent"){
                 this.borderColorLabel.setAttribute("checked","true");
-                this.borderWidthLabel.setAttribute("checked","true");
             }else{
                 this.borderColorLabel.removeAttribute("checked");
-                this.borderWidthLabel.removeAttribute("checked");
             }
         }
     }
@@ -106,19 +111,19 @@ class PatternInfoBox{
         let orderWrapper = IconCreatorGlobal.el("div","","order-wrapper");
         let toTop = IconCreatorGlobal.el("button","","toTop");
         let toTopIcon = document.createElement("img");
-        toTopIcon.src = "img/to_front.svg";
+        toTopIcon.src = this.toTopImg;
         toTop.append(toTopIcon);
         let oneUp = IconCreatorGlobal.el("button","","oneUp");
         let oneUpIcon = document.createElement("img");
-        oneUpIcon.src = "img/one_up_2.svg";
+        oneUpIcon.src = this.oneUpImg;
         oneUp.append(oneUpIcon);
         let toBottom = IconCreatorGlobal.el("button","","toBottom");
         let toBottomIcon = document.createElement("img");
-        toBottomIcon.src = "img/to_back.svg";
+        toBottomIcon.src = this.toBottomImg;
         toBottom.append(toBottomIcon);
         let oneDown = IconCreatorGlobal.el("button","","oneDown");
         let oneDownIcon = document.createElement("img");
-        oneDownIcon.src = "img/one_down_2.svg";
+        oneDownIcon.src = this.oneDownImg;
         oneDown.append(oneDownIcon);
         orderWrapper.append(toTop, oneUp, oneDown, toBottom);
         //delete
@@ -132,13 +137,15 @@ class PatternInfoBox{
         deleteWrapper.append(deleteButton);
         upperLine.append(orderWrapper, deleteWrapper);
         //fill
-        let colorWrapper = IconCreatorGlobal.el("div","","color-wrapper");
+        let colorWrapper = IconCreatorGlobal.el("div","","button-group");
+        colorWrapper.classList.add("color-wrapper");
         if(this.pattern.color != undefined){
             let colorInput = new CustomColorInput("pseudo-input", (this.pattern.color == "transparent")?"#ffffff":this.pattern.color);
             this.fillColorLabel = colorInput;
             this.fillColor = colorInput.querySelector("input");
-            let fillTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.color == "transparent", "X");
+            let fillTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.color == "transparent", "");
             fillTransLabel.setAttribute("title","remove filling");
+            fillTransLabel.classList.add("opacity_zero");
             this.fillTrans = fillTransLabel.querySelector("input");
             colorWrapper.append(colorInput, fillTransLabel);
             this.fillColor.addEventListener("change",(e)=>{
@@ -168,13 +175,15 @@ class PatternInfoBox{
         }
         //border
         let borderWrapper = IconCreatorGlobal.el("div", "", "border-wrapper");
+        borderWrapper.classList.add("button-group");
         if(this.pattern.borderWidth != undefined){
             let borderColorInput = new CustomColorInput("pseudo-input", (this.pattern.borderColor == "transparent")?"#ffffff":this.pattern.borderColor);
             this.borderColorLabel = borderColorInput;
             this.borderColor = borderColorInput.querySelector("input");
             let borderWidthInput = new CustomNumberInput("pseudo-input", this.pattern.borderWidth);
             this.borderWidth = borderWidthInput.querySelector("input");
-            let borderTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.borderColor == "transparent", "X");
+            let borderTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.borderColor == "transparent", "");
+            borderTransLabel.classList.add("opacity_zero");
             this.borderWidthLabel = borderWidthInput;
             borderTransLabel.setAttribute("title","remove border");
             this.borderTrans = borderTransLabel.querySelector("input");
