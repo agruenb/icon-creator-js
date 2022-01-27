@@ -26,8 +26,16 @@ class InfoBoxManager{
         let box = this.boxById(pattern.id);
         if(box != undefined){
             box.element.remove();
-            let remIndex = this.boxes.indexOf(box);//performance?
-            this.boxes.splice(remIndex,1);
+            let i = 0;
+            while(this.boxes[i].boundId != pattern.id){
+                i++;
+            }
+            if(i < this.boxes.length){
+                this.boxes.splice(i,1);
+            }else{
+                console.log(pattern.id, this.boxes);
+                console.warn("Could not find box to remove");
+            }
         }else{
             console.warn("Tried to remove none existant PatternInfoBox.");
         }

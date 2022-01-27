@@ -244,8 +244,8 @@ class Frame extends IconCreatorGlobal{
         }
         //load
         this.id = frameJSON.attributes.id;
-        for(let id in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
-            let patternJSON = this.copy(frameJSON.attributes.patterns[id]);
+        for(let i in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
+            let patternJSON = this.copy(frameJSON.attributes.patterns[i]);
             let pattern;
             switch (patternJSON.subtype) {
             case "Rect":
@@ -278,17 +278,17 @@ class Frame extends IconCreatorGlobal{
             }
         }
         //add render Order
-        if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);
+        //if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);
     }
     /**
      * Returns the JSON representation of this frame.
      */
      get(){
         //get patterns (without main pattern and filler if is maskLayer)
-        let passPatterns = {};
-        for(let key in this.patterns){
-            let currPat = this.patterns[key];
-            passPatterns[key] = currPat.get();
+        let passPatterns = [];
+        for(let i = 0;i < this.renderOrder.length;i++){
+            let currPat = this.patterns[this.renderOrder[i]];
+            passPatterns.push(currPat.get());
         }
         let obj = super.get();
         Object.assign(obj, 

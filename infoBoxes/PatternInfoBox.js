@@ -14,6 +14,7 @@ class PatternInfoBox{
     borderWidth;
     borderWidthLabel;
     borderTrans;
+    displayedIcon;
 
     oneUpImg = "img/one_up_2.svg";
     toTopImg = "img/to_front.svg";
@@ -21,6 +22,10 @@ class PatternInfoBox{
     toBottomImg = "img/to_back.svg";
 
     seeThroughImg = "img/invisible.svg"
+
+    VISIBLE = "img/eye.svg";
+    HIDDEN = "img/eye_crossed.svg";
+
 
     constructor(pattern, keyFrame){
         this.pattern = pattern;
@@ -37,6 +42,7 @@ class PatternInfoBox{
         this.updatePreview();
         this.updateFill();
         this.updateBorder();
+        this.updateDisplayed();
     }
     updatePreview(){
         this.previewWindow.innerHTML = `<svg viewbox='0 0 ${this.keyFrame.width} ${this.keyFrame.height}'>${this.pattern.cleanHTML()}</svg>`
@@ -73,6 +79,13 @@ class PatternInfoBox{
             }else{
                 this.borderColorLabel.removeAttribute("checked");
             }
+        }
+    }
+    updateDisplayed(){
+        if(this.pattern.display){
+            this.displayedIcon.src = this.VISIBLE;
+        }else{
+            this.displayedIcon.src = this.HIDDEN;
         }
     }
     getIconUrl(){
@@ -126,7 +139,23 @@ class PatternInfoBox{
         oneDownIcon.src = this.oneDownImg;
         oneDown.append(oneDownIcon);
         orderWrapper.append(toTop, oneUp, oneDown, toBottom);
+        //hide
+        let hideWrapper = IconCreatorGlobal.el("div","","hide-wrapper");
+        let hideButton = IconCreatorGlobal.el("button", "", "hide-button");
+        let hideButtonImg = IconCreatorGlobal.el("img", "", "hide-image");
+        hideButtonImg.src = this.VISIBLE;
+        this.displayedIcon = hideButtonImg;
+        hideButton.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            this.pattern.display = !this.pattern.display;
+            this.updateDisplayed();
+            this.keyFrame.repaint(this.pattern);
+            this.keyFrame.editor.saveToHistory();
+        });
+        hideButton.append(hideButtonImg);
+        hideWrapper.append(hideButton);
         //delete
+        /*
         let deleteWrapper = IconCreatorGlobal.el("div","","delete-wrapper");
         let deleteButton = IconCreatorGlobal.el("button", "U", "delete-button");
         deleteButton.addEventListener("click",(e)=>{
@@ -135,7 +164,9 @@ class PatternInfoBox{
             this.keyFrame.editor.saveToHistory();
         });
         deleteWrapper.append(deleteButton);
-        upperLine.append(orderWrapper, deleteWrapper);
+        */
+        upperLine.append(orderWrapper, hideWrapper);
+        
         //fill
         let colorWrapper = IconCreatorGlobal.el("div","","button-group");
         colorWrapper.classList.add("color-wrapper");

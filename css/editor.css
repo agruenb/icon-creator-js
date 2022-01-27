@@ -119,36 +119,44 @@ button img{
     margin: 5px;
 }
 .topbar .export-button{
-    height: 60px;
-    width: 60px;
+    height: 40px;
+    width: 40px;
     cursor:pointer;
     display:flex;
     justify-content: center;
     align-items: center;
-    padding: 0 5px;
+    padding: 5px;
+    margin: 5px;
     border-left: 3px solid #fff;
 }
 .topbar .export-button img{
-    --size: 70%;
+    --size: 80%;
     height:var(--size);
     width:var(--size);
 }
-.editor-container .toolbar{
-    position:fixed;
-    top: 100px;
-    left:0;
-    z-index: 4;
-}
 .editor-container .history-button{
-    width:60px;
-    height: 60px;
-    padding: 0px 5px;
+    width: 40px;
+    height: 40px;
+    padding: 5px;
+    margin: 5px;
     display:flex;
     justify-content: center;
+    cursor: pointer;
     align-items: center;
+    border-radius:5px;
+}
+.editor-container .history-button.disabled{
+    opacity: 0.6;
+}
+.editor-container .history-button:hover{
+    background: var(--viewport-background);
+}
+.editor-container .history-button.disabled:hover{
+    background: var(--panel-background);
+    cursor: default;
 }
 .editor-container .history-button img{
-    --size:75%;
+    --size: 85%;
     width:var(--size);
     height: var(--size);
 }
@@ -158,6 +166,12 @@ button img{
     display:flex;
     justify-content:center;
     align-items:center;
+}
+.editor-container .toolbar{
+    position:fixed;
+    top: 100px;
+    left:0;
+    z-index: 4;
 }
 .editor-container .sidebar{
     position:fixed;

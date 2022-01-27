@@ -2,6 +2,7 @@ class Path extends Pattern{
 
     displayCurveMarkersSpaceLimit = 40;
     allowManuelPointDeleteDistance = 20;
+    defaultEdgeRounderDistance = 15;
 
     rotation = 0;
     center = [0,0];
@@ -221,7 +222,7 @@ class Path extends Pattern{
             if(["Q"].indexOf(point.method) !== -1){
                 elementString += point.extraX+" "+point.extraY+" ";
             }
-            let distance = 10;
+            let rounderDistance = (point.rounderDistance == undefined)?this.defaultEdgeRounderDistance:point.rounderDistance;
             switch (point.type) {
                 case "round":
                     //BOTH IF and ELSE have to be adjusted
@@ -235,8 +236,8 @@ class Path extends Pattern{
                         let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
                         let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
                         //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
-                        let maxRoundingDistancetoLast = Math.min(distance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - distance));
-                        let maxRoundingDistancetoNext = Math.min(distance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - distance));
+                        let maxRoundingDistancetoLast = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - rounderDistance));
+                        let maxRoundingDistancetoNext = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - rounderDistance));
                         //set the distance of the rounder points from the main point
                         toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
@@ -256,8 +257,8 @@ class Path extends Pattern{
                         let toLastPointVector = [lastPoint[0]-point.x, lastPoint[1]-point.y];
                         let toNextPointVector = [nextPoint[0]-point.x, nextPoint[1]-point.y];
                         //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
-                        let maxRoundingDistancetoLast = Math.min(distance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - distance));
-                        let maxRoundingDistancetoNext = Math.min(distance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - distance));
+                        let maxRoundingDistancetoLast = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - rounderDistance));
+                        let maxRoundingDistancetoNext = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - rounderDistance));
                         //set the distance of the rounder points from the main point
                         toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);

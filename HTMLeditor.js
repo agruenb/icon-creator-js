@@ -75,6 +75,8 @@ class HTMLeditor{
 
         this.environment.control.history.back.addEventListener("click",()=>{this.reverseLastAction()});
         this.environment.control.history.forwards.addEventListener("click",()=>{this.reInitLastReverse()});
+        this.environment.control.history.back.classList.add("disabled");
+        this.environment.control.history.forwards.classList.add("disabled");
 
         //init mouse events
         this.environment.layout.viewport.addEventListener("contextmenu", event => {
@@ -719,17 +721,35 @@ class HTMLeditor{
     removePattern(pattern){
         this.stopEdit();
         this.currProj().frame().remove(pattern);
-        
     }
     reverseLastAction(){
         this.focus();
         this.setDrawingType("none");
         this.currProj().frame().history.reverseLast();
+        //update ui
+        this.updateHistoryButtons();
     }
     reInitLastReverse(){
         this.focus();
         this.setDrawingType("none");
         this.currProj().frame().history.reInitLast();
+        //update ui
+        this.updateHistoryButtons();
+    }
+    updateHistoryButtons(){
+        //console.log(this.currProj().frame().history.currentState, this.currProj().frame().history.firstPreserved);
+        if(this.currProj().frame().history.currentState != this.currProj().frame().history.firstPreserved){
+            this.environment.control.history.back.classList.remove("disabled");
+        }
+        if(this.currProj().frame().history.currentState != this.currProj().frame().history.history.length - 1){
+            this.environment.control.history.forwards.classList.remove("disabled");
+        }
+        if(this.currProj().frame().history.currentState == this.currProj().frame().history.firstPreserved){
+            this.environment.control.history.back.classList.add("disabled");
+        }
+        if(this.currProj().frame().history.currentState == this.currProj().frame().history.history.length - 1){
+            this.environment.control.history.forwards.classList.add("disabled");
+        }
     }
     changeView(view = "arange"){
         if(this.state.view != view){
@@ -841,6 +861,7 @@ class HTMLeditor{
     saveToHistory(){
         if(this.keepHistory){
             this.currProj().frame().saveToHistory();
+            this.updateHistoryButtons();
         }
     }
     loadProject(projectJSON = {}){

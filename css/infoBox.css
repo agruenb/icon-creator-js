@@ -9,12 +9,10 @@
 }
 .editor-container .infobox:hover{
     transition: 0.2s;
-    box-shadow:var(--panel-shadow);
 }
 .editor-container .infobox.highlight{
     /*background:linear-gradient(180deg, var(--header-panel-grey)35px, var(--panel-background) 35px);*/
     opacity:1;
-    box-shadow:var(--panel-shadow);
 }
 .infobox .headline{
     width:100%;
@@ -97,14 +95,8 @@
     border:none;
     cursor: pointer;
 }
-.info-box .order-wrapper{
-    width:180px;
-}
-.info-box .delete-wrapper{
-    width:45px;
-}
-.info-box .delete-wrapper .pseudo-input{
-    opacity:1;
+.infobox .hide-wrapper .hide-button{
+    margin: 0 0 0 4px;
 }
 .infobox .color-wrapper{
     margin-left: 5px;
@@ -126,7 +118,7 @@
 .infobox .pseudo-input:last-child{
     margin-right:0;
 }
-.infobox .order-wrapper button, .infobox .delete-wrapper button{
+.infobox .order-wrapper button, .infobox .hide-wrapper button, .infobox .delete-wrapper button{
     display: flex;
     justify-content:center;
     align-items:center;
@@ -143,11 +135,17 @@
     opacity: 0.6;
     padding: 8px;
 }
-.infobox.highlight .order-wrapper button, .infobox.highlight .delete-wrapper button, .infobox:hover .order-wrapper button, .infobox:hover .delete-wrapper button{
+.infobox.highlight .order-wrapper button,
+.infobox.highlight .hide-wrapper button,
+.infobox.highlight .delete-wrapper button,
+.infobox:hover .order-wrapper button,
+.infobox:hover .hide-wrapper button,
+.infobox:hover .delete-wrapper button{
     opacity: 1;
 }
-.infobox .order-wrapper button:hover{
-    background-color: #ffffff;
+.infobox .order-wrapper button:hover,
+.infobox .hide-wrapper button:hover{
+    background-color: var(--viewport-background);
 }
 .infobox .pseudo-input[checked]{
     border: 4px solid var(--highlight);

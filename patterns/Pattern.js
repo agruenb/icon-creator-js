@@ -44,7 +44,6 @@ class Pattern extends IconCreatorGlobal{
         newPatternMaskFill.isMask = true;
         newPatternMaskFill.isFiller = true;
         this.maskLayer.append(newPatternMaskFill);
-        console.log("After creation", this.maskLayer.renderOrder);
     }
     hasMask(){
         //console.log(this.maskLayer); TODO unparsed maskLayer in maskLayer attribute

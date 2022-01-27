@@ -14,7 +14,10 @@ class Exporter {
         for (let i = 0; i < project.keyframes.length; i++) {
             let orderCopy = JSON.parse(JSON.stringify(project.keyframes[i].renderOrder));
             while(orderCopy.length > 0){
-                fileContent += project.keyframes[i].patterns[orderCopy[0]].fullHTML();
+                //if not displayed omit pattern for creation
+                if(project.keyframes[i].patterns[orderCopy[0]].display){
+                    fileContent += project.keyframes[i].patterns[orderCopy[0]].fullHTML();
+                }
                 orderCopy.splice(0,1);
             }
         }
