@@ -12,7 +12,6 @@ class Rect extends Pattern{
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
         this.stroke = stroke;
-
         this.updateProperties();
     }
     translateTo(newOriginX,newOriginY){

@@ -11,6 +11,8 @@ class Frame extends IconCreatorGlobal{
 
     markers = new Array();
     focusedPattern;
+    
+    isMaskFrame = false;
 
     width = 512;
     height = 512;
@@ -43,7 +45,7 @@ class Frame extends IconCreatorGlobal{
         this.renderOrder.push(String(id));
     }
     remove(pattern, repaint = true){
-        delete this.patterns[pattern];
+        delete this.patterns[pattern.id];
         this.renderOrder.splice(this.renderOrder.indexOf(pattern.id),1);
         this.infoBoxManager.remove(pattern);
         if(repaint){
@@ -277,8 +279,6 @@ class Frame extends IconCreatorGlobal{
                 this.infoBoxManager.newBox(pattern);
             }
         }
-        //add render Order
-        //if(trueCopy) this.renderOrder = this.copy(frameJSON.attributes.renderOrder);
     }
     /**
      * Returns the JSON representation of this frame.
@@ -298,8 +298,7 @@ class Frame extends IconCreatorGlobal{
                 id:this.id,
                 width: this.width,
                 height: this.height,
-                patterns: this.copy(passPatterns),
-                renderOrder: this.copy(this.renderOrder),
+                patterns: this.copy(passPatterns)
             }
         });
         return obj;

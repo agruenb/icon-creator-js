@@ -197,7 +197,7 @@ button img{
     background-color:var(--panel-background);
     user-select: none;
 }
-.editor-container .bottom-bar .gridsize-wrapper, .editor-container .bottom-bar .save-power-wrapper{
+.editor-container .bottom-bar > div{
     height: var(--content-height);
     padding: 5px;
     display: flex;
@@ -222,6 +222,10 @@ button img{
 .editor-container .bottom-bar .save-power-wrapper .save-power-icon{
     height: 90%;
     width: 90%;
+}
+.editor-container .bottom-bar .exclusive-view-wrapper .icon{
+    height: 85%;
+    width: 85%;
 }
 .editor-container .bottom-bar input:checked + label{
     border: 2px solid var(--highlight);

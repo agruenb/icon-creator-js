@@ -66,6 +66,8 @@ class Circle extends Pattern{
         let additionalAttributes = {
             radius: this.radius,
             color: this.color,
+            center: this.center,
+            rotation: this.rotation,
             borderWidth: this.borderWidth,
             borderColor: this.borderColor
         }

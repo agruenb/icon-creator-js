@@ -132,11 +132,13 @@ class PatternInfoBox{
         oneUp.append(oneUpIcon);
         let toBottom = IconCreatorGlobal.el("button","","toBottom");
         let toBottomIcon = document.createElement("img");
-        toBottomIcon.src = this.toBottomImg;
+        toBottomIcon.src = this.toTopImg;
+        toBottomIcon.style.transform = "scale(-1, -1)";
         toBottom.append(toBottomIcon);
         let oneDown = IconCreatorGlobal.el("button","","oneDown");
         let oneDownIcon = document.createElement("img");
-        oneDownIcon.src = this.oneDownImg;
+        oneDownIcon.src = this.oneUpImg;
+        oneDownIcon.style.transform = "scale(-1, -1)";
         oneDown.append(oneDownIcon);
         orderWrapper.append(toTop, oneUp, oneDown, toBottom);
         //hide

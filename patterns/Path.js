@@ -20,6 +20,7 @@ class Path extends Pattern{
         this.color = color;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
+        this.updateProperties();
     }
     translateTo(newOriginX,newOriginY){
         this.translateMaskTo(newOriginX, newOriginY);//important to call before manipulating origin, because origin is fetched by mask elements

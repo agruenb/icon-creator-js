@@ -10,6 +10,7 @@ class Line extends Pattern{
         this.width = width;
         this.stroke = stroke;
         this.vector = [0,0];
+        this.updateProperties();
     }
     translateTo(newOriginX, newOriginY){
         this.translateMaskTo(newOriginX, newOriginY);//important to call before manipulating origin, because origin is fetched by mask elements

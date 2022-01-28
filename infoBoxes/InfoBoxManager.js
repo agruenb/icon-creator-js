@@ -15,8 +15,15 @@ class InfoBoxManager{
         this.add(newBox);
     }
     updateBox(pattern){
-        let thatBox = this.boxById(pattern.id);
-        thatBox.update();
+        if(pattern != undefined){
+            let box = this.boxById(pattern.id);
+            box.update();
+        }else{//update all
+            console.log("update all");
+            for(let i in this.boxes){
+                this.boxes[i].update();
+            }
+        }
     }
     add(box){
         this.appendTop(box);

@@ -82,7 +82,12 @@
                 <label for="savePower">
                     <img class="save-power-icon" src="img/save_power.svg" alt="Save power icon">
                 </label>
-
+            </div>
+            <div class="exclusive-view-wrapper">
+                <input type="checkbox" style="display:none" id="exclusiveView">
+                <label for="exclusiveView">
+                    <img class="icon" src="img/exclusive_view_icon.svg" alt="exclusive view icon">
+                </label>
             </div>
         </div>
     </div>
@@ -149,7 +154,8 @@
                     size_5:document.getElementById("gridsize_5"),
                     size_6:document.getElementById("gridsize_6")
                 },
-                paintColor:document.getElementById("paintColor")
+                paintColor:document.getElementById("paintColor"),
+                exclusiveView:document.getElementById("exclusiveView")
             },
             export:{
                 file:document.getElementById("exportFile"),

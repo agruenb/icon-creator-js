@@ -22,7 +22,7 @@ class MaskFrame extends Frame{
     }
     //@Override
     saveToHistory(){
-        
+        //mask frame does not keep history
     }
     //@Override
     paint(pattern){
@@ -55,7 +55,6 @@ class MaskFrame extends Frame{
      * @param {boolean} trueCopy also copies the IDs if true
      */
      load(frameJSON = {}, trueCopy = true){
-         console.log("Pre",this.renderOrder);
         //check valid
         if(frameJSON.version != this.version){
             console.warn("Loading MaskFrame from another version");
@@ -96,7 +95,6 @@ class MaskFrame extends Frame{
             this.append(pattern);
             pattern.load(patternJSON);
         }
-        console.log("Post",this.renderOrder);
     }
     /**
      * Returns the JSON representation of this frame.
