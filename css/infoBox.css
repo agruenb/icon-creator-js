@@ -4,7 +4,7 @@
     width:330px;
     position:relative;
     margin-top:5px;
-    background:var(--panel-background);
+    background: var(--panel-background);
     /* --animation-time: 0.5s; */
 }
 .editor-container .infobox:hover{

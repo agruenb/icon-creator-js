@@ -1,32 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap');
-:root{
-    --light-pastel-green:#D2D8B6;
-    --medium-pastel-green:#9fa77e;
-    --dark-pastel-green:#6f774d;
 
-    --light-cream: #FFF3DE;
-    
-    --panel-background:#ececec;
-    --panel-outline:#ffffff;
-    --highlight:#307ffd;
-    --deep-blue:#0000ff;
-    --mute-gray:#505050;
-    --select-black:#000000;
-    
-    --panel-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
-    --mute-grey:#ccc;
-    --header-panel-grey:rgb(146, 146, 146);
-
-    --delete-red:#ff4040;
-    --default-button-color:#6a6a6a;
-    --icon-interactive:rgb(87,87,87);;
-
-    --viewport-background:#fff;
-    --contour-black:#000000;
-    --contour-grey:#ccc;
-
-    --white-text:#fff;
-}
 body{
     margin:0;
     padding:0;
@@ -36,11 +9,18 @@ button{
     all:unset;
     user-select: none;
     cursor:pointer;
+    position:relative;
 }
 button img{
     height: 100%;
     width: 100%;
     pointer-events:none;
+}
+.overlay_bucket{
+    position:absolute;
+    top:0;
+    left:0;
+    z-index: 1;
 }
 .anno-button{
     display:flex;
@@ -53,17 +33,11 @@ button img{
     overflow: hidden;;
 }
 .anno-button .pseudo-input{
-    width: 75%;
-    height: 75%;
-    border-radius: 5px;
-    transition: 0.2s;
-}
-.anno-button:hover .pseudo-input{
-    border-radius: 15px;
-    cursor: pointer;
+    width: 82%;
+    height: 88%;
 }
 .anno-button:hover{
-    padding-left:15px;
+    transform:translateX(15px);
 }
 .anno-button[selected="true"]{
     padding-left:5px;
@@ -166,6 +140,7 @@ button img{
     display:flex;
     justify-content:center;
     align-items:center;
+    background: var(--viewport-background);
 }
 .editor-container .toolbar{
     position:fixed;
@@ -180,6 +155,7 @@ button img{
     padding-top: 10px;
     z-index: 4;
     width: 360px;
+    pointer-events: none;
     height: calc(100vh - 54px);
 }
 .editor-container .box-menu{
@@ -215,11 +191,11 @@ button img{
     background: #fff;
     align-items: center;
 }
-.editor-container .bottom-bar .gridsize-wrapper .gridsize-icon{
+.editor-container .bottom-bar .gridsize-wrapper .icon{
     height: 90%;
     width: 90%;
 }
-.editor-container .bottom-bar .save-power-wrapper .save-power-icon{
+.editor-container .bottom-bar .save-power-wrapper .icon{
     height: 90%;
     width: 90%;
 }
@@ -235,6 +211,7 @@ button img{
     max-height:100%;
     overflow-y:auto;
     overflow-x: hidden;
+    pointer-events: all;
 }
 .editor-container .vert-scroll > *{
     margin-bottom:8px;

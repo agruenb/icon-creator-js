@@ -6,6 +6,7 @@ class Project extends IconCreatorGlobal{
     container;
     frameContainer;
     contextContainer;
+    viewportOutline;
 
     initialized = false;
     generateColors = true;
@@ -34,7 +35,7 @@ class Project extends IconCreatorGlobal{
         this.frameContainer.style.cssText = "height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;";
 
         this.viewportOutline = document.createElement("div");
-        this.viewportOutline.style.cssText = "pointer-events:none;height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border:1px solid #000;border-radius:2px;z-index:10000;";
+        this.viewportOutline.style.cssText = "pointer-events:none;height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border-radius:2px;z-index:10000;";
         
         this.contextContainer = this.frameContainer.cloneNode(false);
         this.contextContainer.style.cssText = "position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);";
@@ -102,16 +103,20 @@ class Project extends IconCreatorGlobal{
             this.contextContainer.innerHTML = "";
         }
     }
-    drawBg(type = "dotts",gridsize = 1){
+    drawBg(type = "dotts",gridsize = 1, colorSchemeLight = this.editor.colorSchemeLight){
+        let schemeColor =  (colorSchemeLight)?"#404040":"#dbdbdb"
+        //border
+        this.viewportOutline.style.border = `1px solid ${schemeColor}`;
+        //inner drawing
         let pen = this.bgCanvas.getContext("2d");
-        pen.fillStyle = "white";
-        pen.fillRect(0,0,this.dimensions.width,this.dimensions.height);
+        //pen.fillStyle = "white";
+        pen.clearRect(0,0,this.dimensions.width,this.dimensions.height);
         switch (type) {
             case "dotts":
                 if(gridsize > 8){//only render if grid not too fine
                     let dottAmountX = parseInt(parseInt(this.dimensions.width)/gridsize);
                     let dottAmountY = parseInt(parseInt(this.dimensions.height)/gridsize);
-                    pen.fillStyle = "#404040";
+                    pen.fillStyle = pen.strokeStyle = schemeColor;
                     for(let x = 1; x < dottAmountX; x++){
                         for (let y = 1; y < dottAmountY; y++) {
                             //every 5th point red cross
@@ -134,7 +139,7 @@ class Project extends IconCreatorGlobal{
                                 */
                                 pen.beginPath();
                                 pen.arc(x*gridsize - 0.5, y*gridsize - 0.5, 2, 0, Math.PI * 2);
-                                pen.stroke();
+                                pen.fill();
                             }else{
                                 pen.fillRect(x*gridsize - 0.5, y*gridsize - 0.5, 1, 1);
                             }                            
@@ -161,6 +166,7 @@ class Project extends IconCreatorGlobal{
                 }
                 break;
             default:
+                console.warn(type);
                 break;
         }
     }

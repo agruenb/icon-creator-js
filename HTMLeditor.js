@@ -12,13 +12,16 @@ class HTMLeditor{
     keepHistory = true;
     exclusivView = false;
 
+    colorSchemeLight = true;
+
     state = {
         currentAction:"none",
         editedObject:undefined,
         mouseDownInfo:undefined,
         view:"arange",
         currentProject: 0,
-        gridsize: 1  
+        gridsize: 1,
+        draggingInfo: undefined
     }
 
     defaultSizing = {
@@ -67,6 +70,9 @@ class HTMLeditor{
         for(let key in this.environment.control.meta.gridsize){
             this.environment.control.meta.gridsize[key].addEventListener("click",() => {this.changeGrid(this.environment.control.meta.gridsize[key].value)});
         }
+        for(let key in this.environment.control.meta.bgColor){
+            this.environment.control.meta.bgColor[key].addEventListener("click",()=>{this.changeBackground(this.environment.control.meta.bgColor[key].value)});
+        }
         
         let colorInput = new CustomColorInput("pseudo-input", "#660033");
         this.environment.control.meta.paintColor.append(colorInput);
@@ -101,6 +107,7 @@ class HTMLeditor{
     }
     mouseDown(event){
         this.closeContextMenu();
+        this.setMouseInfo(event);
         if(event.which==1 && this.currentAction !== "none"){
             let type = "none";
             //if new drawing type is selected
@@ -197,8 +204,18 @@ class HTMLeditor{
                     points = JSON.parse(JSON.stringify(pattern.points));
                     points.pop();
                     points.pop();
-                    points.push({method:"L",x:this.relX(event.clientX,0),y:this.relY(event.clientY,0),extraX:10,extraY:10, type:"round"});
-                    points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
+                    //get position for extra/curve markers
+                    let x = this.relX(event.clientX);
+                    let y = this.relY(event.clientY);
+                    let midLast;
+                    if(points.length > 0){
+                        midLast = PointOperations.halfwayVector([points[points.length - 1].x,points[points.length - 1].y],[x,y]);
+                    }else{
+                        midLast = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
+                    }
+                    let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
+                    points.push({method:"L",x:this.relX(event.clientX,0),y:this.relY(event.clientY,0),extraX:midLast[0],extraY:midLast[1], type:"round"});
+                    points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midLast[1],type:"round"});
                     this.currProj().alterPattern(pattern,{points:points});
                     this.clearViewportUI()
                     this.addHelperOutline(pattern);
@@ -260,6 +277,10 @@ class HTMLeditor{
         this.clearViewportUI("rotationDisplay");
         if(event.which==1){
             let pattern = this.focusedPattern();
+            let xPrecise = this.relX(event.clientX,0,undefined,1);
+            let yPrecise = this.relY(event.clientY,0,undefined,1);
+            let x = this.relX(event.clientX);
+            let y = this.relY(event.clientY);
             switch (this.state.currentAction) {
                 case "none":
                     //if pattern is clicked -> start editing
@@ -288,12 +309,13 @@ class HTMLeditor{
                         //path finished
                         points.pop();
                         points.pop();
-                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
+                        let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[points[points.length - 1].x,points[points.length - 1].y]);
+                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midNext[1],type:"round"});
                         this.clearViewportUI();
                         this.setDrawingType("path0");
                         this.currProj().frame().newBox(pattern);
                         //TODO replace with default path
-                        if(this.focusedPattern().points.length < 2 && this.relX(event.clientX) == this.focusedPattern().xOrigin && this.relY(event.clientY) == this.focusedPattern().yOrigin){//check for invalid path
+                        if(this.focusedPattern().points.length < 2 && x == this.focusedPattern().xOrigin && y == this.focusedPattern().yOrigin){//check for invalid path
                             this.removePattern(this.focusedPattern());
                             alert("Halte die Maus gedrückt und ziehe sie anschließend, um eine Form zu erstellen.");
                             return true;
@@ -304,16 +326,24 @@ class HTMLeditor{
                         this.currProj().repaint(pattern);
                         this.startEdit(this.focusedPattern());
                     } else {
+                        //add point to path
                         points.pop();
-                        points.push({method:"L",x:this.relX(event.clientX,0,2),y:this.relY(event.clientY,0,2),extraX:10,extraY:10,type:"round"});
-                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:10,extraY:10,type:"round"});
+                        //get position for extra/curve markers
+                        let midLast;
+                        if(points.length > 0){
+                            midLast = PointOperations.halfwayVector([points[points.length - 1].x,points[points.length - 1].y],[x,y]);
+                        }else{
+                            midLast = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
+                        }
+                        let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
+                        points.push({method:"L",x:x,y:y,extraX:midLast[0],extraY:midLast[1],type:"round"});
+                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midNext[1],type:"round"});
                         this.currProj().alterPattern(pattern, {points:points}, true);
                         this.currProj().repaint(pattern);
                     }
                     break;
                 //edit
                 case "edit0":
-                    //nothing is written into editedObject -> focusedPattern was not clicked
                     //stop edit on active element
                     this.stopEdit();
                     //if pattern is clicked -> start editing
@@ -323,9 +353,23 @@ class HTMLeditor{
                             this.startEdit(this.patternById(event.target.parentElement.id));
                         }
                     }
-                    
                     break;
-                case "dragMarker":case "dragPattern":
+                case "dragMarker"://also click marker
+                    let closestMarker = this.closestMarker(x,y);
+                    //if mouse up position == mouse down position => marker is clicked
+                    if(closestMarker.distance < this.detectMouseOnMarkerDistance && this.state.mouseDownInfo.x == xPrecise && this.state.mouseDownInfo.y == yPrecise){
+                        //dont focus main pattern on mask frame
+                        this.focusedPattern().markerClicked(closestMarker.marker);
+                        this.clearViewportUI();
+                        this.startEdit(this.focusedPattern());
+                    }
+                    this.state.currentAction = "edit0";
+                    this.currProj().frame().updateInfoBox(pattern);
+                    this.saveToHistory();
+                    this.currProj().frame().setOpacity(1);
+                    this.currProj().repaint(pattern);
+                    break;
+                case "dragPattern":
                     this.state.currentAction = "edit0";
                     this.currProj().frame().updateInfoBox(pattern);
                     this.saveToHistory();
@@ -514,8 +558,8 @@ class HTMLeditor{
                 }
                 break;
             case "dragPattern":
-                let newOriginX = this.relX(event.clientX,(this.state.mouseDownInfo.relToPatternOriginX));
-                let newOriginY = this.relY(event.clientY,(this.state.mouseDownInfo.relToPatternOriginY));
+                let newOriginX = this.relX(event.clientX,(this.state.draggingInfo.relToPatternOriginX));
+                let newOriginY = this.relY(event.clientY,(this.state.draggingInfo.relToPatternOriginY));
                 if (newOriginX !== pattern.xOrigin || newOriginY !== pattern.yOrigin) {
                     this.clearViewportUI();
                     pattern.translateTo(newOriginX, newOriginY);
@@ -540,13 +584,19 @@ class HTMLeditor{
     }
     setDraggingInfo(editedObject, event){
         this.state.editedObject = editedObject;
-        let mouseDownInfo = {
+        let draggingInfo = {
             x:this.relX(event.clientX,0,undefined,1),
             y:this.relX(event.clientY,0,undefined,1),
             relToPatternOriginX:this.relX(event.clientX,0,undefined,1) - this.state.editedObject.xOrigin,
             relToPatternOriginY:this.relY(event.clientY,0,undefined,1) - this.state.editedObject.yOrigin
         };
-        this.state.mouseDownInfo = mouseDownInfo;
+        this.state.draggingInfo = draggingInfo;
+    }
+    setMouseInfo(event){
+        this.state.mouseDownInfo = {
+            x:this.relX(event.clientX,0,undefined,1),
+            y:this.relY(event.clientY,0,undefined,1)
+        }
     }
     finalizeDraggedInPattern(pattern, event){
         this.currProj().frame().newBox(pattern);
@@ -811,7 +861,6 @@ class HTMLeditor{
                     if(editPossible){
                         if(focusedPattern.allowMask){
                             this.state.view = view;
-                            //this.currProj().setContext(this.currProj().currentFrame);
                             this.currProj().setFrame(focusedPattern.maskLayer);
                             console.log(focusedPattern);
                             //ui
@@ -899,6 +948,21 @@ class HTMLeditor{
     uiLayer(){
         return this.currProj().frame().uiLayer;
     }
+    changeBackground(value){
+        let targetColor;
+        switch (value) {
+            case "light":
+                targetColor = "#ffffff";
+                this.colorSchemeLight = true;
+                break;
+            case "dark":
+                targetColor = "#1e1e1e";
+                this.colorSchemeLight = false;
+                break;
+        }
+        document.querySelector(':root').style.setProperty('--viewport-background', targetColor);
+        this.currProj().drawBg("dotts", this.state.gridsize, this.colorSchemeLight);
+    }
     relX(x, remove = 0, min = -2048,steps = this.state.gridsize, max = 2048){
         let a = parseInt(Math.min(Math.max(x - (this.drawingViewport.getBoundingClientRect().x + remove), min), max) );
         let overhang = a%steps;
@@ -972,9 +1036,15 @@ class HTMLeditor{
         }
         this.state.currentAction = type;
     }
+    /**
+     * Returns the closest marker in the viewport to x,y. 
+     * @param {*} x 
+     * @param {*} y 
+     * @returns 
+     */
     closestMarker(x,y){
         let min = {
-            distance:this.detectMouseOnMarkerDistance,
+            distance:Infinity,
             marker:{},
         }
         for (let i = 0; i < this.markers().length; i++) {

@@ -213,6 +213,27 @@ class Path extends Pattern{
         }
         this.points.splice(byDistance.index[0], 1);
     }
+    //@Override
+    markerClicked(marker){
+        if(marker.memorize){
+            let splitMemo = [String(marker.memorize).substring(0, 5), String(marker.memorize).substring(5)];
+            if(splitMemo[0] == "extra"){//curve point
+                let index = parseInt(splitMemo[1]);
+                if(this.points[index].method == "Q"){
+                    this.points[index].method = "L";
+                }else{
+                    this.points[index].method = "Q";
+                }
+            }else{//edge point
+                let index = parseInt(splitMemo[0]);
+                if(this.points[index].type == "round"){
+                    this.points[index].type = "sharp";
+                }else{
+                    this.points[index].type = "round";
+                }
+            }   
+        }
+    }
     getPointsString(){
         let pointsString = new Array();
         this.points.forEach((point, index) => {
@@ -294,20 +315,24 @@ class Path extends Pattern{
             let point = this.points[index];
             let rotatedPoint = this.rotatePoint([point.x,point.y]);
             //normal point
-            r.push([...rotatedPoint,parseInt(index),"point"]);
+            if(point.type == "round"){
+                r.push([...rotatedPoint,parseInt(index),"point"]);
+            }else{
+                r.push([...rotatedPoint,parseInt(index),"octagon"]);
+            }
             //for extra point
             let lastPoint = this.getPoint(index - 1);
             //if extra point is Quadratic
             if(["Q"].indexOf(point.method) !== -1){
                 //add marker on the point
                 let rotatedExtraPoint = this.rotatePoint([point.extraX, point.extraY]);
-                r.push([...rotatedExtraPoint,"extra"+index,"curve"]);
+                r.push([...rotatedExtraPoint,"extra"+index,"path_curve"]);
             }else{
                 //if distance from last point is great enough to draw another marker
                 if(PointOperations.vectorLength([point.x-lastPoint.x,point.y-lastPoint.y]) > this.displayCurveMarkersSpaceLimit){
                     //add marker halfway between last point and current
                     let rotatedLastPoint = this.rotatePoint([lastPoint.x,lastPoint.y]);
-                    r.push([PointOperations.halfway(rotatedPoint[0],rotatedLastPoint[0]),PointOperations.halfway(rotatedPoint[1],rotatedLastPoint[1]),"extra"+index,"curve"]);
+                    r.push([PointOperations.halfway(rotatedPoint[0],rotatedLastPoint[0]),PointOperations.halfway(rotatedPoint[1],rotatedLastPoint[1]),"extra"+index,"path_straight"]);
                 }
             }
         }

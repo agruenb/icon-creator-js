@@ -11,7 +11,7 @@ class PointOperations{
     /**
      * Finds the middle coordinate between two vectors
      * @param {Array} vectorA 1 
-     * @param {Number} vectorB 2 
+     * @param {Array} vectorB 2 
      * @returns the coordinate half way between vector A and B
      */
      static halfwayVector(vectorA, vectorB){

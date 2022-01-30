@@ -3,8 +3,9 @@ class RotateDisplay{
     element = document.createElement("div");
     canvas = document.createElement("canvas");
     innerElement = document.createElement("div");
-    size = 30;
-    progressCircleWidth = 5;
+    size = 45;
+    cssWidth = 30;
+    progressCircleWidth = 6;
     color = "#000000";
     background = "#ffffff";
 
@@ -24,8 +25,8 @@ class RotateDisplay{
     update(){
         let viewRect = this.viewport.getBoundingClientRect();
         let style = `position:absolute;
-            left:${viewRect.x + this.x - this.size/2}px;
-            top:${viewRect.y + this.y - this.size/2}px;`;
+            left:${viewRect.x + this.x - this.cssWidth/2}px;
+            top:${viewRect.y + this.y - this.cssWidth/2}px;`;
         //draw progress circle
         var ctx = this.canvas.getContext("2d");
         ctx.beginPath();

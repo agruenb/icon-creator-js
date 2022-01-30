@@ -133,6 +133,9 @@ class Pattern extends IconCreatorGlobal{
     additionalOptions(x, y){
         return [];
     }
+    markerClicked(marker){
+
+    }
     /**
      * Rotates a point around the patterns center by as much as the pattern itself is rotated
      */

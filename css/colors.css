@@ -1,0 +1,28 @@
+:root{
+    --light-pastel-green:#D2D8B6;
+    --medium-pastel-green:#9fa77e;
+    --dark-pastel-green:#6f774d;
+
+    --light-cream: #FFF3DE;
+    
+    --panel-background:#ececec;
+    --panel-outline:#ffffff;
+    --highlight:#307ffd;
+    --deep-blue:#0000ff;
+    --mute-gray:#505050;
+    --select-black:#000000;
+    
+    --panel-shadow:2px 2px 8px 0px rgb(0, 0, 0, 0.6);
+    --mute-grey:#ccc;
+    --header-panel-grey:rgb(146, 146, 146);
+
+    --delete-red:#ff4040;
+    --default-button-color:#6a6a6a;
+    --icon-interactive:rgb(87,87,87);;
+
+    --viewport-background:#fff;
+    --contour-black:#000000;
+    --contour-grey:#ccc;
+
+    --white-text:#fff;
+}
