@@ -8,6 +8,9 @@ class Pattern extends IconCreatorGlobal{
     maskLayer;
     boundId;
 
+    rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
+    snapTolerance = 3
+
     constructor(xOrigin = 0,yOrigin = 0){
         super();
         this.xOrigin = xOrigin;
@@ -63,24 +66,32 @@ class Pattern extends IconCreatorGlobal{
     maskTexture(){
         return `<defs><pattern id="maskTexture" viewBox="0,0,512,512" width="5%" height="5%"><line x1="64" y1="64" x2="192" y2="192" stroke="#db0000" stroke-width="100" stroke-linecap="round"/><line x1="320" y1="448" x2="448" y2="320" stroke="#db0000" stroke-width="100" stroke-linecap="round"/></pattern></defs>`;
     }
-    mirrorVertically(){
+    /**
+     * 
+     * @param {Number} xPos the x position of the yAxis that should be mirrored around
+     */
+    mirrorVertically(xPos){
         if(!this.isMask){
             for(let pos in this.maskLayer.renderOrder){
                 let id = this.maskLayer.renderOrder[pos];
                 let maskItem = this.maskLayer.patterns[id];
-                if(maskItem.id != this.id && !maskItem.isFiller){//if not the pattern that this mask belongs to and not the filler
-                    maskItem.mirrorVertically();
+                if(maskItem.isMask){
+                    maskItem.mirrorVertically(xPos);
                 }
             }
         }
     }
-    mirrorHorizontally(){
+    /**
+     * 
+     * @param {Number} yPos the y position of the yAxis that should be mirrored around
+     */
+    mirrorHorizontally(yPos){
         if(!this.isMask){
             for(let pos in this.maskLayer.renderOrder){
                 let id = this.maskLayer.renderOrder[pos];
                 let maskItem = this.maskLayer.patterns[id];
-                if(maskItem.id != this.id && !maskItem.isFiller){//if not the pattern that this mask belongs to and not the filler
-                    maskItem.mirrorHorizontally();
+                if(maskItem.isMask){
+                    maskItem.mirrorHorizontally(yPos);
                 }
             }
         }
@@ -135,6 +146,17 @@ class Pattern extends IconCreatorGlobal{
     }
     markerClicked(marker){
 
+    }
+    afterAlteration(){
+
+    }
+    /**
+     * Gets called when a marker of a pattern that is edited is changed.
+     * @param {Object} Marker the marker that has been changed. Contains new x,y and memorize
+     * @returns the changes that should be done to the pattern
+     */
+    markerEdited(marker){
+        return {};
     }
     /**
      * Rotates a point around the patterns center by as much as the pattern itself is rotated

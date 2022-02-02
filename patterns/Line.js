@@ -21,38 +21,71 @@ class Line extends Pattern{
     }
     updateProperties(){
         this.vector = this.getVector();
+        this.center = this.getCenter();
     }
     getVector(){
         return [this.xEnd - this.xOrigin,this.yEnd - this.yOrigin];
     }
-    mirrorVertically(){
+    getCenter(){
+        return [PointOperations.halfway(this.xOrigin, this.xEnd),PointOperations.halfway(this.yOrigin, this.yEnd)];
+    }
+    mirrorVertically(xPos = this.center[0]){
+        super.mirrorVertically(xPos);
+        let newOrigin = PointOperations.mirrorPoint(xPos,"y",[this.xOrigin, this.yOrigin]);
+        this.xOrigin = newOrigin[0];
+        this.yOrigin = newOrigin[1];
+        let newEnd = PointOperations.mirrorPoint(xPos,"y",[this.xEnd, this.yEnd]);
+        this.xEnd = newEnd[0];
+        this.yEnd = newEnd[1];
+        this.updateProperties();
+    }
+    mirrorHorizontally(yPos = this.center[1]){
         super.mirrorVertically();
-        let temp = this.xOrigin;
-        this.xOrigin = this.xEnd;
-        this.xEnd = temp;
+        let newOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin]);
+        this.xOrigin = newOrigin[0];
+        this.yOrigin = newOrigin[1];
+        let newEnd = PointOperations.mirrorPoint(yPos,"x",[this.xEnd, this.yEnd]);
+        this.xEnd = newEnd[0];
+        this.yEnd = newEnd[1];
         this.updateProperties();
     }
-    mirrorHorizontally(){
-        super.mirrorHorizontally();
-        let temp = this.yOrigin;
-        this.yOrigin = this.yEnd;
-        this.yEnd = temp;
-        this.updateProperties();
+    //@Override
+    markerEdited(marker, limit, xPrecise, yPrecise){
+        let changes;
+        if(marker.memorize == "start"){
+            let pointsDontOverlap = (marker.x != this.xEnd || marker.y != this.yEnd);
+            changes = {
+                xOrigin: (pointsDontOverlap)?marker.x:marker.x+limit,//prevent same start and endpoint
+                yOrigin: (pointsDontOverlap)?marker.y:marker.y+limit
+            }
+        }else if(marker.memorize == "end"){//endX endY
+            let pointsDontOverlap = (marker.x != this.xOrigin || marker.y != this.yOrigin);
+            changes = {
+                xEnd: (pointsDontOverlap)?marker.x:marker.x+limit,//prevent same start and endpoint
+                yEnd: (pointsDontOverlap)?marker.y:marker.y+limit
+            }
+        }else if(marker.memorize == "width"){
+            changes = {
+                width: 2* PointOperations.lineDistance(marker.x, marker.y, this.xOrigin, this.yOrigin, this.xEnd, this.yEnd)
+            }
+        }
+        return changes;
     }
+    
     //@Override
     getMarkers(){
         let r = [];
         let angle = PointOperations.angle(this.vector);
         r.push([this.xOrigin,this.yOrigin,"start","point", angle]);
         r.push([this.xEnd,this.yEnd,"end", "point", angle]);
-        let widthMarkerPos = PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xEnd,this.yEnd, this.width/2 + 10, "top");
+        let widthMarkerPos = PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xEnd,this.yEnd, this.width/2, "top");
         r.push([...widthMarkerPos,"width","arrow-double", angle]);
         return r;
     }
     //@Override
     getLines(){
         let l = [];
-        let widthMarkerPos = PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xEnd,this.yEnd, this.width/2 + 10, "top");
+        let widthMarkerPos = PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xEnd,this.yEnd, this.width/2, "top");
         l.push([PointOperations.halfway(this.xOrigin, this.xEnd),PointOperations.halfway(this.yOrigin, this.yEnd),widthMarkerPos[0],widthMarkerPos[1]]);
         return l;
     }
@@ -83,7 +116,8 @@ class Line extends Pattern{
             color: this.color,
             width: this.width,
             stroke: this.stroke,
-            vector: this.vector
+            vector: this.vector,
+            center: this.center
         }
         Object.assign(obj.attributes, additionalAttributes);
         return obj;

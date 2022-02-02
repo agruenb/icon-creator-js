@@ -31,19 +31,46 @@ class Ellipse extends Pattern{
     left(){
         return PointOperations.rotateAroundPoint(this.center,[this.xOrigin - this.xRadius, this.yOrigin], this.rotation);
     }
-    mirrorVertically(){
-        super.mirrorVertically();
-        this.rotation = 360-this.rotation;
-    }
-    mirrorHorizontally(){
-        super.mirrorHorizontally();
-        this.rotation = 180-this.rotation;
-        if(this.rotation < 0){
-            this.rotation = 360 + this.rotation;
+    mirrorVertically(xPos = this.center[0]){
+        super.mirrorVertically(xPos);
+        if(this.isMask){
+            this.rotation = 360-this.rotation;
         }
+        this.xOrigin = PointOperations.mirrorPoint(xPos,"y",[this.xOrigin, this.yOrigin])[0];
+        this.updateProperties();
+    }
+    mirrorHorizontally(yPos = this.center[1]){
+        super.mirrorHorizontally(yPos);
+        if(this.isMask){
+            this.rotation = 180-this.rotation;
+            if(this.rotation < 0){
+                this.rotation = 360 + this.rotation;
+            }
+        }
+        this.yOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin])[1];
+        this.updateProperties();
     }
     updateProperties(){
         this.center = [this.xOrigin, this.yOrigin];
+    }
+    //@Override
+    markerEdited(marker, limit, xPrecise, yPrecise){
+        let changes;
+        if(marker.memorize == "rotate"){
+            let angle = PointOperations.angle([xPrecise - this.center[0], yPrecise - this.center[1]]);
+            changes = {
+                rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
+            }
+        }else if(marker.memorize == "xRadius"){
+            changes = {
+                xRadius: Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.top(),...this.bottom()))
+            }
+        }else if(marker.memorize == "yRadius"){
+            changes = {
+                yRadius: Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.left(),...this.right()))
+            }
+        }
+        return changes;
     }
     //@Override
     getMarkers(){

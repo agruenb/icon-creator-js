@@ -231,4 +231,18 @@ class PointOperations{
             return [targetRatio*vector[0],targetRatio*vector[1]]
         }
     }
+    /**
+     * Mirrors a point along a line parallel to x or y axis
+     * @param {Number} axisValue the position of 
+     * @param {String} axisDirection "x" or "y" for x or y axis direction
+     * @param {Array} point the point that should be mirrored
+     * @returns the mirrored point
+     */
+    static mirrorPoint(axisValue, axisDirection, point){
+        if(axisDirection == "x"){
+            return [point[0],(point[1]+(axisValue - point[1])*2)];
+        }else{
+            return [(point[0]+(axisValue - point[0])*2),point[1]];
+        }
+    }
 }

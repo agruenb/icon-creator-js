@@ -26,17 +26,14 @@ class Path extends Pattern{
         this.translateMaskTo(newOriginX, newOriginY);//important to call before manipulating origin, because origin is fetched by mask elements
         for(let i in this.points){
             let point = this.points[i];
-            if(["Q"].indexOf(point.method) !== -1){
-                point.extraX = (point.extraX - this.xOrigin) + newOriginX;
-                point.extraY = (point.extraY - this.yOrigin) + newOriginY;
-            }
+            point.extraX = (point.extraX - this.xOrigin) + newOriginX;
+            point.extraY = (point.extraY - this.yOrigin) + newOriginY;
             point.x = (point.x - this.xOrigin) + newOriginX;
             point.y = (point.y - this.yOrigin) + newOriginY;
         }
         this.xOrigin = newOriginX;
         this.yOrigin = newOriginY;
-        this.boundingRect = this.getBoundingRect();
-        this.center = this.getCenterUntransformed();
+        this.updateProperties();
     }
     getPoint(index){
         if(index < this.points.length && index >= 0){
@@ -49,11 +46,11 @@ class Path extends Pattern{
         console.error("Tryed to access not existant point in path");
         return undefined;
     }
+    afterAlteration(){
+        this.matchCenters();
+    }
     updateProperties(){
         this.boundingRect = this.getBoundingRect();
-        if(this.rotation != 0){
-            this.matchCenters();
-        }
         this.center = this.getCenterUntransformed();
     }
     getBoundingRect(){
@@ -91,43 +88,63 @@ class Path extends Pattern{
             return this.boundingRect;
         }
     }
+    /**
+     * Get the current center rotated around the center attribute. !!!ACCESSES the this.center variable
+     * @returns 
+     */
     getCenterProjection(){
         return PointOperations.rotateAroundPoint(this.center, this.getCenterUntransformed(), this.rotation);
     }
     /**
      * Translates the pattern, so that projection (rotated poly) and poly share the same center point. This is important for rotations to always transform around the visual center of the poly.
+     * !!!DONT call after updateProperties() as matchCenters accesses the old center
      */
     matchCenters(){
-        let realCenter = this.getCenterUntransformed();
-        let projectionCenter = this.getCenterProjection();
-        let difference = [projectionCenter[0] - realCenter[0], projectionCenter[1] - realCenter[1]];
-        this.translateTo(this.xOrigin + difference[0], this.yOrigin + difference[1]);
+        if(this.rotation != 0){
+            let realCenter = this.getCenterUntransformed();
+            let projectionCenter = this.getCenterProjection();
+            let difference = [projectionCenter[0] - realCenter[0], projectionCenter[1] - realCenter[1]];
+            this.translateTo(this.xOrigin + difference[0], this.yOrigin + difference[1]);
+        }
     }
     getCenterUntransformed(){
-        return PointOperations.rectCenter(this.boundingRect);
+        return PointOperations.rectCenter(this.getBoundingRect());
     }
-    mirrorVertically(){
-        super.mirrorVertically();
-        this.xOrigin = this.xOrigin + (this.center[0] - this.xOrigin)*2;
+    mirrorVertically(xPos = this.center[0]){
+        super.mirrorVertically(xPos);
+        let newOrigin = PointOperations.mirrorPoint(xPos,"y",[this.xOrigin, this.yOrigin]);
+        this.xOrigin = newOrigin[0];
+        this.yOrigin = newOrigin[1];
         this.points.forEach(point => {
-            point.x = point.x + (this.center[0] - point.x)*2;
-            if(["Q"].indexOf(point.method) !== -1){
-                point.extraX = point.extraX + (this.center[0] - point.extraX)*2;
-            }
+            let newPoint = PointOperations.mirrorPoint(xPos,"y",[point.x, point.y]);
+            point.x = newPoint[0];
+            point.y = newPoint[1];
+            let newPointExtra = PointOperations.mirrorPoint(xPos,"y",[point.extraX, point.extraY]);
+            point.extraX = newPointExtra[0];
+            point.extraY = newPointExtra[1];
         });
-        this.rotation = 360-this.rotation;
+        if(this.isMask){
+            this.rotation = 360-this.rotation;
+        }
+        this.updateProperties();
     }
-    mirrorHorizontally(){
-        super.mirrorHorizontally();
-        this.yOrigin = this.yOrigin + (this.center[1] - this.yOrigin)*2;
+    mirrorHorizontally(yPos = this.center[1]){
+        super.mirrorHorizontally(yPos);
+        let newOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin]);
+        this.xOrigin = newOrigin[0];
+        this.yOrigin = newOrigin[1];
         this.points.forEach(point => {
-            point.y = point.y + (this.center[1] - point.y)*2;
-            if(["Q"].indexOf(point.method) !== -1){
-                point.extraY = point.extraY + (this.center[1] - point.extraY)*2;
-            }
+            let newPoint = PointOperations.mirrorPoint(yPos,"x",[point.x, point.y]);
+            point.x = newPoint[0];
+            point.y = newPoint[1];
+            let newPointExtra = PointOperations.mirrorPoint(yPos,"x",[point.extraX, point.extraY]);
+            point.extraX = newPointExtra[0];
+            point.extraY = newPointExtra[1];
         });
-        console.log(this.rotation);
-        this.rotation = 360-this.rotation;
+        if(this.isMask){
+            this.rotation = 360-this.rotation;
+        }
+        this.updateProperties();
     }
     //@Override
     additionalOptions(x, y, callback){
@@ -135,7 +152,7 @@ class Path extends Pattern{
             {
                 label:"add",
                 icon:"img/add_plus.svg",
-                clickHandler:()=>{this.addPoint(x, y);this.updateProperties();callback();},
+                clickHandler:()=>{this.addPoint(x, y);this.matchCenters();this.updateProperties();callback();},
                 type:"custom"
             }
         ]
@@ -143,7 +160,7 @@ class Path extends Pattern{
             options.push({
                     label:"remove",
                     icon:"img/remove_minus.svg",
-                    clickHandler:()=>{this.removePoint(x, y);this.updateProperties();callback();},
+                    clickHandler:()=>{this.removePoint(x, y);this.matchCenters();this.updateProperties();callback();},
                     type:"custom"
                 })
         }
@@ -213,9 +230,45 @@ class Path extends Pattern{
         }
         this.points.splice(byDistance.index[0], 1);
     }
+    //Override
+    markerEdited(marker, limit, xPrecise, yPrecise){
+        let changes;
+        let points = JSON.parse(JSON.stringify(this.points));
+        let neutralizeRotation = (point)=>{return PointOperations.rotateAroundPoint(this.center, point, -this.rotation)};
+        let pointRotatedToNeutral = neutralizeRotation([marker.x, marker.y]);
+        if(marker.memorize == "rotate"){
+            let angle = PointOperations.angle([xPrecise - this.center[0], yPrecise - this.center[1]]);
+            changes = {
+                rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
+            }
+        }else if(marker.memorize === points.length - 1){//if the last point is moved that is equal to origin
+            points[marker.memorize].x = pointRotatedToNeutral[0];
+            points[marker.memorize].y = pointRotatedToNeutral[1];
+            //move last point and Origin
+            changes = {
+                xOrigin: pointRotatedToNeutral[0],
+                yOrigin: pointRotatedToNeutral[1],
+                points: points
+            }
+        }else if(String(marker.memorize).substr(0,5) === "extra"){
+            //set to curve if moved directly
+            let point = points[marker.memorize.substr(5)];
+            if(point.method !== "Q"){
+                point.method = "Q";
+            }
+            point.extraX = pointRotatedToNeutral[0];
+            point.extraY = pointRotatedToNeutral[1];
+            changes = {points:points};
+        }else if(marker.memorize != "rotate"){
+            points[marker.memorize].x = pointRotatedToNeutral[0];
+            points[marker.memorize].y = pointRotatedToNeutral[1];
+            changes = {points:points};
+        }
+        return changes;
+    }
     //@Override
     markerClicked(marker){
-        if(marker.memorize){
+        if(marker.memorize != undefined){
             let splitMemo = [String(marker.memorize).substring(0, 5), String(marker.memorize).substring(5)];
             if(splitMemo[0] == "extra"){//curve point
                 let index = parseInt(splitMemo[1]);
@@ -382,8 +435,8 @@ class Path extends Pattern{
             borderWidth: this.borderWidth,
             borderColor: this.borderColor,
             rotation: this.rotation,
-            center: this.center,
-            boundingRect: this.boundingRect
+            center: this.copy(this.center),
+            boundingRect: this.copy(this.boundingRect)
         }
         Object.assign(obj.attributes, additionalAttributes);
         return obj;

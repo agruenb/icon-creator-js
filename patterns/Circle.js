@@ -20,16 +20,38 @@ class Circle extends Pattern{
     updateProperties(){
         this.center = [this.xOrigin, this.yOrigin];
     }
-    mirrorVertically(){
-        super.mirrorVertically();
-        this.rotation = 360-this.rotation;
-    }
-    mirrorHorizontally(){
-        super.mirrorHorizontally();
-        this.rotation = 180-this.rotation;
-        if(this.rotation < 0){
-            this.rotation = 360 + this.rotation;
+    mirrorVertically(xPos = this.center[0]){
+        super.mirrorVertically(xPos);
+        if(this.isMask){
+            this.rotation = 360-this.rotation;
         }
+        this.xOrigin = PointOperations.mirrorPoint(xPos,"y",[this.xOrigin, this.yOrigin])[0];
+        this.updateProperties();
+    }
+    mirrorHorizontally(yPos = this.center[1]){
+        super.mirrorHorizontally(yPos);
+        if(this.isMask){
+            this.rotation = 180-this.rotation;
+            if(this.rotation < 0){
+                this.rotation = 360 + this.rotation;
+            }
+        }
+        this.yOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin])[1];
+        this.updateProperties();
+    }
+    markerEdited(marker, limit, xPrecise, yPrecise){
+        let changes;
+        if(marker.memorize == "rotate"){
+            let angle = PointOperations.angle([xPrecise - this.center[0], yPrecise - this.center[1]]);
+            changes = {
+                rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
+            }
+        }else if(marker.memorize == "radius"){
+            changes = {
+                radius: Math.max(limit, PointOperations.distance(this.xOrigin,this.yOrigin,marker.x,marker.y))
+            }
+        }
+        return changes;
     }
     //@Override
     getMarkers(){

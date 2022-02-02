@@ -2,7 +2,7 @@ class HTMLeditor{
 
     activeProjects = new Array();
 
-    detectMouseOnMarkerDistance = 12;
+    detectMouseOnMarkerDistance = 11;
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
@@ -409,149 +409,13 @@ class HTMLeditor{
                 editedObject.x = this.relX(event.clientX);
                 editedObject.y = this.relY(event.clientY);
                 this.clearViewportUI();
-                let changes;
-                if(["Rect","Ellipse","Path", "Circle"].indexOf(pattern.constructor.name) != -1){//multi selection
-                    if(editedObject.memorize == "rotate"){
-                        let angle = PointOperations.angle([this.relX(event.clientX,0,undefined,1) - pattern.center[0],this.relY(event.clientY,0,undefined,1) - pattern.center[1]]);
-                        changes = {
-                            rotation: parseInt(UniversalOps.snap(angle, 3, [0, 45, 90, 135, 180, 225, 270, 315], true, 360))
-                        }
-                        this.currProj().alterPattern(pattern, changes);
-                        this.addHelperRotation(pattern);
-                    }
-                }
-                switch (pattern.constructor.name) {//single selection
-                    case "Rect":
-                        if(editedObject.memorize == "top left"){
-                            let newHeight = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.bottomLeft(),...pattern.bottomRight());
-                            let newWidth = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.bottomRight(),...pattern.topRight());
-                            changes = {
-                                width: newWidth,
-                                height: newHeight,
-                                xOrigin: pattern.xOrigin - (newWidth - pattern.width),
-                                yOrigin: pattern.yOrigin - (newHeight - pattern.height)
-                            }
-                        }else if(editedObject.memorize == "top right"){
-                            let newHeight = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.bottomLeft(),...pattern.bottomRight());
-                            changes = {
-                                width: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.bottomLeft()),
-                                height: newHeight,
-                                yOrigin: pattern.yOrigin - (newHeight - pattern.height)
-                            }
-                        }else if(editedObject.memorize == "bottom left"){
-                            let newWidth = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topRight(),...pattern.bottomRight());
-                            changes = {
-                                width: newWidth,
-                                height: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.topRight()),
-                                xOrigin: pattern.xOrigin - (newWidth - pattern.width)
-                            }
-                        }else if(editedObject.memorize == "bottom right"){
-                            changes = {
-                                width: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.bottomLeft()),
-                                height: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.topRight())
-                            }
-                        }else if(editedObject.memorize == "top"){
-                            let newHeight = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.bottomLeft(),...pattern.bottomRight());
-                            changes = {
-                                yOrigin: pattern.yOrigin - (newHeight - pattern.height),
-                                height: newHeight
-                            }
-                        }else if(editedObject.memorize == "bottom"){
-                            changes = {
-                                height: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.topRight())
-                            }
-                        }else if(editedObject.memorize == "left"){
-                            let newWidth = PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topRight(),...pattern.bottomRight());
-                            changes = {
-                                xOrigin: pattern.xOrigin - (newWidth - pattern.width),
-                                width: newWidth
-                            }
-                        }else if(editedObject.memorize == "right"){
-                            changes = {
-                                width: PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.topLeft(),...pattern.bottomLeft())
-                            }
-                        }
-                        //check if changes are valid
-                        if((changes.width != undefined && changes.width < 1) || (changes.height != undefined && changes.height < 1)){
-                            console.log("Invalid property for rect");
-                            break;
-                        }
-                        this.currProj().alterPattern(pattern, changes);
-                        break;
-                    case "Circle":
-                        if(editedObject.memorize == "radius"){
-                            changes = {
-                                radius: Math.max(this.state.gridsize, PointOperations.distance(pattern.xOrigin,pattern.yOrigin,this.relX(event.clientX),this.relY(event.clientY)))
-                            }
-                            this.currProj().alterPattern(pattern, changes);
-                        }
-                        break;
-                    case "Ellipse":
-                        if(editedObject.memorize == "xRadius"){
-                            changes = {
-                                xRadius: Math.max(this.state.gridsize, PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.top(),...pattern.bottom()))
-                            }
-                        }else if(editedObject.memorize == "yRadius"){
-                            changes = {
-                                yRadius: Math.max(this.state.gridsize, PointOperations.lineDistance(this.relX(event.clientX),this.relY(event.clientY),...pattern.left(),...pattern.right()))
-                            }
-                        }
-                        this.currProj().alterPattern(pattern, changes);
-                        break;
-                    case "Line":
-                        if(editedObject.memorize == "start"){
-                            let pointsDontOverlap = (this.relX(event.clientX) != pattern.xEnd || this.relY(event.clientY) != pattern.yEnd);
-                            changes = {
-                                xOrigin: (pointsDontOverlap)?this.relX(event.clientX):this.relX(event.clientX)+this.state.gridsize,//prevent same start and endpoint
-                                yOrigin: (pointsDontOverlap)?this.relY(event.clientY):this.relY(event.clientY)+this.state.gridsize
-                            }
-                        }else if(editedObject.memorize == "end"){//endX endY
-                            let pointsDontOverlap = (this.relX(event.clientX) != pattern.xOrigin || this.relY(event.clientY) != pattern.yOrigin);
-                            changes = {
-                                xEnd: (pointsDontOverlap)?this.relX(event.clientX):this.relX(event.clientX)+this.state.gridsize,//prevent same start and endpoint
-                                yEnd: (pointsDontOverlap)?this.relY(event.clientY):this.relY(event.clientY)+this.state.gridsize
-                            }
-                        }else if(editedObject.memorize == "width"){
-                            changes = {
-                                width: 2* PointOperations.lineDistance(this.relX(event.clientX,0,this.minCoordinate,1), this.relY(event.clientY,0,this.minCoordinate,1), pattern.xOrigin, pattern.yOrigin, pattern.xEnd, pattern.yEnd) - 20
-                            }
-                        }
-                        this.currProj().alterPattern(pattern, changes);
-                        break;
-                    case "Path":
-                        let points = JSON.parse(JSON.stringify(pattern.points));
-                        let neutralizeRotation = (point)=>{return PointOperations.rotateAroundPoint(pattern.center, point, -pattern.rotation)};
-                        let pointRotatedToNeutral = neutralizeRotation([this.relX(event.clientX), this.relY(event.clientY)]);
-                        //change point position
-                        if(editedObject.memorize === points.length - 1){//if the last point is moved that is equal to origin
-                            points[editedObject.memorize].x = pointRotatedToNeutral[0];
-                            points[editedObject.memorize].y = pointRotatedToNeutral[1];
-                            //move last point and Origin
-                            let changes = {
-                                xOrigin: pointRotatedToNeutral[0],
-                                yOrigin: pointRotatedToNeutral[1],
-                                points: points
-                            }
-                            this.currProj().alterPattern(pattern, changes);
-                        }else if(String(editedObject.memorize).substr(0,5) === "extra"){
-                            //set to curve if moved directly
-                            let point = points[editedObject.memorize.substr(5)];
-                            if(point.method !== "Q"){
-                                point.method = "Q";
-                            }
-                            point.extraX = pointRotatedToNeutral[0];
-                            point.extraY = pointRotatedToNeutral[1];
-                            this.currProj().alterPattern(pattern,{points:points})
-                        }else if(editedObject.memorize != "rotate"){
-                            points[editedObject.memorize].x = pointRotatedToNeutral[0];
-                            points[editedObject.memorize].y = pointRotatedToNeutral[1];
-                            this.currProj().alterPattern(pattern,{points:points});
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                //get changes that should be done to the pattern accordingly
+                let changes = pattern.markerEdited(editedObject,this.state.gridsize, this.relX(event.clientX,0,undefined,1), this.relY(event.clientY,0,undefined,1));
+                this.currProj().alterPattern(pattern, changes);
                 //repaint point and marker and outline
+                if(changes.rotation != undefined){
+                    this.addHelperRotation(pattern);
+                }
                 this.prepareEdit(pattern);
                 if(!this.savePower){
                     this.currProj().frame().updateInfoBox(pattern);
@@ -704,12 +568,12 @@ class HTMLeditor{
                     icon:"img/cut_out.svg",
                     type:"general"
                 },{
-                    label:"mirror vertically",
+                    label:"| mirror vertically",
                     clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
                     icon:"img/cut_out.svg",
                     type:"general"
                 },{
-                    label:"mirror horizontally",
+                    label:"-- mirror horizontally",
                     clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
                     icon:"img/cut_out.svg",
                     type:"general"
@@ -862,10 +726,9 @@ class HTMLeditor{
                         if(focusedPattern.allowMask){
                             this.state.view = view;
                             this.currProj().setFrame(focusedPattern.maskLayer);
-                            console.log(focusedPattern);
                             //ui
                             let callback = ()=>{this.changeView("arange")};
-                            this.environment.layout.container.append(new Banner("Punch out view", "Quit", callback));
+                            this.environment.layout.container.append(new Banner("Carve out view", "Quit", callback));
                             
                         }else{
                             alert("Cannot mask this pattern");
@@ -956,7 +819,7 @@ class HTMLeditor{
                 this.colorSchemeLight = true;
                 break;
             case "dark":
-                targetColor = "#1e1e1e";
+                targetColor = "#3b3b3b";
                 this.colorSchemeLight = false;
                 break;
         }

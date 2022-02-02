@@ -170,6 +170,7 @@ class Frame extends IconCreatorGlobal{
             Object.assign(pattern.maskLayer.patterns[pattern.id+"filler"],copy);
             //console.log(pattern.maskLayer.patterns[pattern.id+"filler"]);
         }
+        pattern.afterAlteration();
         pattern.updateProperties();
         if(repaint){
             this.paint(pattern);

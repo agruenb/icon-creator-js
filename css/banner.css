@@ -2,7 +2,7 @@
     width: 400px;
     height: 44px;
     padding: 5px;
-    top:60px;
+    top:20px;
     left: calc(50% - 210px);
     position: absolute;
     background-color: var(--panel-background);
