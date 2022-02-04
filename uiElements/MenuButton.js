@@ -2,10 +2,11 @@ class MenuButton{
 
     element;
 
-    constructor(label, icon, clickHandler){
+    constructor(label, icon, transformation = "", clickHandler){
         this.element = document.createElement("div");
         let iconElement = document.createElement("div");
         iconElement.classList.add("icon");
+        iconElement.style.transform = transformation;
         let imgElement = document.createElement("img");
         imgElement.src = icon;
         let labelElement = document.createElement("span");

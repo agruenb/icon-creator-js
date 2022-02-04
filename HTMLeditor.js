@@ -1,6 +1,7 @@
 class HTMLeditor{
 
     activeProjects = new Array();
+    toolBanner;
 
     detectMouseOnMarkerDistance = 11;
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
@@ -88,6 +89,13 @@ class HTMLeditor{
         this.environment.control.history.forwards.addEventListener("click",()=>{this.reInitLastReverse()});
         this.environment.control.history.back.classList.add("disabled");
         this.environment.control.history.forwards.classList.add("disabled");
+        //setup for keyboard shortcuts
+        this.environment.document.addEventListener('keydown', event=>{
+            this.blockKeys(event);
+        });
+        this.environment.document.addEventListener('keyup', event=>{
+            this.hotkey(event);
+        });
 
         //init mouse events
         this.environment.layout.viewport.addEventListener("contextmenu", event => {
@@ -548,6 +556,40 @@ class HTMLeditor{
             delete this.contextMenu;
         }
     }
+    defaultOptions(pattern){
+        let options = [];
+        if(!pattern.isMask){
+            options.push({
+                label:"carve out",
+                clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
+                icon:"img/carve_out_icon.svg",
+                type:"general"
+            });
+        }
+        options.push({
+            label:"duplicate",
+            clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
+            icon:"img/duplicate_icon.svg",
+            type:"general"
+        },{
+            label:"flip",
+            clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
+            icon:"img/flip_icon.svg",
+            type:"general"
+        },{
+            label:"flip",
+            clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
+            icon:"img/flip_icon.svg",
+            type:"general",
+            transform:"rotate(90deg)"
+        },{
+            label:"delete",
+            clickHandler:()=>{this.removeCurrentPattern();this.closeContextMenu();},
+            icon:"img/trash_icon_temp.svg",
+            type:"general"
+        });
+        return options;
+    }
     openContextMenu(event){
         this.closeContextMenu();
         let options = [];
@@ -557,32 +599,7 @@ class HTMLeditor{
             if(this.currProj().frame().boundId != event.target.parentElement.id){
                 this.stopEdit();
                 this.startEdit(this.patternById(event.target.parentElement.id));
-                options.push({
-                    label:"carve out",
-                    clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
-                    label:"duplicate",
-                    clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
-                    label:"| mirror vertically",
-                    clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
-                    label:"-- mirror horizontally",
-                    clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                },{
-                    label:"delete",
-                    clickHandler:()=>{this.removePattern(this.focusedPattern());this.saveToHistory();this.closeContextMenu();},
-                    icon:"img/cut_out.svg",
-                    type:"general"
-                });
+                options.push(...this.defaultOptions(this.focusedPattern()));
             }
         }
         //if a pattern is focussed
@@ -633,6 +650,12 @@ class HTMLeditor{
             this.saveToHistory();
         }
     }
+    removeCurrentPattern(){
+        if(this.focusedPattern() != undefined){
+            this.removePattern(this.focusedPattern());
+            this.saveToHistory();
+        }
+    }
     addPattern(type,x,y){
         let pattern = this.currProj().newPattern(type,this.relX(x),this.relY(y));
         return pattern;
@@ -646,8 +669,8 @@ class HTMLeditor{
         let outline = new Outline(this.drawingViewport, pattern);
         this.uiLayer().append(outline.container);
     }
-    addHelperLine(x,y,endX,endY){
-        let uiline = new UILine(this.drawingViewport, x,y,endX,endY);
+    addHelperLine(x,y,endX,endY,dashArray){
+        let uiline = new UILine(this.drawingViewport, x,y,endX,endY,dashArray);
         this.uiLayer().append(uiline.container);
     }
     addHelperRotation(pattern){
@@ -728,8 +751,9 @@ class HTMLeditor{
                             this.currProj().setFrame(focusedPattern.maskLayer);
                             //ui
                             let callback = ()=>{this.changeView("arange")};
-                            this.environment.layout.container.append(new Banner("Carve out view", "Quit", callback));
-                            
+                            let headline = IconCreatorGlobal.el("div","Carve out mode","title");
+                            let banner = new Banner(headline, "Quit", callback);
+                            banner.addTo(this.environment.layout.container);
                         }else{
                             alert("Cannot mask this pattern");
                         }
@@ -755,6 +779,20 @@ class HTMLeditor{
             }
             this.currProj().frame().updateInfoBox();
         }
+        //edit banner
+        if(this.toolBanner == undefined){
+            let buttonWrapper = IconCreatorGlobal.el("div","","tool-buttons");
+            let options = this.defaultOptions(pattern);
+            for(let i = 0;i < options.length; i++){
+                let button = new MenuButton(options[i].label, options[i].icon, options[i].transform, options[i].clickHandler);
+                if(options[i].type == "general"){
+                    button.addTo(buttonWrapper);
+                }
+            }
+            let banner = new Banner(buttonWrapper);
+            banner.addTo(this.environment.layout.container);
+            this.toolBanner = banner;
+        }
         this.repaint();
     }
     stopEdit(){
@@ -764,6 +802,10 @@ class HTMLeditor{
                 this.currProj().frame().patterns[id].display = true;
             }
             this.currProj().frame().updateInfoBox();
+        }
+        if(this.toolBanner){
+            this.toolBanner.close();
+            delete this.toolBanner;
         }
         this.currProj().frame().stopEdit();
         this.state.currentAction = "none";
@@ -983,5 +1025,33 @@ class HTMLeditor{
         let content = Exporter.createSVGFileContent(this.currProj());
         console.log(content);
         Exporter.download("easy_svg_online_creation", content);
+    }
+    blockKeys(event){
+        if([68, 90].indexOf(event.keyCode) !== -1){
+            event.preventDefault();
+        }
+    }
+    hotkey(event){
+        console.log(event);
+        this.closeContextMenu();
+        if(event.keyCode == 8){
+            event.preventDefault();
+            this.removeCurrentPattern();
+        }else
+        if(event.ctrlKey){//conrolKey pressed -> action
+            if(event.keyCode === 68){//d
+                event.preventDefault();
+                this.duplicateCurrentPattern();
+            }else
+            if(event.keyCode === 90){//z
+                event.preventDefault();
+                if(event.shiftKey){
+                    //ctrl+shift+z
+                    this.reInitLastReverse();
+                }else{
+                    this.reverseLastAction();
+                }
+            }
+        }
     }
 }

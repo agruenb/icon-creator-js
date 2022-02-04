@@ -96,7 +96,7 @@ class Pattern extends IconCreatorGlobal{
             }
         }
     }
-    mask(){//return patterns in mask layer as html
+    mask(limitPrecision){//return patterns in mask layer as html
         if(!this.isMask && this.allowMask){
             let maskPatterns = new String();
             for(let pos in this.maskLayer.renderOrder){
@@ -113,7 +113,7 @@ class Pattern extends IconCreatorGlobal{
                         maskItem.color = "#ffffff";
                         maskItem.borderColor = "#ffffff";
                     }
-                    maskPatterns += maskItem.cleanHTML();
+                    maskPatterns += maskItem.cleanHTML(limitPrecision);
                     maskItem.color = tempC;
                     maskItem.borderColor = tempC;
                     maskItem.rotation = tempR;
@@ -171,8 +171,8 @@ class Pattern extends IconCreatorGlobal{
     systemHTML(){
         return this.cleanHTML().slice(0,-2)+' svg-editor-type="mainPattern"/>';
     }
-    fullHTML(systemAttributes = false){
-        return ((this.hasMask())?this.mask():"") + ((systemAttributes)?this.systemHTML():this.cleanHTML());
+    fullHTML(systemAttributes = false, limitPrecision = false){
+        return ((this.hasMask())?this.mask(limitPrecision):"") + ((systemAttributes)?this.systemHTML():this.cleanHTML(limitPrecision));
     }
     /**
      * Returns the JSON representation of this pattern.

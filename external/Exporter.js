@@ -16,7 +16,7 @@ class Exporter {
             while(orderCopy.length > 0){
                 //if not displayed omit pattern for creation
                 if(project.keyframes[i].patterns[orderCopy[0]].display){
-                    fileContent += project.keyframes[i].patterns[orderCopy[0]].fullHTML();
+                    fileContent += project.keyframes[i].patterns[orderCopy[0]].fullHTML(false, true);
                 }
                 orderCopy.splice(0,1);
             }

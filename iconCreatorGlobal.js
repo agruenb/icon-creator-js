@@ -3,6 +3,7 @@ class IconCreatorGlobal{
     id;
 
     rotationMarkerDistanceFromPattern = 20;
+    floatingPointPrecision = 0;//between 1 and 100
     
     constructor(){
         this.id = IconCreatorGlobal.id();
@@ -33,5 +34,13 @@ class IconCreatorGlobal{
         return {
             version: this.version
         };
+    }
+    /**
+     * Limits the floating point precision. pt stands for point. Has performance problems?!
+     * @param {Number} number to limit precision
+     * @returns the number with limited precision (rounded)
+     */
+    pt(number){
+        return Number.parseFloat(number.toFixed(this.floatingPointPrecision))
     }
 }

@@ -23,7 +23,7 @@ class ContextMenu{
         let generalButtonWrapper = document.createElement("div");
         generalButtonWrapper.classList.add("general-options");
         for(let i = 0;i < options.length; i++){
-            let button = new MenuButton(options[i].label, options[i].icon, options[i].clickHandler);
+            let button = new MenuButton(options[i].label, options[i].icon, options[i].transform, options[i].clickHandler);
             if(options[i].type == "custom"){
                 button.addTo(customButtonWrapper);
             }else{

@@ -80,8 +80,8 @@ class Rect extends Pattern{
                 rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
             }
         }else if(marker.memorize == "top left"){
-            let newHeight = PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight());
-            let newWidth = PointOperations.lineDistance(marker.x,marker.y,...this.bottomRight(),...this.topRight());
+            let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight()));
+            let newWidth = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomRight(),...this.topRight()));
             changes = {
                 width: newWidth,
                 height: newHeight,
@@ -89,14 +89,14 @@ class Rect extends Pattern{
                 yOrigin: this.yOrigin - (newHeight - this.height)
             }
         }else if(marker.memorize == "top right"){
-            let newHeight = PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight());
+            let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight()));
             changes = {
                 width: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft()),
                 height: newHeight,
                 yOrigin: this.yOrigin - (newHeight - this.height)
             }
         }else if(marker.memorize == "bottom left"){
-            let newWidth = PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight());
+            let newWidth = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight()));
             changes = {
                 width: newWidth,
                 height: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()),
@@ -104,21 +104,21 @@ class Rect extends Pattern{
             }
         }else if(marker.memorize == "bottom right"){
             changes = {
-                width: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft()),
-                height: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight())
+                width: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft())),
+                height: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()))
             }
         }else if(marker.memorize == "top"){
-            let newHeight = PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight());
+            let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight()));
             changes = {
                 yOrigin: this.yOrigin - (newHeight - this.height),
                 height: newHeight
             }
         }else if(marker.memorize == "bottom"){
             changes = {
-                height: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight())
+                height: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()))
             }
         }else if(marker.memorize == "left"){
-            let newWidth = PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight());
+            let newWidth = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight()));
             changes = {
                 xOrigin: this.xOrigin - (newWidth - this.width),
                 width: newWidth

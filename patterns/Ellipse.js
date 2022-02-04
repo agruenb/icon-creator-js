@@ -63,11 +63,11 @@ class Ellipse extends Pattern{
             }
         }else if(marker.memorize == "xRadius"){
             changes = {
-                xRadius: Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.top(),...this.bottom()))
+                xRadius: this.pt(Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.top(),...this.bottom())))
             }
         }else if(marker.memorize == "yRadius"){
             changes = {
-                yRadius: Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.left(),...this.right()))
+                yRadius: this.pt(Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.left(),...this.right())))
             }
         }
         return changes;

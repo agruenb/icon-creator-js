@@ -287,7 +287,12 @@ class Path extends Pattern{
             }   
         }
     }
-    getPointsString(){
+    /**
+     * Transform the points into svg path 
+     * @param {Boolean} limitPrecision should the output precision be limited. If true takes performance hit
+     * @returns 
+     */
+    getPointsString(limitPrecision = false){
         let pointsString = new Array();
         this.points.forEach((point, index) => {
             let elementString = new String();
@@ -318,6 +323,10 @@ class Path extends Pattern{
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
                         let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
                         let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
+                        if(limitPrecision){
+                            firstRounderPoint = [this.pt(firstRounderPoint[0]), this.pt(firstRounderPoint[1])];
+                            secondRounderPoint = [this.pt(secondRounderPoint[0]), this.pt(secondRounderPoint[1])];
+                        }
                         elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
                         elementString += "Q "+point.x+" "+point.y+" ";
                         elementString += secondRounderPoint[0]+" "+secondRounderPoint[1]+" ";
@@ -339,6 +348,10 @@ class Path extends Pattern{
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
                         let firstRounderPoint = [point.x+toLastPointVector[0],point.y+toLastPointVector[1]];
                         let secondRounderPoint = [point.x+toNextPointVector[0],point.y+toNextPointVector[1]];
+                        if(limitPrecision){
+                            firstRounderPoint = [this.pt(firstRounderPoint[0]), this.pt(firstRounderPoint[1])];
+                            secondRounderPoint = [this.pt(secondRounderPoint[0]), this.pt(secondRounderPoint[1])];
+                        }
                         elementString += firstRounderPoint[0]+" "+firstRounderPoint[1]+" ";
                         elementString += "Q "+point.x+" "+point.y+" ";
                         elementString += secondRounderPoint[0]+" "+secondRounderPoint[1]+" ";
@@ -409,10 +422,10 @@ class Path extends Pattern{
         }
         return l;
     }
-    cleanHTML(){
+    cleanHTML(limitPrecision = false){
         let defaultPattern = new Path(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
-        let pointsString = this.getPointsString();
+        let pointsString = this.getPointsString(limitPrecision);
         let cleanHTML = ''
         +'<path '+ ((this.hasMask())?this.maskLink():'')
         +' d="M '+pointsString+'Z"'

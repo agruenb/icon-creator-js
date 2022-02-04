@@ -48,7 +48,7 @@ class Circle extends Pattern{
             }
         }else if(marker.memorize == "radius"){
             changes = {
-                radius: Math.max(limit, PointOperations.distance(this.xOrigin,this.yOrigin,marker.x,marker.y))
+                radius: this.pt(Math.max(limit, PointOperations.distance(this.xOrigin,this.yOrigin,marker.x,marker.y)))
             }
         }
         return changes;

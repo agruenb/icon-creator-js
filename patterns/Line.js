@@ -66,7 +66,7 @@ class Line extends Pattern{
             }
         }else if(marker.memorize == "width"){
             changes = {
-                width: 2* PointOperations.lineDistance(marker.x, marker.y, this.xOrigin, this.yOrigin, this.xEnd, this.yEnd)
+                width: this.pt(2* PointOperations.lineDistance(marker.x, marker.y, this.xOrigin, this.yOrigin, this.xEnd, this.yEnd))
             }
         }
         return changes;
@@ -87,6 +87,7 @@ class Line extends Pattern{
         let l = [];
         let widthMarkerPos = PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xEnd,this.yEnd, this.width/2, "top");
         l.push([PointOperations.halfway(this.xOrigin, this.xEnd),PointOperations.halfway(this.yOrigin, this.yEnd),widthMarkerPos[0],widthMarkerPos[1]]);
+        l.push([this.xOrigin, this.yOrigin, this.xEnd, this.yEnd,""]);
         return l;
     }
     cleanHTML(){
