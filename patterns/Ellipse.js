@@ -3,8 +3,9 @@ class Ellipse extends Pattern{
     allowMask = true;
     rotation = 0;
     center = [0,0];
+    defaultTranslation = [0,0]
 
-    constructor(x,y, xRadius = 1, yRadius = 1, color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, xRadius = 50, yRadius = 30, color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.xRadius = xRadius;
         this.yRadius = yRadius;

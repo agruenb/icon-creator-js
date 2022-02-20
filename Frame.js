@@ -52,6 +52,10 @@ class Frame extends IconCreatorGlobal{
             this.repaint();
         }
     }
+    processAndAppend(rawPattern){
+        rawPattern.addMaskFrame(this.parentElement, this.infoBoxContainer, this.editor);
+        this.append(rawPattern);
+    }
     newPattern(type,xOrigin,yOrigin,color = "#ffee00"){
         //this object is the main pattern object for dragging ect.
         let pattern = this.basicPattern(type,xOrigin,yOrigin,color);

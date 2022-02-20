@@ -4,7 +4,7 @@ class Rect extends Pattern{
     rotation = 0;
     center = [0,0];
     
-    constructor(x,y, height = 1, width = 1, color = "#000000", borderWidth = 0, borderColor = "#000000", stroke = ""){
+    constructor(x,y, height = 100, width = 100, color = "#000000", borderWidth = 0, borderColor = "#000000", stroke = ""){
         super(x,y);
         this.height = height;
         this.width = width;

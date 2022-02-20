@@ -14,7 +14,7 @@ class Path extends Pattern{
         height:1
     }
 
-    constructor(x,y, points = new Array(), color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, points = [{x:100,y:100,method:"L"},{x:0,y:100,method:"L"},{x:0,y:0,method:"L"}], color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.points = points;
         this.color = color;

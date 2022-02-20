@@ -140,6 +140,7 @@
 <script>
     let environment = {
         document: document,
+        window:window,
         layout:{
             container:document.getElementById("mainContainer"),
             viewport:document.getElementById("viewport"),
@@ -148,12 +149,7 @@
         },
         control:{
             editSVG:{
-                cursor:document.getElementById("cursor"),
-                newRect:document.getElementById("newRect"),
-                newCircle:document.getElementById("newCircle"),
-                newEllipse:document.getElementById("newEllipse"),
-                newLine:document.getElementById("newLine"),
-                newPath:document.getElementById("newPath")
+                cursor:document.getElementById("cursor")
             },
             history:{
                 back:document.getElementById("historyBack"),
@@ -173,13 +169,29 @@
                 paintColor:document.getElementById("paintColor"),
                 exclusiveView:document.getElementById("exclusiveView")
             },
+            savePower:document.getElementById("savePower"),
             export:{
                 file:document.getElementById("exportFile"),
                 inline:undefined
             }
         },
         config:{
-            savePower:document.getElementById("savePower")
+            patterns:[{
+                constructorName:"Rect",
+                startPaintButton: document.getElementById("newRect")
+            },{
+                constructorName:"Circle",
+                startPaintButton:document.getElementById("newCircle")
+            },{
+                constructorName:"Ellipse",
+                startPaintButton: document.getElementById("newEllipse")
+            },{
+                constructorName:"Line",
+                startPaintButton: document.getElementById("newLine")
+            },{
+                constructorName: "Path",
+                startPaintButton: document.getElementById("newPath")
+            }]
         }
     }
     let e = new HTMLeditor(environment);

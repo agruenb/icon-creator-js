@@ -2,8 +2,9 @@ class Circle extends Pattern{
 
     allowMask = true;
     rotation = 0;
+    defaultTranslation = [0,0];
 
-    constructor(x,y, radius = 1, color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, radius = 50, color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.radius = radius;
         this.color = color;

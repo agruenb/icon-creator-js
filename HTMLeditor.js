@@ -50,13 +50,12 @@ class HTMLeditor{
         this.drawingViewport = this.environment.layout.resultViewport;
         this.drawingViewport.style.cssText = "height:512px;width:512px;";
         //config
-        this.savePower = this.environment.config.savePower.checked;
-        this.environment.config.savePower.addEventListener("change",(e) => {this.savePower = e.target.checked});
+        this.savePower = this.environment.control.savePower.checked;
+        this.environment.control.savePower.addEventListener("change",(e) => {this.savePower = e.target.checked});
         //init control
         this.environment.control.editSVG.cursor.addEventListener("click",() => {this.focus();this.setDrawingType("none")});
-        this.environment.control.editSVG.newRect.addEventListener("mousedown",() => {this.setDrawingType("drag_rect0")});
-        this.environment.control.editSVG.newRect.addEventListener("mouseup",() => {this.setDrawingType("rect0")});
-
+        
+        /*
         this.environment.control.editSVG.newCircle.addEventListener("mousedown",() => {this.setDrawingType("drag_circle0")});
         this.environment.control.editSVG.newCircle.addEventListener("mouseup",() => {this.setDrawingType("circle0")});
 
@@ -67,7 +66,16 @@ class HTMLeditor{
         this.environment.control.editSVG.newLine.addEventListener("mouseup",() => {this.setDrawingType("line0")});
 
         this.environment.control.editSVG.newPath.addEventListener("click",() => {this.setDrawingType("path0")});
-        
+        */
+        //pattern creation
+        for(let i in this.environment.config.patterns){
+            let item = this.environment.config.patterns[i];
+            if(item.startPaintButton){
+                item.startPaintButton.addEventListener("mousedown",() => {this.setDrawingType("dragOut");this.state.paintPatternName = item.constructorName;});
+                item.startPaintButton.addEventListener("mouseup",() => {this.setDrawingType("clickedPaintPattern");this.state.paintPatternName = item.constructorName;});
+            }
+        }
+        //meta edits
         for(let key in this.environment.control.meta.gridsize){
             this.environment.control.meta.gridsize[key].addEventListener("click",() => {this.changeGrid(this.environment.control.meta.gridsize[key].value)});
         }
@@ -112,46 +120,33 @@ class HTMLeditor{
         this.environment.layout.viewport.addEventListener("mouseup",event => {
             this.mouseUp(event);
         });
+        //resize listeners
+        this.environment.window.addEventListener("resize",()=>{
+            this.currProj().drawBg();
+        }
+        );
     }
     mouseDown(event){
         this.closeContextMenu();
         this.setMouseInfo(event);
         if(event.which==1 && this.currentAction !== "none"){
-            let type = "none";
             //if new drawing type is selected
             if(["edit0","path1"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
             let pattern;
             switch (this.state.currentAction) {
-                case "rect0":
-                    pattern = this.addPattern("Rect",event.clientX,event.clientY);
-                    this.focus(pattern);
-                    type = "rect1";
-                    break;
-                case "circle0":
-                    pattern = this.addPattern("Circle",event.clientX,event.clientY);
-                    this.focus(pattern);
-                    type = "circle1";
-                    break;
-                case "ellipse0":
-                    pattern = this.addPattern("Ellipse", event.clientX,event.clientY);
-                    this.focus(pattern);
-                    type = "ellipse1";
-                    break;
-                case "line0":
-                    pattern = this.addPattern("Line", event.clientX,event.clientY);
-                    this.focus(pattern);
-                    type = "line1";
+                case "clickedPaintPattern":
+                    this.state.currentAction = "mousedownPaintPattern";
                     break;
                 case "path0":
                     pattern = this.addPattern("Path", event.clientX,event.clientY);
                     this.focus(pattern);
-                    type = "path1";
+                    this.state.currentAction = "path1";
                     this.addHelperMarker(this.relX(event.clientX),this.relY(event.clientY),0,"check");
                     break;
                 case "path1":
-                    type = "path1";
+                    this.state.currentAction = "path1";
                     break;
                 //edit
                 case "edit0":
@@ -159,18 +154,15 @@ class HTMLeditor{
                     //start dragging marker
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
                         this.state.editedObject = closestMarker.marker;
-                        type = "dragMarker";
+                        this.state.currentAction = "dragMarker";
                     }else if(event.target.parentElement.id == this.focusedPattern().id){//start dragging pattern
                         this.setDraggingInfo(this.currProj().frame().patterns[event.target.parentElement.id], event);
-                        type = "dragPattern";
+                        this.state.currentAction = "dragPattern";
                     }else{//do nothing
-                        type = "edit0";
+                        this.state.currentAction = "edit0";
                     }
                     break;
-                default:
-                    break;
             }
-            this.state.currentAction = type;
         }
     }
     mouseMoved(event){
@@ -238,31 +230,24 @@ class HTMLeditor{
                     this.addHelperOutline(pattern);
                     break;
                 //dragged from new pattern
-                case "drag_rect0":
-                    pattern = this.addPattern("Rect",event.clientX-parseInt(this.defaultSizing.rect.width/2),event.clientY-parseInt(this.defaultSizing.rect.height/2));
-                    this.currProj().alterPattern(pattern,this.defaultSizing.rect);
-                    this.finalizeDraggedInPattern(pattern, event);
+                case "dragOut":
+                    pattern = eval(`new ${this.state.paintPatternName}(0,0)`);
+                    pattern.color = this.currProj().getColor();
+                    this.currProj().frame().processAndAppend(pattern);
+                    this.currProj().frame().newBox(pattern);
+                    //center pattern on mouse
+                    pattern.translateTo(this.relX(event.clientX),this.relY(event.clientY));
+                    pattern.initialDefaultTranslation();
+                    this.focus(pattern);
+                    this.startEdit(pattern);
+                    this.setDraggingInfo(pattern, event);
+                    this.state.currentAction = "dragPattern";
                     break;
-                case "drag_circle0":
-                    pattern = this.addPattern("Circle",event.clientX,event.clientY);
-                    this.currProj().alterPattern(pattern,this.defaultSizing.circle);
-                    this.finalizeDraggedInPattern(pattern, event);
+                case "mousedownPaintPattern"://if mousedown after pattern selection and move -> active paint mode
+                    this.state.currentAction = "activePaintPattern";
                     break;
-                case "drag_ellipse0":
-                    pattern = this.addPattern("Ellipse",event.clientX,event.clientY);
-                    this.currProj().alterPattern(pattern,this.defaultSizing.ellipse);
-                    this.finalizeDraggedInPattern(pattern, event);
+                case "activePaintPattern":
                     break;
-                case "drag_line0":
-                    pattern = this.addPattern("Line",event.clientX,event.clientY-parseInt(this.defaultSizing.line.length/2));
-                    this.currProj().alterPattern(pattern,{
-                        xEnd:this.relX(event.clientX),
-                        yEnd:this.relY(event.clientY+parseInt(this.defaultSizing.line.length/2)),
-                        width:this.defaultSizing.line.width
-                    });
-                    this.finalizeDraggedInPattern(pattern, event);
-                    break;
-                //edit
                 case "edit0":
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
                     break;
@@ -298,6 +283,23 @@ class HTMLeditor{
                             this.startEdit(this.patternById(event.target.parentElement.id));
                         }
                     }
+                    break;
+                case "mousedownPaintPattern":
+                    pattern = eval(`new ${this.state.paintPatternName}(0,0)`);
+                    pattern.color = this.currProj().getColor();
+                    this.currProj().frame().processAndAppend(pattern);
+                    this.currProj().frame().newBox(pattern);
+                    //center pattern on mouse
+                    pattern.translateTo(this.relX(event.clientX),this.relY(event.clientY));
+                    pattern.initialDefaultTranslation();
+                    this.focus(pattern);
+                    this.startEdit(pattern);
+                    this.setDraggingInfo(pattern, event);
+                    this.state.currentAction = "edit0";
+                    break;
+                case "activePaintPattern":
+                    console.log("End active pattern init");
+                    this.state.currentAction = "none";
                     break;
                 case "rect1":
                     this.finishNewPattern(event);
@@ -527,7 +529,7 @@ class HTMLeditor{
     }
     newProject(){
         let newProject = new Project(this.environment.layout.elementOverview, this);
-        newProject.init();
+        newProject.init(this.environment.layout.viewport);
         this.drawingViewport.append(newProject.container);
         this.activeProjects.push(newProject);
         //TEMP: does not work with multiple projects
@@ -866,7 +868,7 @@ class HTMLeditor{
                 break;
         }
         document.querySelector(':root').style.setProperty('--viewport-background', targetColor);
-        this.currProj().drawBg("dotts", this.state.gridsize, this.colorSchemeLight);
+        this.currProj().drawBg();
     }
     relX(x, remove = 0, min = -2048,steps = this.state.gridsize, max = 2048){
         let a = parseInt(Math.min(Math.max(x - (this.drawingViewport.getBoundingClientRect().x + remove), min), max) );
@@ -973,7 +975,8 @@ class HTMLeditor{
         }else{
             this.state.gridsize = Math.pow(2,size);
         }
-        this.currProj().drawBg("dotts",this.state.gridsize);
+        this.currProj().bgGridsize = parseInt(this.state.gridsize);
+        this.currProj().drawBg();
     }
     setPaintColor(color = "#000000"){
         this.currProj().setColor(color);
@@ -1032,7 +1035,7 @@ class HTMLeditor{
         }
     }
     hotkey(event){
-        console.log(event);
+        //console.log(event);
         this.closeContextMenu();
         if(event.keyCode == 8){
             event.preventDefault();

@@ -9,7 +9,8 @@ class Pattern extends IconCreatorGlobal{
     boundId;
 
     rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
-    snapTolerance = 3
+    snapTolerance = 3;
+    defaultTranslation = [-50,-50];
 
     constructor(xOrigin = 0,yOrigin = 0){
         super();
@@ -28,6 +29,9 @@ class Pattern extends IconCreatorGlobal{
                 }
             }
         }
+    }
+    initialDefaultTranslation(){
+        this.translateTo(this.xOrigin + this.defaultTranslation[0], this.yOrigin + this.defaultTranslation[1]);
     }
     /**
      * Add a maskLayer to this pattern

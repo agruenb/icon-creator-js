@@ -12,6 +12,8 @@ class Project extends IconCreatorGlobal{
     generateColors = true;
     colorMachine = new ColorMachine("pastel");
     paintColor = "default";
+    bgType = "lines";
+    bgGridsize = 1;
 
     keyframes = new Array();
 
@@ -26,7 +28,7 @@ class Project extends IconCreatorGlobal{
             height:"512"
         }
     }
-    init(){
+    init(fullViewport){
         this.initialized = true;
         this.container = document.createElement("div");
         //this.container.style.cssText = "top:10px";
@@ -35,7 +37,9 @@ class Project extends IconCreatorGlobal{
         this.frameContainer.style.cssText = "height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;";
 
         this.viewportOutline = document.createElement("div");
-        this.viewportOutline.style.cssText = "pointer-events:none;height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border-radius:2px;z-index:10000;";
+        let outlineWidth = parseInt(this.dimensions.width) - 2;
+        let outlineHeight = parseInt(this.dimensions.height) - 2;
+        this.viewportOutline.style.cssText = "pointer-events:none;height:"+outlineWidth+"px;width:"+outlineHeight+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border-radius:2px;z-index:10000;";
         
         this.contextContainer = this.frameContainer.cloneNode(false);
         this.contextContainer.style.cssText = "position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);";
@@ -48,16 +52,15 @@ class Project extends IconCreatorGlobal{
         this.currentFrame = this.keyframes[0];
 
         this.bgCanvas = document.createElement("canvas");
-        this.bgCanvas.setAttribute("width",this.dimensions.width+"px");
-        this.bgCanvas.setAttribute("height",this.dimensions.height+"px");
-        this.bgCanvas.style.cssText = "position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);";
-        
-        this.drawBg();
+        this.bgCanvas.style.cssText = "position:absolute;top:0;left:0;height:100vh;width:100vw;";
         
         this.container.append(this.frameContainer);
         this.container.append(this.bgCanvas);
         this.container.append(this.viewportOutline);
         this.container.append(this.contextContainer);
+        //configure canvas after viewport size
+        this.fullViewport = fullViewport;
+        this.drawBg();
         
         //setup css inside head
         var css = 'svg[role=main] *{pointer-events:all;}',
@@ -103,74 +106,84 @@ class Project extends IconCreatorGlobal{
             this.contextContainer.innerHTML = "";
         }
     }
-    drawBg(type = "dotts",gridsize = 1, colorSchemeLight = this.editor.colorSchemeLight){
-        let schemeColor =  (colorSchemeLight)?"#404040":"#dbdbdb"
+    drawBg(){
+        let lightLinesLightBg = "#eaeaea";
+        let strongLinesLightBg = "#cecece";
+        let viewportDomBox = this.fullViewport.getBoundingClientRect();
+        this.bgCanvas.setAttribute("width",viewportDomBox.width+"px");
+        this.bgCanvas.setAttribute("height",viewportDomBox.height+"px");
+        let highlightInterval = 4;
+        let schemeColor =  (this.editor.colorSchemeLight)?"#1a1a1a":"#dbdbdb"
         //border
         this.viewportOutline.style.border = `1px solid ${schemeColor}`;
         //inner drawing
         let pen = this.bgCanvas.getContext("2d");
         //pen.fillStyle = "white";
-        pen.clearRect(0,0,this.dimensions.width,this.dimensions.height);
-        switch (type) {
-            case "dotts":
-                if(gridsize > 8){//only render if grid not too fine
-                    let dottAmountX = parseInt(parseInt(this.dimensions.width)/gridsize);
-                    let dottAmountY = parseInt(parseInt(this.dimensions.height)/gridsize);
+        pen.clearRect(0,0,viewportDomBox.width,viewportDomBox.height);
+        if(this.bgGridsize > 8){//only render if grid not too fine
+            //offset to align with drawingViewport
+            let offsetX = parseInt(((viewportDomBox.width - parseInt(this.dimensions.width)) / 2)%(this.bgGridsize*highlightInterval));
+            let offsetY = parseInt(((viewportDomBox.height - parseInt(this.dimensions.height)) / 2)%(this.bgGridsize*highlightInterval));
+            //move back lines to start at viewport start even with offset
+            let iterationOffsetX = Math.round(offsetX / this.bgGridsize);
+            let iterationOffsetY = Math.round(offsetY / this.bgGridsize);
+            switch (this.bgType) {
+                case "dotts":
+                    let dottAmountX = parseInt(parseInt(this.dimensions.width)/this.bgGridsize);
+                    let dottAmountY = parseInt(parseInt(this.dimensions.height)/this.bgGridsize);
                     pen.fillStyle = pen.strokeStyle = schemeColor;
                     for(let x = 1; x < dottAmountX; x++){
                         for (let y = 1; y < dottAmountY; y++) {
                             //every 5th point red cross
-                            if(x%4 === 0 && y%4 === 0){
-                                /*
+                            if(x%highlightInterval === 0 && y%highlightInterval === 0){
                                 pen.beginPath();
-                                pen.moveTo(x*gridsize, y*gridsize-3);
-                                pen.lineTo(x*gridsize+1, y*gridsize-3);
-                                pen.lineTo(x*gridsize+1, y*gridsize);
-                                pen.lineTo(x*gridsize+4, y*gridsize);
-                                pen.lineTo(x*gridsize+4, y*gridsize+1);
-                                pen.lineTo(x*gridsize+1, y*gridsize+1);
-                                pen.lineTo(x*gridsize+1, y*gridsize+4);
-                                pen.lineTo(x*gridsize, y*gridsize+4);
-                                pen.lineTo(x*gridsize, y*gridsize+1);
-                                pen.lineTo(x*gridsize-3, y*gridsize+1);
-                                pen.lineTo(x*gridsize-3, y*gridsize);
-                                pen.lineTo(x*gridsize, y*gridsize);
-                                pen.fill();
-                                */
-                                pen.beginPath();
-                                pen.arc(x*gridsize - 0.5, y*gridsize - 0.5, 2, 0, Math.PI * 2);
+                                pen.arc(x*this.bgGridsize - 0.5, y*this.bgGridsize - 0.5, 2, 0, Math.PI * 2);
                                 pen.fill();
                             }else{
-                                pen.fillRect(x*gridsize - 0.5, y*gridsize - 0.5, 1, 1);
+                                pen.fillRect(x*this.bgGridsize - 0.5, y*this.bgGridsize - 0.5, 1, 1);
                             }                            
                         }
                     }
-                }
-                break;
-            case "lines":
-                if(gridsize > 8){//only render if grid not too fine
-                    let lineAmountX = parseInt(parseInt(this.dimensions.width)/gridsize);
-                    let lineAmountY = parseInt(parseInt(this.dimensions.height)/gridsize);
-                    pen.beginPath();
-                    pen.fillStyle = "#000000";
+                    break;
+                case "lines":
+                    let lineAmountX = parseInt(parseInt(viewportDomBox.width)/this.bgGridsize);
+                    let lineAmountY = parseInt(parseInt(viewportDomBox.height)/this.bgGridsize);
                     pen.lineWidth = 1;
-                    for(let x = 1; x < lineAmountX; x++){
-                        pen.moveTo((gridsize*x) + 0.5, 0);
-                        pen.lineTo((gridsize*x) + 0.5, this.dimensions.height);
+                    for(let x = 1 - iterationOffsetX; x < lineAmountX; x++){
+                        pen.beginPath();
+                        if(x%highlightInterval == 0){
+                            pen.strokeStyle = strongLinesLightBg;
+                        }else{
+                            pen.strokeStyle = lightLinesLightBg;
+                        }
+                        pen.moveTo((this.bgGridsize*x) + 0.5 + offsetX, 0);
+                        pen.lineTo((this.bgGridsize*x) + 0.5 + offsetX, viewportDomBox.height);
+                        pen.stroke();
+                        pen.closePath();
                     }
-                    for (let y = 1; y < lineAmountY; y++) {
-                        pen.moveTo(0, (y*gridsize) + 0.5);
-                        pen.lineTo(this.dimensions.width, (y*gridsize) + 0.5);                          
+                    for (let y = 1 - iterationOffsetY; y < lineAmountY; y++) {
+                        pen.beginPath();
+                        if(y%highlightInterval == 0){
+                            pen.strokeStyle = strongLinesLightBg;
+                        }else{
+                            pen.strokeStyle = lightLinesLightBg;
+                        }
+                        pen.moveTo(0, (y*this.bgGridsize) + 0.5 + offsetY);
+                        pen.lineTo(viewportDomBox.width, (y*this.bgGridsize) + 0.5 + offsetY);   
+                        pen.stroke();   
+                        pen.closePath();                    
                     }
-                    pen.stroke();
-                }
-                break;
-            default:
-                console.warn(type);
-                break;
+                    break;
+                default:
+                    console.warn(this.bgType);
+                    break;
+            }
         }
     }
     newPattern(type,xOrigin,yOrigin){
+        return this.frame().newPattern(type, xOrigin, yOrigin, this.getColor());
+    }
+    getColor(){
         let color;
         if(this.paintColor == "default" && this.generateColors){
             color = this.editor.environment.control.meta.paintColor.querySelector("input").value;
@@ -180,7 +193,7 @@ class Project extends IconCreatorGlobal{
         }else{
             color = this.paintColor;
         }
-        return this.frame().newPattern(type, xOrigin, yOrigin, color);
+        return color;
     }
     setColor(color = "#000000"){
         this.paintColor = color;

@@ -1,8 +1,9 @@
 class Line extends Pattern{
 
     allowMask = false;
+    defaultTranslation = [-50,0];
 
-    constructor(x,y, xEnd = 1, yEnd = 1, color = "#000000", width = 3, stroke = ""){
+    constructor(x,y, xEnd = 100, yEnd = 0, color = "#000000", width = 32, stroke = ""){
         super(x,y);
         this.xEnd = xEnd;
         this.yEnd = yEnd;
