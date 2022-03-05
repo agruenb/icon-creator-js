@@ -148,7 +148,7 @@ class Project extends IconCreatorGlobal{
                 case "lines":
                     let lineAmountX = parseInt(parseInt(viewportDomBox.width)/this.bgGridsize);
                     let lineAmountY = parseInt(parseInt(viewportDomBox.height)/this.bgGridsize);
-                    pen.lineWidth = 1;
+                    pen.lineWidth = 1.5;
                     for(let x = 1 - iterationOffsetX; x < lineAmountX; x++){
                         pen.beginPath();
                         if(x%highlightInterval == 0){
@@ -156,8 +156,8 @@ class Project extends IconCreatorGlobal{
                         }else{
                             pen.strokeStyle = lightLinesLightBg;
                         }
-                        pen.moveTo((this.bgGridsize*x) + 0.5 + offsetX, 0);
-                        pen.lineTo((this.bgGridsize*x) + 0.5 + offsetX, viewportDomBox.height);
+                        pen.moveTo((this.bgGridsize*x) + 0.75 + offsetX, 0);
+                        pen.lineTo((this.bgGridsize*x) + 0.75 + offsetX, viewportDomBox.height);
                         pen.stroke();
                         pen.closePath();
                     }

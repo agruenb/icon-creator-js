@@ -130,6 +130,50 @@ class Rect extends Pattern{
         }
         return changes;
     }
+    startActiveDraw(x, y){
+        this.activeOrigin = [x, y];
+        return({
+            xOrigin: x,
+            yOrigin: y,
+            height: 1,
+            width: 1
+        });
+    }
+    movedActiveDraw(x, y){
+        let ogX = this.activeOrigin[0];
+        let ogY = this.activeOrigin[1];
+        if(ogX > x && ogY > y){//top left
+            return {
+                width: ogX - x,
+                height: ogY - y,
+                xOrigin: x,
+                yOrigin: y
+            }
+        }else if(ogX > x && ogY < y){//bottom left
+            return {
+                width: ogX - x,
+                height:  y - ogY,
+                xOrigin: x,
+                yOrigin: ogY
+            }
+        }else if(ogX < x && ogY > y){//top right
+            return {
+                width: x - ogX,
+                height: ogY - y,
+                xOrigin: ogX,
+                yOrigin: y
+            }
+        }else if(ogX < x && ogY < y){//bottom right
+            return {
+                width: x - ogX,
+                height: y - ogY,
+                xOrigin: ogX,
+                yOrigin: ogY
+            }
+        }else{//height or width is 0
+            return {};
+        }
+    }
     //@Override
     getMarkers(){
         let r = [];

@@ -72,7 +72,21 @@ class Line extends Pattern{
         }
         return changes;
     }
-    
+    startActiveDraw(x, y){
+        return({
+            xOrigin: x,
+            yOrigin: y,
+            xEnd: x + 5,
+            yEnd: y + 5
+        });
+    }
+    movedActiveDraw(x, y){
+        let pointsDontOverlap = (x != this.xOrigin || y != this.yOrigin);
+        return({
+            xEnd: (pointsDontOverlap)?x:x+5,//prevent same start and endpoint
+            yEnd: (pointsDontOverlap)?y:y+5
+        });
+    }
     //@Override
     getMarkers(){
         let r = [];

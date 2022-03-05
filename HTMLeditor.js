@@ -25,24 +25,6 @@ class HTMLeditor{
         draggingInfo: undefined
     }
 
-    defaultSizing = {
-        rect:{
-            height:100,
-            width:100,
-        },
-        circle:{
-            radius:50
-        },
-        ellipse:{
-            xRadius:60,
-            yRadius:30
-        },
-        line:{
-            length:140,
-            width:6
-        }
-    }
-
     constructor(environment){
         this.environment = environment;
         //setup viewport
@@ -131,22 +113,12 @@ class HTMLeditor{
         this.setMouseInfo(event);
         if(event.which==1 && this.currentAction !== "none"){
             //if new drawing type is selected
-            if(["edit0","path1"].indexOf(this.state.currentAction) == -1){
+            if(["edit0","activePaintPattern"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
-            let pattern;
             switch (this.state.currentAction) {
                 case "clickedPaintPattern":
                     this.state.currentAction = "mousedownPaintPattern";
-                    break;
-                case "path0":
-                    pattern = this.addPattern("Path", event.clientX,event.clientY);
-                    this.focus(pattern);
-                    this.state.currentAction = "path1";
-                    this.addHelperMarker(this.relX(event.clientX),this.relY(event.clientY),0,"check");
-                    break;
-                case "path1":
-                    this.state.currentAction = "path1";
                     break;
                 //edit
                 case "edit0":
@@ -168,67 +140,7 @@ class HTMLeditor{
     mouseMoved(event){
         if(this.state.currentAction !== "none"){
             let pattern = this.focusedPattern();
-            let points;
             switch (this.state.currentAction) {
-                case "rect1":
-                    this.currProj().alterPattern(pattern,{
-                        height:this.relY(event.clientY,pattern.yOrigin,2),
-                        width:this.relX(event.clientX,pattern.xOrigin,2),
-                    });
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                    break;
-                case "circle1":
-                    this.currProj().alterPattern(pattern,{
-                        radius:PointOperations.distance(0,0,this.relX(event.clientX,pattern.xOrigin,-2048),this.relY(event.clientY,pattern.yOrigin,-2048))
-                    });
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                    break;
-                case "ellipse1":
-                    this.currProj().alterPattern(pattern,{
-                        yRadius:this.relY(event.clientY,pattern.yOrigin,2),
-                        xRadius:this.relX(event.clientX,pattern.xOrigin,2)
-                    });
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                case "line1":
-                    this.currProj().alterPattern(pattern,{
-                        yEnd:this.relY(event.clientY,0,this.minCoordinate),
-                        xEnd:this.relX(event.clientX,0,this.minCoordinate)
-                    });
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                    break;
-                case "path1":
-                    points = JSON.parse(JSON.stringify(pattern.points));
-                    points.pop();
-                    points.pop();
-                    //get position for extra/curve markers
-                    let x = this.relX(event.clientX);
-                    let y = this.relY(event.clientY);
-                    let midLast;
-                    if(points.length > 0){
-                        midLast = PointOperations.halfwayVector([points[points.length - 1].x,points[points.length - 1].y],[x,y]);
-                    }else{
-                        midLast = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
-                    }
-                    let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
-                    points.push({method:"L",x:this.relX(event.clientX,0),y:this.relY(event.clientY,0),extraX:midLast[0],extraY:midLast[1], type:"round"});
-                    points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midLast[1],type:"round"});
-                    this.currProj().alterPattern(pattern,{points:points});
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                    this.addHelperMarker(pattern.xOrigin, pattern.yOrigin, 0, "check");
-                    break;
-                case "marker1":
-                    points = JSON.parse(JSON.stringify(pattern.points));
-                    points.pop();
-                    points.push({method:"L",x:this.relX(event.clientX,0,2),y:this.relY(event.clientY,0,2)})
-                    this.currProj().alterPattern(pattern, {points:points});
-                    this.clearViewportUI()
-                    this.addHelperOutline(pattern);
-                    break;
                 //dragged from new pattern
                 case "dragOut":
                     pattern = eval(`new ${this.state.paintPatternName}(0,0)`);
@@ -247,6 +159,26 @@ class HTMLeditor{
                     this.state.currentAction = "activePaintPattern";
                     break;
                 case "activePaintPattern":
+                    if(this.focusedPattern() == undefined){
+                        //create new pattern
+                        pattern = eval(`new ${this.state.paintPatternName}(0,0)`);
+                        pattern.color = this.currProj().getColor();
+                        this.currProj().frame().processAndAppend(pattern);
+                        this.currProj().frame().newBox(pattern);
+                        let changes = pattern.startActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));
+                        this.currProj().alterPattern(pattern, changes);
+                        this.focus(pattern);
+                    }else{
+                        this.clearViewportUI();
+                        let changes = pattern.movedActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));
+                        this.currProj().alterPattern(pattern, changes);
+                        this.addHelperOutline(pattern);
+                        //add markers
+                        let markers = pattern.activeDrawMarkers();
+                        for(let i in markers){
+                            this.addHelperMarker(...markers[i]);
+                        }
+                    }
                     break;
                 case "edit0":
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
@@ -298,58 +230,20 @@ class HTMLeditor{
                     this.state.currentAction = "edit0";
                     break;
                 case "activePaintPattern":
-                    console.log("End active pattern init");
-                    this.state.currentAction = "none";
-                    break;
-                case "rect1":
-                    this.finishNewPattern(event);
-                    break;
-                case "circle1":
-                    this.finishNewPattern(event);
-                    break;
-                case "ellipse1":
-                    this.finishNewPattern(event);
-                    break;
-                case "line1":
-                    this.finishNewPattern(event);
-                    break;
-                case "path1":
-                    let points = JSON.parse(JSON.stringify(pattern.points));
-                    if (this.detectMouseOnMarkerDistance > PointOperations.distance(pattern.xOrigin,pattern.yOrigin,this.relX(event.clientX,0,undefined,1),this.relY(event.clientY,0,undefined,1))) {//finish pattern
-                        //path finished
-                        points.pop();
-                        points.pop();
-                        let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[points[points.length - 1].x,points[points.length - 1].y]);
-                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midNext[1],type:"round"});
+                    let changes = pattern.releaseActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));//returns undefined if pattern is finished
+                    if(changes == undefined){
+                        console.log("End active pattern");
                         this.clearViewportUI();
-                        this.setDrawingType("path0");
-                        this.currProj().frame().newBox(pattern);
-                        //TODO replace with default path
-                        if(this.focusedPattern().points.length < 2 && x == this.focusedPattern().xOrigin && y == this.focusedPattern().yOrigin){//check for invalid path
-                            this.removePattern(this.focusedPattern());
-                            alert("Halte die Maus gedrückt und ziehe sie anschließend, um eine Form zu erstellen.");
-                            return true;
+                        this.startEdit(pattern);
+                    }else{
+                        this.currProj().alterPattern(pattern, changes, true);
+                        this.clearViewportUI();
+                        this.addHelperOutline(pattern);
+                        //add markers
+                        let markers = pattern.activeDrawMarkers();
+                        for(let i in markers){
+                            this.addHelperMarker(...markers[i]);
                         }
-                        this.setDrawingType("none");
-                        this.currProj().alterPattern(pattern, {points:points}, true);
-                        this.saveToHistory();
-                        this.currProj().repaint(pattern);
-                        this.startEdit(this.focusedPattern());
-                    } else {
-                        //add point to path
-                        points.pop();
-                        //get position for extra/curve markers
-                        let midLast;
-                        if(points.length > 0){
-                            midLast = PointOperations.halfwayVector([points[points.length - 1].x,points[points.length - 1].y],[x,y]);
-                        }else{
-                            midLast = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
-                        }
-                        let midNext = PointOperations.halfwayVector([pattern.xOrigin,pattern.yOrigin],[x,y]);
-                        points.push({method:"L",x:x,y:y,extraX:midLast[0],extraY:midLast[1],type:"round"});
-                        points.push({method:"L",x:pattern.xOrigin,y:pattern.yOrigin,extraX:midNext[0],extraY:midNext[1],type:"round"});
-                        this.currProj().alterPattern(pattern, {points:points}, true);
-                        this.currProj().repaint(pattern);
                     }
                     break;
                 //edit
@@ -449,13 +343,6 @@ class HTMLeditor{
                 break;
         }
     }
-    finishNewPattern(event){
-        this.fixClickOnlyPattern(event);
-        this.currProj().frame().newBox(this.focusedPattern());
-        this.saveToHistory();
-        this.setDrawingType("none");
-        this.startEdit(this.focusedPattern());
-    }
     setDraggingInfo(editedObject, event){
         this.state.editedObject = editedObject;
         let draggingInfo = {
@@ -470,61 +357,6 @@ class HTMLeditor{
         this.state.mouseDownInfo = {
             x:this.relX(event.clientX,0,undefined,1),
             y:this.relY(event.clientY,0,undefined,1)
-        }
-    }
-    finalizeDraggedInPattern(pattern, event){
-        this.currProj().frame().newBox(pattern);
-        this.focus(pattern);
-        this.state.currentAction = "dragPattern";
-        this.setDraggingInfo(pattern, event);
-        this.clearViewportUI();
-        this.addHelperOutline(pattern);
-    }
-    /**
-     * Checks if the mouse position that finishes the pattern is the same as the one that started the pattern. If thats the case the pattern is assigned the default properties.
-     * @param {MouseEvent} event last mouse event
-     */
-     fixClickOnlyPattern(event){
-        let pattern = this.focusedPattern();
-        //if mouse has not moved since pattern creation
-        if(this.relX(event.clientX) == pattern.xOrigin && this.relY(event.clientY) == pattern.yOrigin){
-            switch (pattern.constructor.name) {
-                case "Rect":
-                    this.currProj().alterPattern(pattern,
-                        {
-                            width:this.defaultSizing.rect.width,
-                            height:this.defaultSizing.rect.height,
-                            xOrigin:this.relX(event.clientX-parseInt(this.defaultSizing.rect.width/2)),
-                            yOrigin:this.relY(event.clientY-parseInt(this.defaultSizing.rect.height/2))
-                        });
-                    break;
-                case "Circle":
-                    this.currProj().alterPattern(pattern,
-                        {
-                            radius:this.defaultSizing.circle.radius,
-                            xOrigin:this.relX(event.clientX),
-                            yOrigin:this.relY(event.clientY)
-                        });
-                    break;
-                case "Ellipse":
-                    this.currProj().alterPattern(pattern,
-                        {
-                            xRadius:this.defaultSizing.ellipse.xRadius,
-                            yRadius:this.defaultSizing.ellipse.yRadius,
-                            xOrigin:this.relX(event.clientX),
-                            yOrigin:this.relY(event.clientY)
-                        });
-                    break;
-                case "Line":
-                    this.currProj().alterPattern(pattern,{
-                        xEnd:this.relX(event.clientX),
-                        yEnd:this.relY(event.clientY+parseInt(this.defaultSizing.line.length/2)),
-                        width:this.defaultSizing.line.width,
-                        xOrigin:this.relX(event.clientX),
-                        yOrigin:this.relY(event.clientY-parseInt(this.defaultSizing.line.length/2))
-                    });
-                    break;
-            }
         }
     }
     newProject(){

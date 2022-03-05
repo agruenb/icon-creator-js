@@ -139,6 +139,18 @@ class Pattern extends IconCreatorGlobal{
     getMarkers(){
         return [];
     }
+    startActiveDraw(x, y){
+        
+    }
+    movedActiveDraw(x, y){
+        
+    }
+    releaseActiveDraw(x, y){
+        return undefined;
+    }
+    activeDrawMarkers(){
+        return [];
+    }
     /**
      * Should be overwritten by sub classes
      */

@@ -54,6 +54,18 @@ class Circle extends Pattern{
         }
         return changes;
     }
+    startActiveDraw(x, y){
+        return({
+            xOrigin: x,
+            yOrigin: y,
+            radius: 10
+        });
+    }
+    movedActiveDraw(x, y){
+        return({
+            radius: this.pt(Math.max(10, PointOperations.distance(this.xOrigin, this.yOrigin, x, y)))
+        });
+    }
     //@Override
     getMarkers(){
         let r = [];

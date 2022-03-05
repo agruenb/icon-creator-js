@@ -3,6 +3,7 @@ class Path extends Pattern{
     displayCurveMarkersSpaceLimit = 40;
     allowManuelPointDeleteDistance = 20;
     defaultEdgeRounderDistance = 15;
+    cancelActiveDrawDistance = 20;
 
     rotation = 0;
     center = [0,0];
@@ -14,7 +15,7 @@ class Path extends Pattern{
         height:1
     }
 
-    constructor(x,y, points = [{x:100,y:100,method:"L"},{x:0,y:100,method:"L"},{x:0,y:0,method:"L"}], color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, points = [{x:100,y:100,method:"L",type:"round"},{x:0,y:100,method:"L",type:"round"},{x:0,y:0,method:"L",type:"round"}], color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.points = points;
         this.color = color;
@@ -265,6 +266,50 @@ class Path extends Pattern{
             changes = {points:points};
         }
         return changes;
+    }
+    startActiveDraw(x, y){
+        return {
+            xOrigin:x,
+            yOrigin:y,
+            points:[{x:x,y:y,method:"L",type:"round"}]
+        }
+    }
+    movedActiveDraw(x, y){
+        let newPoints = this.copy(this.points);
+        //last point has always to exist, as origin is not painted directly
+        newPoints.pop();
+        newPoints.pop();
+        let mid;
+        if(this.points.length > 0){
+            mid = PointOperations.halfwayVector([this.points[this.points.length - 1].x,this.points[this.points.length - 1].y],[x,y]);
+        }else{
+            mid = PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[x,y]);
+        }
+        newPoints.push({x:x,y:y,method:"L",type:"round",extraX:mid[0],extraY:mid[1]});
+        newPoints.push({method:"L",x:this.xOrigin,y:this.yOrigin,extraX:0,extraY:0,type:"round"});   
+        return {
+            points:newPoints
+        }
+    }
+    releaseActiveDraw(x, y){
+        //if clicked on finish marker
+        if(PointOperations.distance(this.xOrigin, this.yOrigin, x, y) < this.cancelActiveDrawDistance){
+            this.points.pop();
+            this.points.pop();
+            let mid = PointOperations.halfwayVector([this.points[this.points.length - 1].x,this.points[this.points.length - 1].y],[x,y]);
+            this.points.push({method:"L",x:this.xOrigin,y:this.yOrigin,extraX:mid[0],extraY:mid[1],type:"round"});
+            return undefined;
+        }else{
+            let newPoints = this.copy(this.points);
+            let insertPoint = {x:x,y:y,method:"L",type:"round"};
+            newPoints.splice(newPoints.length - 1, 0, insertPoint);
+            return {
+                points:newPoints
+            }
+        }
+    }
+    activeDrawMarkers(){
+        return [[this.xOrigin, this.yOrigin, undefined,"check"]];
     }
     //@Override
     markerClicked(marker){

@@ -73,6 +73,20 @@ class Ellipse extends Pattern{
         }
         return changes;
     }
+    startActiveDraw(x, y){
+        return({
+            xOrigin: x,
+            yOrigin: y,
+            xRadius: 10,
+            yRadius: 15
+        });
+    }
+    movedActiveDraw(x, y){
+        return({
+            xRadius: this.pt(Math.max(10, PointOperations.lineDistance(x,y,...this.top(),...this.bottom()))),
+            yRadius: this.pt(Math.max(10, PointOperations.lineDistance(x,y,...this.left(),...this.right()))),
+        });
+    }
     //@Override
     getMarkers(){
         let r = [];
