@@ -1,17 +1,26 @@
-class Rect extends Pattern{
-    
+class Text extends Pattern{
+    /*
+    The Text class shares lots of code with the Rect class, but its is only similiar since the origin point differs
+    */
     allowMask = true;
+    repaintOnKeyUp = true;
+    isFocussed = false;
+    isEditing = false;
     rotation = 0;
+    defaultTranslation = [0,0];
     center = [0,0];
-    
-    constructor(x,y, width = 100, height = 100, color = "#000000", borderWidth = 0, borderColor = "#000000", stroke = ""){
+    cursorPosition = 0;
+    cursorColor = "black";
+
+    constructor(x,y, width = 260, height = 50, content = "Doubleclick me!", color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
-        this.height = height;
-        this.width = width;
+        this.content = content;
         this.color = color;
+        this.width = width;
+        this.height = height;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
-        this.stroke = stroke;
+        this.cursorPosition = content.length;
         this.updateProperties();
     }
     translateTo(newOriginX,newOriginY){
@@ -21,7 +30,7 @@ class Rect extends Pattern{
         this.center = this.getCenterUntransformed();
     }
     getCenterUntransformed(){
-        return [(this.xOrigin + this.xOrigin+this.width)/2,(this.yOrigin + this.yOrigin + this.height)/2];
+        return [(this.xOrigin + this.xOrigin+this.width)/2,this.yOrigin - this.height/2];
     }
     getCenterProjection(){
         let topLeft = this.topLeft();
@@ -39,19 +48,9 @@ class Rect extends Pattern{
     }
     mirrorVertically(xPos = this.center[0]){
         super.mirrorVertically(xPos);
-        if(this.isMask){
-            this.rotation = 360-this.rotation;
-        }
-        this.xOrigin = PointOperations.mirrorPoint(xPos,"y",[this.xOrigin+this.width, this.yOrigin])[0];
-        this.center = this.getCenterUntransformed();
     }
     mirrorHorizontally(yPos = this.center[1]){
         super.mirrorHorizontally(yPos);
-        if(this.isMask){
-            this.rotation = 180-this.rotation;
-        }
-        this.yOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin+this.height])[1];
-        this.center = this.getCenterUntransformed();
     }
     updateProperties(){
         if(this.rotation != 0){
@@ -60,16 +59,16 @@ class Rect extends Pattern{
         this.center = this.getCenterUntransformed();
     }
     topLeft(){
-        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin,this.yOrigin],this.rotation);
+        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin,this.yOrigin - this.height],this.rotation);
     }
     topRight(){
-        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin+this.width,this.yOrigin],this.rotation);
+        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin+this.width,this.yOrigin - this.height],this.rotation);
     }
     bottomLeft(){
-        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin, this.yOrigin+this.height], this.rotation)
+        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin, this.yOrigin], this.rotation)
     }
     bottomRight(){
-        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin+this.width, this.yOrigin + this.height], this.rotation)
+        return PointOperations.rotateAroundPoint(this.center,[this.xOrigin+this.width, this.yOrigin], this.rotation)
     }
     //@Override
     markerEdited(marker, limit, xPrecise, yPrecise){
@@ -86,36 +85,41 @@ class Rect extends Pattern{
                 width: newWidth,
                 height: newHeight,
                 xOrigin: this.xOrigin - (newWidth - this.width),
-                yOrigin: this.yOrigin - (newHeight - this.height)
+                //yOrigin: this.yOrigin - (newHeight - this.height)
             }
         }else if(marker.memorize == "top right"){
             let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight()));
             changes = {
                 width: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft()),
                 height: newHeight,
-                yOrigin: this.yOrigin - (newHeight - this.height)
+                //
             }
         }else if(marker.memorize == "bottom left"){
             let newWidth = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight()));
+            let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()));
             changes = {
                 width: newWidth,
-                height: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()),
-                xOrigin: this.xOrigin - (newWidth - this.width)
+                height: newHeight,
+                xOrigin: this.xOrigin - (newWidth - this.width),
+                yOrigin: this.yOrigin + (newHeight - this.height)
             }
         }else if(marker.memorize == "bottom right"){
+            let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()));
             changes = {
                 width: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft())),
-                height: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()))
+                height: newHeight,
+                yOrigin: this.yOrigin + (newHeight - this.height)
             }
         }else if(marker.memorize == "top"){
             let newHeight = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.bottomLeft(),...this.bottomRight()));
             changes = {
-                yOrigin: this.yOrigin - (newHeight - this.height),
                 height: newHeight
             }
         }else if(marker.memorize == "bottom"){
+            let newHeight =  this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()));
             changes = {
-                height: this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.topRight()))
+                yOrigin: this.yOrigin + (newHeight - this.height),
+                height: newHeight
             }
         }else if(marker.memorize == "left"){
             let newWidth = this.pt(PointOperations.lineDistance(marker.x,marker.y,...this.topRight(),...this.bottomRight()));
@@ -147,28 +151,28 @@ class Rect extends Pattern{
                 width: ogX - x,
                 height: ogY - y,
                 xOrigin: x,
-                yOrigin: y
+                yOrigin: ogY
             }
         }else if(ogX > x && ogY < y){//bottom left
             return {
                 width: ogX - x,
                 height:  y - ogY,
                 xOrigin: x,
-                yOrigin: ogY
+                yOrigin: y
             }
         }else if(ogX < x && ogY > y){//top right
             return {
                 width: x - ogX,
                 height: ogY - y,
                 xOrigin: ogX,
-                yOrigin: y
+                yOrigin: ogY
             }
         }else if(ogX < x && ogY < y){//bottom right
             return {
                 width: x - ogX,
                 height: y - ogY,
                 xOrigin: ogX,
-                yOrigin: ogY
+                yOrigin: y
             }
         }else{//height or width is 0
             return {};
@@ -178,66 +182,114 @@ class Rect extends Pattern{
     getMarkers(){
         let r = [];
         //rotate marker
-        r.push([...this.rotatePoint(PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin,this.xOrigin+this.width,this.yOrigin, this.rotationMarkerDistanceFromPattern, "top")),"rotate","arrow-rotate", this.rotation]);
+        r.push([...this.rotatePoint(PointOperations.orthogonalIcon(this.xOrigin,this.yOrigin - this.height,this.xOrigin+this.width,this.yOrigin - this.height, this.rotationMarkerDistanceFromPattern, "top")),"rotate","arrow-rotate", this.rotation]);
         //corner markers
         r.push([...this.topLeft(),"top left","point", this.rotation]);
         r.push([...this.topRight(),"top right","point", this.rotation]);
         r.push([...this.bottomLeft(),"bottom left","point", this.rotation]);
         r.push([...this.bottomRight(),"bottom right","point", this.rotation]);
         //side markers
-        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[this.xOrigin,this.yOrigin+this.height])),"left","arrow-double", this.rotation]);
-        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin+this.width,this.yOrigin],[this.xOrigin+this.width,this.yOrigin+this.height])),"right","arrow-double", this.rotation]);
-        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[this.xOrigin+this.width,this.yOrigin])),"top","arrow-double", this.rotation + 90]);
-        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin+this.height],[this.xOrigin+this.width,this.yOrigin+this.height])),"bottom","arrow-double", this.rotation + 90]);
+        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[this.xOrigin,this.yOrigin-this.height])),"left","arrow-double", this.rotation]);
+        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin+this.width,this.yOrigin],[this.xOrigin+this.width,this.yOrigin-this.height])),"right","arrow-double", this.rotation]);
+        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin-this.height],[this.xOrigin+this.width,this.yOrigin-this.height])),"top","arrow-double", this.rotation + 90]);
+        r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[this.xOrigin+this.width,this.yOrigin])),"bottom","arrow-double", this.rotation + 90]);
         return r;
     }
-    icon(){
-        return `
-            <rect
-            x="1.5"
-            y="1.5"
-            height="5"
-            width="5"
-            fill="${this.color}"
-            ${(this.borderWidth > 0)?`stroke-width=1 stroke="${this.borderColor}"`:""}
-            />
-        `;
+    //unique to Text class
+    getOutlinePattern(){
+        let outline = new Rect(this.xOrigin, this.yOrigin - this.height, this.width, this.height);
+        outline.rotation = this.rotation;
+        outline.center = this.center;
+        return outline;
     }
-    /**
-     * Get the svg-html string without mask or editor specific attributes
-     * @returns 
-     */
+    keypress(event){
+        if(this.isEditing){
+            //add chars
+            if(/[!'^+%&/()=?_\-~`;#$½{[\]}\\|<>@ ,a-zA-Z0-9_]/gi.test(event.key) && event.key.length == 1) {
+                this.addChar(event.key, this.cursorPosition);
+            }
+            //backspace
+            if(event.keyCode == 8){
+                if(this.cursorPosition > 0){
+                    this.content = this.content.slice(0, this.cursorPosition-1)+this.content.slice(this.cursorPosition);
+                    this.cursorPosition--;
+                }
+            }
+            //delete
+            if(event.keyCode == 46){
+                if(this.cursorPosition < this.content.length){
+                    this.content = this.content.slice(0, this.cursorPosition)+this.content.slice(this.cursorPosition+1);
+                }
+            }
+            //left-arrow
+            if(event.keyCode == 37){
+                if(this.cursorPosition > 0){
+                    this.cursorPosition--;
+                }
+            }
+            //right-arrow
+            if(event.keyCode == 39){
+                if(this.cursorPosition < this.content.length){
+                    this.cursorPosition++;
+                }
+            }
+            return true;//blocks hotkeys from executing
+        }
+        return false;
+    }
+    gotFocus(){
+        this.isFocussed = true;
+    }
+    lostFocus(){
+        this.isFocussed = false;
+        this.isEditing = false;
+    }
+    doubleclicked(){
+        this.isEditing = true;
+    }
+    addChar(char, position = this.content.length){
+        this.content = this.content.slice(0, position) + char + this.content.slice(position);
+        if(position <= this.cursorPosition){
+            this.cursorPosition++;
+        }
+    }
+    contentWithCursor(){
+        return this.content.slice(0, this.cursorPosition)+"<tspan fill="+this.cursorColor+">|</tspan>"+this.content.slice(this.cursorPosition);
+    }
     cleanHTML(){
-        let defaultPattern = new Rect(0,0);
+        let textSize = 32;
+        let textCenteringRatio = 3.8;
+        let scale = this.height/textSize;
+        let defaultPattern = new Text(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
-        let cleanHTML = ''
-        +'<rect '+ ((this.hasMask())?this.maskLink():'')
-        +' x="'+this.xOrigin
-        +'" y="'+this.yOrigin
-        +'" width="'+this.width
-        +'" height="'+this.height
-        +'" fill="'+this.color
-        +'" '+(paintBorder?`stroke="${this.borderColor}" `:'')
-        +(paintBorder?`stroke-width="${this.borderWidth}" `:'')
-        +((this.stroke != defaultPattern.stroke)?`stroke-dasharray="${this.stroke}" `:'')
-        +((this.rotation != defaultPattern.rotation)?`transform="rotate(${this.rotation},${this.center[0]},${this.center[1]})" `:'')
-        +'/>';
+        //TODO better marker background
+        let cleanHTML = `
+        <text ${((this.hasMask())?this.maskLink():'')}
+        x=${this.xOrigin}
+        y=${this.yOrigin/scale - parseInt(textSize/textCenteringRatio)}
+        textLength=${this.width}
+        lengthAdjust="spacingAndGlyphs"
+        style="font-family:Arial, sans-serif;font-size:${textSize}px"
+        text-rendering = "optimizeLegibility"
+        fill=${this.color}
+        transform="${(this.rotation != 0)?`rotate(${this.rotation},${this.center[0]},${this.center[1]})`:""} scale(1, ${scale})"
+        >${(this.isEditing)?this.contentWithCursor():this.content}</text>`;
         return cleanHTML;
     }
     /**
      * Returns the JSON representation of this pattern.
      */
-     get(allowMask = true){
-        let obj = super.get(allowMask); 
+    get(allowMask = true){
+        let obj = super.get(allowMask);
         let additionalAttributes = {
-            width: this.width,
+            content: this.content,
             height: this.height,
+            width: this.width,
             color: this.color,
-            borderWidth: this.borderWidth,
-            borderColor: this.borderColor,
-            stroke: this.stroke,
+            center: this.center,
             rotation: this.rotation,
-            center: this.center
+            borderWidth: this.borderWidth,
+            borderColor: this.borderColor
         }
         Object.assign(obj.attributes, additionalAttributes);
         return obj;

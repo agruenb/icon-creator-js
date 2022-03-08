@@ -5,6 +5,7 @@ class Pattern extends IconCreatorGlobal{
     isUI = false;
     isMask = false;
     isFiller = false;//the filler is always identical to the main pattern
+    repaintOnKeyUp = false;
     maskLayer;
     boundId;
 
@@ -32,6 +33,9 @@ class Pattern extends IconCreatorGlobal{
     }
     initialDefaultTranslation(){
         this.translateTo(this.xOrigin + this.defaultTranslation[0], this.yOrigin + this.defaultTranslation[1]);
+    }
+    getOutlinePattern(){
+        return PatternManipulator.duplicate(this);
     }
     /**
      * Add a maskLayer to this pattern
@@ -166,6 +170,24 @@ class Pattern extends IconCreatorGlobal{
     afterAlteration(){
 
     }
+    keypress(event){
+        return false;//whether further hotkey should be blocked
+    }
+    doubleclicked(){
+
+    }
+    gotFocus(){
+
+    }
+    lostFocus(){
+
+    }
+    /**
+     * Return a svg icon that fits in a square viewBox with size 0-8. Should be able to get very small.
+     */
+    icon(){
+
+    }
     /**
      * Gets called when a marker of a pattern that is edited is changed.
      * @param {Object} Marker the marker that has been changed. Contains new x,y and memorize
@@ -197,6 +219,7 @@ class Pattern extends IconCreatorGlobal{
         let obj = super.get(); 
         let additionalAttributes = {
             type: "pattern",
+            subtype: this.constructor.name,
             attributes:{
                 id: this.id,
                 display: this.display,

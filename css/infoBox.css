@@ -1,7 +1,7 @@
 .editor-container .infobox{
     border-radius: 10px;
     padding:10px;
-    width:330px;
+    width: 260px;
     position:relative;
     margin-top:5px;
     background: var(--panel-background);
@@ -30,15 +30,6 @@
     width: 26px;
     margin:2px 8px 2px 0
 }
-.infobox .accent-background{
-    position:absolute;
-    height:100%;
-    left: 0;
-    top: 0;
-    width: 112px;
-    z-index: 0;
-    border-radius: 10px;
-}
 .infobox .preview{
     float:left;
     --size:90px;
@@ -55,11 +46,11 @@
 }
 .infobox .top-wrapper{
     position: relative;
-    width:330px;
-    height:0px;
+    /* width:330px; */
+    height: 30px;
 }
 .infobox.expanded .top-wrapper{
-    height:105px;
+    height: 135px;
 }
 .infobox .order-wrapper, .infobox .color-wrapper, .infobox .border-wrapper{
     display:flex;
@@ -73,7 +64,7 @@
     width:226px;
 }
 .infobox .line.upper{
-    transform: translate(110px, -35px);
+    transform: translate(40px, -35px);
 }
 .infobox .line.lower{
     display:none;
@@ -81,7 +72,7 @@
 .infobox.expanded .line.lower{
     display:flex;
     flex-direction: column;
-    transform: translate(110px, 14px);
+    transform: translate(40px, 14px);
 }
 .infobox .pseudo-input{
     display: flex;
@@ -108,6 +99,11 @@
 .infobox .border-wrapper{
     width: 120px;
     margin: 10px 0 0 5px;
+}
+.infobox .shape-icon{
+    --icon-size:30px;
+    height:var(--icon-size);
+    width:var(--icon-size);
 }
 .infobox .order-wrapper button{
     all:unset;

@@ -485,8 +485,7 @@ class Path extends Pattern{
      * Returns the JSON representation of this pattern.
      */
      get(allowMask = true){
-        let obj = super.get(allowMask); 
-        obj.subtype = this.constructor.name;
+        let obj = super.get(allowMask);
         let additionalAttributes = {
             points: this.copy(this.points),
             color: this.color,

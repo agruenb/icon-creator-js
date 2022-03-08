@@ -77,6 +77,17 @@ class Circle extends Pattern{
         r.push([...this.rotatePoint([this.xOrigin,this.yOrigin-this.radius]),"radius", "arrow-double", this.rotation + 90]);
         return r;
     }
+    icon(){
+        return `
+            <circle
+            cx="4"
+            cy="4"
+            r="3"
+            fill="${this.color}"
+            ${(this.borderWidth > 0)?`stroke-width=1 stroke="${this.borderColor}"`:""}
+            />
+        `;
+    }
     cleanHTML(){
         let defaultPattern = new Circle(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
@@ -96,8 +107,7 @@ class Circle extends Pattern{
      * Returns the JSON representation of this pattern.
      */
      get(allowMask = true){
-        let obj = super.get(allowMask); 
-        obj.subtype = this.constructor.name;
+        let obj = super.get(allowMask);
         let additionalAttributes = {
             radius: this.radius,
             color: this.color,

@@ -8,8 +8,7 @@ class HTMLeditor{
 
     minCoordinate = -2048;
     editOpacity = 0.8;
-
-    savePower = true;
+    
     keepHistory = true;
     exclusivView = false;
 
@@ -31,24 +30,9 @@ class HTMLeditor{
         this.environment.layout.viewport.style.cssText = "position:relative;overflow:hidden";
         this.drawingViewport = this.environment.layout.resultViewport;
         this.drawingViewport.style.cssText = "height:512px;width:512px;";
-        //config
-        this.savePower = this.environment.control.savePower.checked;
-        this.environment.control.savePower.addEventListener("change",(e) => {this.savePower = e.target.checked});
         //init control
         this.environment.control.editSVG.cursor.addEventListener("click",() => {this.focus();this.setDrawingType("none")});
         
-        /*
-        this.environment.control.editSVG.newCircle.addEventListener("mousedown",() => {this.setDrawingType("drag_circle0")});
-        this.environment.control.editSVG.newCircle.addEventListener("mouseup",() => {this.setDrawingType("circle0")});
-
-        this.environment.control.editSVG.newEllipse.addEventListener("mousedown",() => {this.setDrawingType("drag_ellipse0")});
-        this.environment.control.editSVG.newEllipse.addEventListener("mouseup",() => {this.setDrawingType("ellipse0")});
-
-        this.environment.control.editSVG.newLine.addEventListener("mousedown",() => {this.setDrawingType("drag_line0")});
-        this.environment.control.editSVG.newLine.addEventListener("mouseup",() => {this.setDrawingType("line0")});
-
-        this.environment.control.editSVG.newPath.addEventListener("click",() => {this.setDrawingType("path0")});
-        */
         //pattern creation
         for(let i in this.environment.config.patterns){
             let item = this.environment.config.patterns[i];
@@ -84,24 +68,18 @@ class HTMLeditor{
             this.blockKeys(event);
         });
         this.environment.document.addEventListener('keyup', event=>{
-            this.hotkey(event);
+            this.keyup(event);
         });
-
         //init mouse events
         this.environment.layout.viewport.addEventListener("contextmenu", event => {
             event.preventDefault();
             this.openContextMenu(event);
             return false;
         },false);
-        this.environment.layout.viewport.addEventListener("mousemove",event =>{
-            this.mouseMoved(event);
-        });
-        this.environment.layout.viewport.addEventListener("mousedown",event => {
-            this.mouseDown(event);
-        });
-        this.environment.layout.viewport.addEventListener("mouseup",event => {
-            this.mouseUp(event);
-        });
+        this.environment.layout.viewport.addEventListener("mousemove",event =>{this.mouseMoved(event);});
+        this.environment.layout.viewport.addEventListener("mousedown",event => {this.mouseDown(event);});
+        this.environment.layout.viewport.addEventListener("mouseup",event => {this.mouseUp(event);});
+        this.environment.layout.viewport.addEventListener("dblclick",event => {this.doubleclick(event);});
         //resize listeners
         this.environment.window.addEventListener("resize",()=>{
             this.currProj().drawBg();
@@ -113,7 +91,7 @@ class HTMLeditor{
         this.setMouseInfo(event);
         if(event.which==1 && this.currentAction !== "none"){
             //if new drawing type is selected
-            if(["edit0","activePaintPattern"].indexOf(this.state.currentAction) == -1){
+            if(["edit","activePaintPattern"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
             switch (this.state.currentAction) {
@@ -121,7 +99,7 @@ class HTMLeditor{
                     this.state.currentAction = "mousedownPaintPattern";
                     break;
                 //edit
-                case "edit0":
+                case "edit":
                     let closestMarker = this.closestMarker(this.relX(event.clientX,0,undefined,1),this.relY(event.clientY,0,undefined,1));
                     //start dragging marker
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
@@ -131,7 +109,7 @@ class HTMLeditor{
                         this.setDraggingInfo(this.currProj().frame().patterns[event.target.parentElement.id], event);
                         this.state.currentAction = "dragPattern";
                     }else{//do nothing
-                        this.state.currentAction = "edit0";
+                        this.state.currentAction = "edit";
                     }
                     break;
             }
@@ -154,6 +132,7 @@ class HTMLeditor{
                     this.startEdit(pattern);
                     this.setDraggingInfo(pattern, event);
                     this.state.currentAction = "dragPattern";
+                    this.currProj().repaint(pattern);
                     break;
                 case "mousedownPaintPattern"://if mousedown after pattern selection and move -> active paint mode
                     this.state.currentAction = "activePaintPattern";
@@ -179,22 +158,21 @@ class HTMLeditor{
                             this.addHelperMarker(...markers[i]);
                         }
                     }
-                    break;
-                case "edit0":
-                    this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    this.currProj().repaint(pattern);
                     break;
                 case "dragPattern":
                     this.currProj().frame().setOpacity(this.editOpacity);
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    this.currProj().repaint(pattern);
                     break;
                 case "dragMarker":
                     this.currProj().frame().setOpacity(this.editOpacity);
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    this.currProj().repaint(pattern);
                     break;
                 default:
                     break;
             }
-            this.currProj().repaint(pattern);
         }
     }
     mouseUp(event){
@@ -227,12 +205,11 @@ class HTMLeditor{
                     this.focus(pattern);
                     this.startEdit(pattern);
                     this.setDraggingInfo(pattern, event);
-                    this.state.currentAction = "edit0";
+                    this.state.currentAction = "edit";
                     break;
                 case "activePaintPattern":
                     let changes = pattern.releaseActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));//returns undefined if pattern is finished
                     if(changes == undefined){
-                        console.log("End active pattern");
                         this.clearViewportUI();
                         this.startEdit(pattern);
                     }else{
@@ -247,7 +224,7 @@ class HTMLeditor{
                     }
                     break;
                 //edit
-                case "edit0":
+                case "edit":
                     //stop edit on active element
                     this.stopEdit();
                     //if pattern is clicked -> start editing
@@ -267,37 +244,61 @@ class HTMLeditor{
                         this.clearViewportUI();
                         this.startEdit(this.focusedPattern());
                     }
-                    this.state.currentAction = "edit0";
+                    this.state.currentAction = "edit";
                     this.currProj().frame().updateInfoBox(pattern);
                     this.saveToHistory();
                     this.currProj().frame().setOpacity(1);
                     this.currProj().repaint(pattern);
                     break;
                 case "dragPattern":
-                    this.state.currentAction = "edit0";
+                    this.state.currentAction = "edit";
                     this.currProj().frame().updateInfoBox(pattern);
                     this.saveToHistory();
                     this.currProj().frame().setOpacity(1);
-                    this.currProj().repaint(pattern);
+                    //only repaint if moved -> repaint stops doubleclick from working
+                    if(this.relX(event.clientX,0,undefined,1) != this.state.draggingInfo.x || this.relY(event.clientY,0,undefined,1) != this.state.draggingInfo.y){
+                        this.currProj().repaint(pattern);
+                    }
                     break;
                 default:
                     break;
             }
         }
     }
+    doubleclick(event){
+        switch(this.state.currentAction){
+            case "edit":
+            case "none":
+            //stop edit on active element
+            this.stopEdit();
+            //if pattern is clicked -> start editing
+            if(event.target.parentElement.getAttribute("role") === "main"){
+                //dont focus main pattern on mask frame
+                if(this.currProj().frame().boundId != event.target.parentElement.id){
+                    this.state.currentAction = "edit";
+                    this.focus(this.patternById(event.target.parentElement.id));
+                    this.focusedPattern().doubleclicked();
+                    this.repaint(this.focusedPattern());
+                    this.addHelperOutline(this.focusedPattern());
+                }
+            }
+            break;
+        }
+    }
     prepareEdit(pattern = this.focusedPattern()){
-        if(["edit0","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
-            this.addHelperOutline(pattern);
+        if(["edit","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
             let infoBox = this.infoBoxManager().boxById(pattern.id);
             if(infoBox != undefined){
                 infoBox.highlight();
             }
             let markers = pattern.getMarkers();
             let lines = pattern.getLines();
+            
             for(let i in lines){
                 let lineParams = lines[i];
                 this.addHelperLine(...lineParams);
             }
+            this.addHelperOutline(pattern);
             for(let i in markers){
                 let markerParams = markers[i];
                 this.addHelperMarker(...markerParams);
@@ -321,9 +322,8 @@ class HTMLeditor{
                     this.addHelperRotation(pattern);
                 }
                 this.prepareEdit(pattern);
-                if(!this.savePower){
-                    this.currProj().frame().updateInfoBox(pattern);
-                }
+                this.currProj().frame().updateInfoBox(pattern);
+                this.currProj().repaint(pattern);
                 break;
             case "dragPattern":
                 let newOriginX = this.relX(event.clientX,(this.state.draggingInfo.relToPatternOriginX));
@@ -333,10 +333,9 @@ class HTMLeditor{
                     pattern.translateTo(newOriginX, newOriginY);
                     //repaint point and marker
                     this.prepareEdit(pattern);
-                    if(!this.savePower){
-                        this.currProj().frame().updateInfoBox(pattern);
-                    }
+                    this.currProj().frame().updateInfoBox(pattern);
                 }
+                this.currProj().repaint(pattern);
                 break;
             default:
                 //edit, but no further action
@@ -347,7 +346,7 @@ class HTMLeditor{
         this.state.editedObject = editedObject;
         let draggingInfo = {
             x:this.relX(event.clientX,0,undefined,1),
-            y:this.relX(event.clientY,0,undefined,1),
+            y:this.relY(event.clientY,0,undefined,1),
             relToPatternOriginX:this.relX(event.clientX,0,undefined,1) - this.state.editedObject.xOrigin,
             relToPatternOriginY:this.relY(event.clientY,0,undefined,1) - this.state.editedObject.yOrigin
         };
@@ -567,7 +566,7 @@ class HTMLeditor{
         if(this.state.view != view){
             let focusedPattern = this.focusedPattern();
             //need to know if certain views are possible in current state
-            let editPossible = (this.state.currentAction == "edit0")?true:false;
+            let editPossible = (this.state.currentAction == "edit")?true:false;
             this.stopEdit();
             this.setDrawingType("none");
             switch (view) {
@@ -601,7 +600,7 @@ class HTMLeditor{
     }
     startEdit(pattern){
         this.setDrawingType("none");
-        this.state.currentAction = "edit0";
+        this.state.currentAction = "edit";
         this.focus(pattern);
         this.prepareEdit(pattern);
         if(this.exclusivView){
@@ -641,6 +640,7 @@ class HTMLeditor{
             this.toolBanner.close();
             delete this.toolBanner;
         }
+        this.focus();
         this.currProj().frame().stopEdit();
         this.state.currentAction = "none";
         this.repaint();
@@ -657,7 +657,13 @@ class HTMLeditor{
      * @param {Pattern} pattern pattern that should be focused
      */
     focus(pattern){
+        if(this.focusedPattern()){
+            this.focusedPattern().lostFocus();
+        }
         this.currProj().frame().focus(pattern);
+        if(pattern){
+            pattern.gotFocus();
+        }
     }
     clearViewportUI(specificElement){
         if(specificElement == "rotationDisplay"){
@@ -748,7 +754,7 @@ class HTMLeditor{
         }else{
             this.setCursor(this.drawingViewport, "default");
         }
-        if(this.state.currentAction == "edit0"){
+        if(this.state.currentAction == "edit"){
             this.stopEdit();
         }
         switch (type) {
@@ -857,13 +863,32 @@ class HTMLeditor{
         this.infoBoxManager().oneDown(pattern);
     }
     exportFile(){
+        this.stopEdit();
+        let exportWindow = new ExportWindow(this.environment.layout.overlay, this.currProj());
+        /*
         let content = Exporter.createSVGFileContent(this.currProj());
-        console.log(content);
         Exporter.download("easy_svg_online_creation", content);
+        */
     }
     blockKeys(event){
         if([68, 90].indexOf(event.keyCode) !== -1){
             event.preventDefault();
+        }
+    }
+    /**
+     * Is triggered on key up events. If the patterns keypress function returns a truthy value, the input is not passed to the hotkey function.
+     * @param {Keyboard Event} event 
+     */
+    keyup(event){
+        let blockHotkeys = false;
+        if(this.focusedPattern()){
+            blockHotkeys = this.focusedPattern().keypress(event);
+            if(this.focusedPattern().repaintOnKeyUp){
+                this.repaint(this.focusedPattern());
+            }
+        }
+        if(!blockHotkeys){
+            this.hotkey(event); 
         }
     }
     hotkey(event){

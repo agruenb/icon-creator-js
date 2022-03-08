@@ -10,6 +10,6 @@ class PatternManipulator{
         return dup;
     }
     static createWithSameClass(object){
-        return eval(`new ${object.constructor.name}`);
+        return eval(`new ${object.constructor.name}()`);
     }
 }

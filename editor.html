@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/rotateDisplay.css">
     <link rel="stylesheet" href="css/customComponents.css">
     <link rel="stylesheet" href="css/colors.css">
+    <link rel="stylesheet" href="css/exportWindow.css">
     <title>SVG editor</title>
 </head>
 <body>
@@ -53,6 +54,7 @@
             <button id="newEllipse" class="anno-button"><div class="tool-icon"><img src="img/ellipse_icon.svg" alt="circle"></div></button>
             
             <button id="newPath" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/path_icon.svg" alt="circle"></div></button>
+            <button id="newText" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/path_icon.svg" alt="circle"></div></button>
         </div>
         <div id="sidebar" class="sidebar">
             <div id="elementOverview" class="vert-scroll box-menu">
@@ -88,18 +90,15 @@
                     <img class="icon" src="img/dark_mode_icon.svg" alt="Gridsize medium icon">
                 </label>
             </div>
-            <div class="save-power-wrapper">
-                <input type="checkbox" style="display:none" id="savePower">
-                <label for="savePower">
-                    <img class="icon" src="img/save_power.svg" alt="Save power icon">
-                </label>
-            </div>
             <div class="exclusive-view-wrapper">
                 <input type="checkbox" style="display:none" id="exclusiveView">
                 <label for="exclusiveView">
                     <img class="icon" src="img/exclusive_view_icon.svg" alt="exclusive view icon">
                 </label>
             </div>
+        </div>
+        <div id="overlayLayer" class="overlay">
+            
         </div>
     </div>
     <div id="preview" style="display:none;height:200px;width:200px;"></div>
@@ -123,6 +122,7 @@
     <script src="uiElements/MenuButton.js"></script>
     <script src="uiElements/ContextMenu.js"></script>
     <script src="uiElements/RotateDisplay.js"></script>
+    <script src="uiElements/ExportWindow.js"></script>
 <script src="components/CustomColorInput.js"></script>
 <script src="components/CustomNumberInput.js"></script>
 <script src="components/CustomCheckboxInput.js"></script>
@@ -136,6 +136,7 @@
     <script src="patterns/Line.js"></script>
     <script src="patterns/Path.js"></script>
     <script src="patterns/Rect.js"></script>
+    <script src="patterns/Text.js"></script>
 
 <script>
     let environment = {
@@ -145,7 +146,8 @@
             container:document.getElementById("mainContainer"),
             viewport:document.getElementById("viewport"),
             resultViewport:document.getElementById("drawingViewport"),
-            elementOverview:document.getElementById("elementOverview")
+            elementOverview:document.getElementById("elementOverview"),
+            overlay:document.getElementById("overlayLayer")
         },
         control:{
             editSVG:{
@@ -169,7 +171,6 @@
                 paintColor:document.getElementById("paintColor"),
                 exclusiveView:document.getElementById("exclusiveView")
             },
-            savePower:document.getElementById("savePower"),
             export:{
                 file:document.getElementById("exportFile"),
                 inline:undefined
@@ -191,6 +192,9 @@
             },{
                 constructorName: "Path",
                 startPaintButton: document.getElementById("newPath")
+            },{
+                constructorName: "Text",
+                startPaintButton: document.getElementById("newText")
             }]
         }
     }

@@ -3,7 +3,7 @@ class PatternInfoBox{
     initialised = false;
     selected = false;
 
-    previewWindow;
+    iconWrapper;
     
     fillColor;
     fillColorLabel;
@@ -39,16 +39,13 @@ class PatternInfoBox{
         this.update();
     }
     update(){
-        this.updatePreview();
+        this.updateIcon();
         this.updateFill();
         this.updateBorder();
         this.updateDisplayed();
     }
-    updatePreview(){
-        this.previewWindow.innerHTML = `<svg viewbox='0 0 ${this.keyFrame.width} ${this.keyFrame.height}'>${this.pattern.cleanHTML()}</svg>`
-    }
-    updateAccentColor(){
-        this.accentBackground.style.backgroundColor = this.fillColor.value;
+    updateIcon(){
+        this.iconWrapper.innerHTML = `<svg viewbox='0 0 8 8'>${this.pattern.icon()}</svg>`
     }
     updateFill(){
         if(this.pattern.color != undefined){
@@ -59,7 +56,6 @@ class PatternInfoBox{
             if(this.pattern.color != "transparent"){
                 this.fillColorLabel.setAttribute("checked","true");
             }else{
-                this.accentBackground.style.backgroundColor = "#ffffff";
                 this.fillColorLabel.removeAttribute("checked");
             }
         }
@@ -105,17 +101,10 @@ class PatternInfoBox{
         }
     }
     fillBody(){
-        let headlineWrapper = IconCreatorGlobal.el("div","<img src='"+this.getIconUrl()+"'>"+this.name,"headline");
-
-        let coloredBackground = document.createElement("div");
-        this.accentBackground = coloredBackground;
-        coloredBackground.classList.add("accent-background");
-        coloredBackground.style.backgroundColor = this.pattern.color;
-
         let topWrapper = IconCreatorGlobal.el("div","", "top-wrapper");
-
-        let preview = IconCreatorGlobal.el("div","", "preview");
-        this.previewWindow = preview;
+        //icon
+        let iconWrapper = IconCreatorGlobal.el("div","", "shape-icon");
+        this.iconWrapper = iconWrapper;
         let upperLine = IconCreatorGlobal.el("div","","line");
         upperLine.classList.add("upper");
         let line = IconCreatorGlobal.el("div","","line");
@@ -156,17 +145,6 @@ class PatternInfoBox{
         });
         hideButton.append(hideButtonImg);
         hideWrapper.append(hideButton);
-        //delete
-        /*
-        let deleteWrapper = IconCreatorGlobal.el("div","","delete-wrapper");
-        let deleteButton = IconCreatorGlobal.el("button", "U", "delete-button");
-        deleteButton.addEventListener("click",(e)=>{
-            e.stopPropagation();
-            this.keyFrame.editor.removePattern(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-        });
-        deleteWrapper.append(deleteButton);
-        */
         upperLine.append(orderWrapper, hideWrapper);
         
         //fill
@@ -183,8 +161,7 @@ class PatternInfoBox{
             colorWrapper.append(colorInput, fillTransLabel);
             this.fillColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {color:e.target.value}, true);
-                this.updatePreview();
-                this.updateAccentColor();
+                this.updateIcon();
                 this.keyFrame.editor.saveToHistory();
             });
             this.fillColor.addEventListener("click", ()=>{
@@ -196,11 +173,11 @@ class PatternInfoBox{
             this.fillTrans.addEventListener("change",(e)=>{
                 if(e.target.checked){//make content/fill transparent
                     this.keyFrame.alterPattern(this.pattern, {color:"transparent"}, true);
-                    this.updatePreview();
+                    this.updateIcon();
                     this.keyFrame.editor.saveToHistory();
                 }else{
                     this.keyFrame.alterPattern(this.pattern, {color:this.fillColor.value}, true);
-                    this.updatePreview();
+                    this.updateIcon();
                     this.keyFrame.editor.saveToHistory();
                 }
                 this.updateFill();
@@ -223,7 +200,7 @@ class PatternInfoBox{
             borderWrapper.append(borderColorInput, borderWidthInput, borderTransLabel);
             this.borderColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {borderColor:e.target.value}, true);
-                this.updatePreview();
+                this.updateIcon();
                 this.keyFrame.editor.saveToHistory();
             });
             this.borderColorLabel.addEventListener("click",(e)=>{
@@ -234,7 +211,7 @@ class PatternInfoBox{
             });
             this.borderWidth.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {borderWidth:e.target.value}, true);
-                this.updatePreview();
+                this.updateIcon();
                 this.keyFrame.editor.saveToHistory();
             });
             this.borderWidthLabel.addEventListener("click",(e)=>{
@@ -246,11 +223,11 @@ class PatternInfoBox{
             this.borderTrans.addEventListener("change",(e)=>{
                 if(e.target.checked){//make border transparent
                     this.keyFrame.alterPattern(this.pattern, {borderColor:"transparent"}, true);
-                    this.updatePreview();
+                    this.updateIcon();
                     this.keyFrame.editor.saveToHistory();
                 }else{
                     this.keyFrame.alterPattern(this.pattern, {borderColor:this.borderColor.value}, true);
-                    this.updatePreview();
+                    this.updateIcon();
                     this.keyFrame.editor.saveToHistory();
                 }
                 this.updateBorder();
@@ -258,9 +235,9 @@ class PatternInfoBox{
         }
         line.append(colorWrapper, borderWrapper);
 
-        topWrapper.append(preview, upperLine, line);
+        topWrapper.append(iconWrapper, upperLine, line);
 
-        this.element.append(coloredBackground, headlineWrapper, topWrapper);
+        this.element.append(topWrapper);
         toBottom.addEventListener("click",(e)=>{
             this.keyFrame.editor.toBottom(this.pattern);
             this.keyFrame.editor.saveToHistory();

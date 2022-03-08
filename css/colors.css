@@ -3,7 +3,7 @@
     --medium-pastel-green:#9fa77e;
     --dark-pastel-green:#6f774d;
     --light-cream: #FFF3DE;
-    --panel-background: #d8d8d8;
+    --panel-background: #e9e9e9;
     --panel-outline:#ffffff;
     --highlight:#307ffd;
     --deep-blue:#0000ff;
@@ -18,5 +18,7 @@
     --viewport-background:#fff;
     --contour-black:#000000;
     --contour-grey:#ccc;
+
     --white-text:#fff;
+    --muted-grey-text:#636363;
 }

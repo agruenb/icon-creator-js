@@ -99,6 +99,18 @@ class Ellipse extends Pattern{
         r.push([...this.bottom(),"yRadius", "arrow-double", this.rotation+90]);
         return r;
     }
+    icon(){
+        return `
+            <ellipse
+            cx="4"
+            cy="4"
+            rx="3.5"
+            ry="2.5"
+            fill="${this.color}"
+            ${(this.borderWidth > 0)?`stroke-width=1 stroke="${this.borderColor}"`:""}
+            />
+        `;
+    }
     cleanHTML(){
         let defaultPattern = new Ellipse(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
@@ -119,8 +131,7 @@ class Ellipse extends Pattern{
      * Returns the JSON representation of this pattern.
      */
      get(allowMask = true){
-        let obj = super.get(allowMask); 
-        obj.subtype = this.constructor.name;
+        let obj = super.get(allowMask);
         let additionalAttributes = {
             xRadius: this.xRadius,
             yRadius: this.yRadius,

@@ -253,27 +253,7 @@ class Frame extends IconCreatorGlobal{
         this.id = frameJSON.attributes.id;
         for(let i in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
             let patternJSON = this.copy(frameJSON.attributes.patterns[i]);
-            let pattern;
-            switch (patternJSON.subtype) {
-            case "Rect":
-                pattern = new Rect();
-                break;
-            case "Circle":
-                pattern = new Circle();
-                break;
-            case "Ellipse":
-                pattern = new Ellipse();
-                break;
-            case "Line":
-                pattern = new Line();
-                break;
-            case "Path":
-                pattern = new Path();
-                break;
-            default:
-                console.warn("Invalid subpattern: "+patternJSON.subtype);
-                break;
-            }
+            let pattern = eval(`new ${patternJSON.subtype}`);
             //directly inject id
             if(trueCopy) pattern.id = patternJSON.attributes.id;
             delete patternJSON.attributes.id;

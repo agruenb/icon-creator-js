@@ -105,6 +105,19 @@ class Line extends Pattern{
         l.push([this.xOrigin, this.yOrigin, this.xEnd, this.yEnd,""]);
         return l;
     }
+    icon(){
+        return `
+            <line
+            x1="2"
+            x2="6"
+            y1="2"
+            y2="6"
+            stroke="${this.color}"
+            stroke-width="2"
+            stroke-linecap="round"
+            />
+        `;
+    }
     cleanHTML(){
         let defaultPattern = new Line(0,0);
         let cleanHTML = ''
@@ -114,7 +127,6 @@ class Line extends Pattern{
         +'" x2="'+this.xEnd
         +'" y2="'+this.yEnd
         +'" stroke="'+this.color
-        +'" fill="'+this.color
         +'" stroke-width="' + this.width + '" '
         +((this.stroke != defaultPattern.stroke)?`stroke-dasharray="${this.stroke}" `:'')
         +' stroke-linecap="round" />';
@@ -124,8 +136,7 @@ class Line extends Pattern{
      * Returns the JSON representation of this pattern.
      */
      get(allowMask = true){
-        let obj = super.get(allowMask); 
-        obj.subtype = this.constructor.name;
+        let obj = super.get(allowMask);
         let additionalAttributes = {
             xEnd: this.xEnd,
             yEnd: this.yEnd,

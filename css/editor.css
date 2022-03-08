@@ -154,7 +154,7 @@ button img{
     top: 64px;
     padding-top: 10px;
     z-index: 4;
-    width: 360px;
+    width: 290px;
     pointer-events: none;
     height: calc(100vh - 54px);
 }
@@ -195,16 +195,21 @@ button img{
     height: 90%;
     width: 90%;
 }
-.editor-container .bottom-bar .save-power-wrapper .icon{
-    height: 90%;
-    width: 90%;
-}
 .editor-container .bottom-bar .exclusive-view-wrapper .icon{
     height: 85%;
     width: 85%;
 }
 .editor-container .bottom-bar input:checked + label{
     border: 2px solid var(--highlight);
+}
+.editor-container .overlay{
+    height:100vh;
+    width:100vw;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index: 10000;
+    display:none;
 }
 .editor-container .vert-scroll{
     width:calc(100% - 10px);
