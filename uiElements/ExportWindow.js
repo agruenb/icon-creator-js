@@ -33,15 +33,17 @@ class ExportWindow{
                 </div>
                 <div class="section-header">Export format</div>
                 <div class="export-options">
-                    <button class="exp-svg">SVG</button>
                     <button class="exp-png">PNG</button>
-                    <button class="exp-inline">Inline HTML</button>
+                    <button class="exp-svg">SVG</button>
+                    <button class="exp-inline">HTML</button>
                 </div>
-                <div class="section-header">PNG resolution</div>
-                <div class="export-options">
-                    ${resButtonString}
+                <div id="pngOptions" style="${(this.exportType == "png")?"":"opacity:0.5;pointer-events:none;"}">
+                    <div class="section-header">PNG resolution</div>
+                    <div class="export-options">
+                        ${resButtonString}
+                    </div>
                 </div>
-                <div class="section-header">Finish</div>
+                <div class="section-header">Download</div>
                 <div class="export-row">
                     <input id="exportName" class="file-name-input" value="${this.defaultExportName}"><label class="file-ext" for="exportName"></label><button class="download-button">Download</button>
                 </div>
@@ -99,6 +101,8 @@ class ExportWindow{
                 this.setPngResolution(res);
             });
         }
+        //png options wrapper
+        this.pngOptionsWrapper = this.container.querySelector("#pngOptions");
     }
     preview(resolution, svgString){
         return `
@@ -117,6 +121,7 @@ class ExportWindow{
     }
     updateButtons(){
         let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton];
+        this.pngOptionsWrapper.style.cssText = "opacity:0.5;pointer-events:none;";
         switch (this.exportType) {
             case "svg":
                 UniversalOps.selectRadio(this.selectSvgButton, buttons);
@@ -125,6 +130,7 @@ class ExportWindow{
             case "png":
                 UniversalOps.selectRadio(this.selectPngButton, buttons);
                 this.fileExtensionEl.innerHTML = ".png";
+                this.pngOptionsWrapper.style.cssText = "opacity:1;";
                 break;
             case "inline":
                 UniversalOps.selectRadio(this.selectInlineButton, buttons);
@@ -147,10 +153,12 @@ class ExportWindow{
                 Exporter.downloadSVG(filename, svgString);
                 break;
             case "png":
-                Exporter.downloadPNG(filename, svgString, parseInt(this.pngResolution));
+                //firefox needs fixed size
+                let svgStringFix = Exporter.createSVGFileContent(this.project, this.pngResolution, this.pngResolution);
+                Exporter.downloadPNG(filename, svgStringFix, parseInt(this.pngResolution));
                 break;
             case "inline":
-                console.log("inline");
+                Exporter.downloadHTML(filename, svgString);
                 break;
         }
     }

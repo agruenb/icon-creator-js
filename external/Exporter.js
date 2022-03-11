@@ -26,8 +26,8 @@ class Exporter {
         let ctx = canvas.getContext("2d");
         let img = new Image();
         img.addEventListener("load",() => {
-            console.log("loaded");
-            ctx.drawImage(img, 0, 0);     
+            console.log("loaded");   
+            ctx.drawImage(img, 0, 0, size, size);
             domURL.revokeObjectURL(url);
             //actual download
             let downloadElement = document.createElement("a");
@@ -45,9 +45,21 @@ class Exporter {
         });
         img.src = url;
     }
-    static createSVGFileContent(project){
+    static downloadHTML(filename, SVGfilecontent){
+        let downloadElement = document.createElement("a");
+        downloadElement.setAttribute('href','data:text/html;charset=utf-8,' + encodeURIComponent(SVGfilecontent));
+        downloadElement.setAttribute('download', filename);
+        downloadElement.style.display = "none";
+        document.body.appendChild(downloadElement);
+        downloadElement.click();
+        setTimeout(()=>{
+            downloadElement.remove();
+        },10000);
+    }
+    static createSVGFileContent(project, firefoxWidth, firefoxHeight){
+        let firefoxFixString = (firefoxWidth && firefoxHeight)?` height="${firefoxWidth}" width="${firefoxHeight}" `:""; 
         let fileContent = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-        fileContent += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+project.dimensions.width+' '+project.dimensions.height+'">';
+        fileContent += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+project.dimensions.width+' '+project.dimensions.height+'"'+firefoxFixString+'>';//height and width need for firefox
         for (let i = 0; i < project.keyframes.length; i++) {
             let orderCopy = JSON.parse(JSON.stringify(project.keyframes[i].renderOrder));
             while(orderCopy.length > 0){

@@ -266,7 +266,7 @@ class Text extends Pattern{
         let cleanHTML = `
         <text ${((this.hasMask())?this.maskLink():'')}
         x="${this.xOrigin}"
-        y="${this.yOrigin/scale - parseInt(textSize/textCenteringRatio)}"
+        y="${this.pt(this.yOrigin/scale - parseInt(textSize/textCenteringRatio))}"
         textLength="${this.width}"
         lengthAdjust="spacingAndGlyphs"
         style="font-family:Arial, sans-serif;font-size:${textSize}px"

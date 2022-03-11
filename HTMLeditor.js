@@ -174,6 +174,16 @@ class HTMLeditor{
                 default:
                     break;
             }
+        }else{
+            this.clearViewportUI();
+            //if pattern is clicked -> start editing
+            if(event.target.parentElement.getAttribute("role") === "main"){
+                //dont focus main pattern on mask frame
+                if(this.currProj().frame().boundId != event.target.parentElement.id){
+                    //this.focus(this.patternById(event.target.parentElement.id));
+                    this.addHelperOutline(this.patternById(event.target.parentElement.id));
+                }
+            }
         }
     }
     mouseUp(event){
