@@ -1,28 +1,49 @@
 class ExportWindow{
-    constructor(container, project){
+
+    exportType = "png";
+    pngResolution = "512";
+    pngResolutions = ["1024","512","64","16"];
+
+    constructor(container, project, exportName = "easy_icon_online_art", onClose){
         this.container = container;
         this.project = project;
+        this.defaultExportName = exportName;
+        this.onClose = onClose;
         this.build();
+        this.updateButtons();
+        this.setPngResolution(this.pngResolution);
     }
     build(){
         let svgString = Exporter.createSVGFileContent(this.project);
+        let resButtonString = "";
+        for(let i in this.pngResolutions){
+            let res = this.pngResolutions[i];
+            resButtonString += this.pngResButton(""+res);
+        }
         let scaffold = `
-            <div class="export-wrapper vertical-scroll">
+            <div class="export-wrapper vert-scroll box-shadow exp-wind-in">
                 <div class="close-button"><img src="img/close_cross.svg"></div>
-                <h2>Export Project</h2>
+                <div class="headline"><img src="img/download.svg">Export Project</div>
+                <div class="section-header">Preview</div>
                 <div class="preview">
                     ${this.preview("256",svgString)}
                     ${this.preview("64",svgString)}
                     ${this.preview("32",svgString)}
                     ${this.preview("16",svgString)}
                 </div>
+                <div class="section-header">Export format</div>
                 <div class="export-options">
-                    <button>SVG</button>
-                    <button>PNG</button>
-                    <button>Inline HTML</button>
+                    <button class="exp-svg">SVG</button>
+                    <button class="exp-png">PNG</button>
+                    <button class="exp-inline">Inline HTML</button>
                 </div>
+                <div class="section-header">PNG resolution</div>
+                <div class="export-options">
+                    ${resButtonString}
+                </div>
+                <div class="section-header">Finish</div>
                 <div class="export-row">
-                    <button class="download-button">Download</button>
+                    <input id="exportName" class="file-name-input" value="${this.defaultExportName}"><label class="file-ext" for="exportName"></label><button class="download-button">Download</button>
                 </div>
             </div>
         `;
@@ -33,16 +54,51 @@ class ExportWindow{
             this.close();
         });
         //inner wrapper
-        let innerWrapper = this.container.querySelector(".export-wrapper");
-        innerWrapper.addEventListener("click", event =>{
+        this.innerWrapper = this.container.querySelector(".export-wrapper");
+        this.innerWrapper.addEventListener("click", event =>{
             event.stopPropagation();
         });
         //download button
         let downloadButton = this.container.querySelector(".download-button");
         downloadButton.addEventListener("click",()=>{
-            Exporter.download("easy_svg_online_creation", svgString);
-        })
-
+            this.download(svgString);
+        });
+        //close button
+        let closeButton = this.container.querySelector(".close-button");
+        closeButton.addEventListener("click",()=>{
+            this.close();
+        });
+        //export svg
+        this.selectSvgButton = this.container.querySelector(".exp-svg");
+        this.selectSvgButton.addEventListener("click",()=>{
+            this.exportType = "svg";
+            this.updateButtons();
+        });
+        //export png
+        this.selectPngButton = this.container.querySelector(".exp-png");
+        this.selectPngButton.addEventListener("click",()=>{
+            this.exportType = "png";
+            this.updateButtons();
+        });
+        //export inline html
+        this.selectInlineButton = this.container.querySelector(".exp-inline");
+        this.selectInlineButton.addEventListener("click",()=>{
+            this.exportType = "inline";
+            this.updateButtons();
+        });
+        //file extension element
+        this.fileExtensionEl = this.container.querySelector(".file-ext");
+        //filename input
+        this.filenameInput = this.container.querySelector(".file-name-input");
+        //png resolutions
+        this.pngResButtons = {};
+        for(let i in this.pngResolutions){
+            let res = this.pngResolutions[i];
+            this.pngResButtons[parseInt(res)] = this.container.querySelector(".res-level"+res);
+            this.pngResButtons[parseInt(res)].addEventListener("click",()=>{
+                this.setPngResolution(res);
+            });
+        }
     }
     preview(resolution, svgString){
         return `
@@ -52,8 +108,60 @@ class ExportWindow{
         </div>
         `;
     }
+    pngResButton(res){
+        return `
+        <button class="png-res res-level${res}">
+            ${res}x${res}
+        </button>
+        `;
+    }
+    updateButtons(){
+        let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton];
+        switch (this.exportType) {
+            case "svg":
+                UniversalOps.selectRadio(this.selectSvgButton, buttons);
+                this.fileExtensionEl.innerHTML = ".svg";
+                break;
+            case "png":
+                UniversalOps.selectRadio(this.selectPngButton, buttons);
+                this.fileExtensionEl.innerHTML = ".png";
+                break;
+            case "inline":
+                UniversalOps.selectRadio(this.selectInlineButton, buttons);
+                this.fileExtensionEl.innerHTML = ".html";
+                break;
+        }
+    }
+    setPngResolution(res){
+        this.pngResolution = res;
+        UniversalOps.selectRadio( this.pngResButtons[parseInt(res)], this.pngResButtons);
+    }
+    download(svgString){
+        let filename = this.filenameInput.value;
+        if(filename == "" || filename == undefined){
+            filename = this.defaultExportName; 
+        }
+        filename = filename.replace(/[^a-z0-9_]/gi, '_');//make file conform
+        switch (this.exportType) {
+            case "svg":
+                Exporter.downloadSVG(filename, svgString);
+                break;
+            case "png":
+                Exporter.downloadPNG(filename, svgString, parseInt(this.pngResolution));
+                break;
+            case "inline":
+                console.log("inline");
+                break;
+        }
+    }
+    updateSelectedButtons
     close(){
-        this.container.style.cssText = "display:none;";
-        this.container.innerHTML = "";
+        this.innerWrapper.classList.remove("exp-wind-in");
+        this.innerWrapper.classList.add("exp-wind-out");
+        this.onClose();
+        setTimeout(()=>{
+            this.container.style.cssText = "display:none;";
+            this.container.innerHTML = "";
+        },500);
     }
 }

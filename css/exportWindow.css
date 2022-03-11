@@ -4,15 +4,39 @@
     margin: 10vh auto;
     background-color: var(--panel-background);
     box-sizing: border-box;
-    padding: 20px;
+    padding: 15px;
     position: relative;
+    border-radius: 15px;
 }
 .export-wrapper .close-button{
     position:absolute;
-    top:10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     width:20px;
     height:20px;
+    cursor: pointer;
+}
+.export-wrapper .close-button:hover{
+    transform:scale(1.2);
+}
+.export-wrapper .headline{
+    font-size: 20px;
+    color: rgb(50 50 50);
+    font-weight:bold;
+    margin-bottom: 20px;
+}
+.export-wrapper .section-headline{
+    font-size: 16px;
+    color: rgb(50 50 50);
+    font-weight:bold;
+    margin-bottom: 20px;
+}
+.export-wrapper .headline img{
+    float:left;
+    --size: 24px;
+    margin: 0 10px 0 0;
+    height:var(--size);
+    width:var(--size);
 }
 .export-wrapper > div{
     width:100%;
@@ -22,6 +46,7 @@
     /* width: 760px; */
     justify-content: space-evenly;
     align-items: center;
+    margin: 20px 0;
     display: flex;
 }
 .export-wrapper .preview .preview-label{
@@ -50,4 +75,53 @@
 }
 .export-wrapper .preview .preview-item{
     background-color: var(--viewport-background);
+}
+.export-wrapper .export-options{
+    margin:20px 0;
+}
+.export-wrapper .export-row{
+    margin:20px 0;
+    display: flex;
+}
+.export-wrapper .export-row .file-name-input{
+    border:1px solid var(--button-light-border);
+    background-color: var(--button-background);
+    border-radius: 4px 0 0 4px;
+    border-right:none;
+    transition: 0.1s;
+    font-size: inherit;
+    text-align: right;
+}
+.export-wrapper .export-row .file-name-input:hover{
+    background-color: var(--button-background-hover);
+}
+.export-wrapper .export-row .file-ext{
+    border:1px solid var(--button-light-border);
+    background-color: var(--button-background);
+    border-radius: 0 4px 4px 0;
+    border-left:none;
+    display:flex;
+    padding: 0 5px;
+    width: 45px;
+    align-items: center;
+}
+.export-wrapper .export-row .download-button{
+    margin-left:10px;
+}
+.exp-wind-in{
+    animation-name: exp-wind-in;
+    animation-duration: 0.4s;
+}
+.exp-wind-out{
+    animation-name: exp-wind-out;
+    animation-duration: 0.4s;
+    animation-fill-mode: forwards;
+}
+@keyframes exp-wind-in{
+    from{transform:translateY(-100vh)}
+    to{transform:translateY(0)}
+}
+@keyframes exp-wind-out{
+    from{transform:translateY(0)}
+    to{transform:translateY(-100vh)}
 }

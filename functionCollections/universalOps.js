@@ -37,4 +37,15 @@ class UniversalOps{
         }
         return ret;
     }
+    /**
+     * Set the attribute "selected" of element to true. All other elements in this group will be set to selected false. This is a UI function.
+     * @param {HTMLElement} element HTMLElement that should be selected
+     * @param {Object} elementGroup HTMLElements of the same radio selection type
+     */
+    static selectRadio(element, elementGroup){
+        Object.keys(elementGroup).forEach(key => {
+            elementGroup[key].removeAttribute("selected");
+        });
+        element.setAttribute("selected","true");
+    }
 }

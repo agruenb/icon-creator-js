@@ -7,12 +7,12 @@ class Text extends Pattern{
     isFocussed = false;
     isEditing = false;
     rotation = 0;
-    defaultTranslation = [0,0];
+    defaultTranslation = [-125,25];
     center = [0,0];
     cursorPosition = 0;
     cursorColor = "black";
 
-    constructor(x,y, width = 260, height = 50, content = "Doubleclick me!", color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, width = 250, height = 50, content = "Doubleclick me", color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.content = content;
         this.color = color;
@@ -265,15 +265,16 @@ class Text extends Pattern{
         //TODO better marker background
         let cleanHTML = `
         <text ${((this.hasMask())?this.maskLink():'')}
-        x=${this.xOrigin}
-        y=${this.yOrigin/scale - parseInt(textSize/textCenteringRatio)}
-        textLength=${this.width}
+        x="${this.xOrigin}"
+        y="${this.yOrigin/scale - parseInt(textSize/textCenteringRatio)}"
+        textLength="${this.width}"
         lengthAdjust="spacingAndGlyphs"
         style="font-family:Arial, sans-serif;font-size:${textSize}px"
-        text-rendering = "optimizeLegibility"
-        fill=${this.color}
+        text-rendering="optimizeLegibility"
+        fill="${this.color}"
         transform="${(this.rotation != 0)?`rotate(${this.rotation},${this.center[0]},${this.center[1]})`:""} scale(1, ${scale})"
         >${(this.isEditing)?this.contentWithCursor():this.content}</text>`;
+        
         return cleanHTML;
     }
     /**

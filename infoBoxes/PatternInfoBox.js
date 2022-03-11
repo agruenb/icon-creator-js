@@ -156,7 +156,7 @@ class PatternInfoBox{
             this.fillColor = colorInput.querySelector("input");
             let fillTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.color == "transparent", "");
             fillTransLabel.setAttribute("title","remove filling");
-            fillTransLabel.classList.add("opacity_zero");
+            fillTransLabel.classList.add("checkerboard-bg");
             this.fillTrans = fillTransLabel.querySelector("input");
             colorWrapper.append(colorInput, fillTransLabel);
             this.fillColor.addEventListener("change",(e)=>{
@@ -193,7 +193,7 @@ class PatternInfoBox{
             let borderWidthInput = new CustomNumberInput("pseudo-input", this.pattern.borderWidth);
             this.borderWidth = borderWidthInput.querySelector("input");
             let borderTransLabel = new CustomCheckboxInput("pseudo-input", this.pattern.borderColor == "transparent", "");
-            borderTransLabel.classList.add("opacity_zero");
+            borderTransLabel.classList.add("checkerboard-bg");
             this.borderWidthLabel = borderWidthInput;
             borderTransLabel.setAttribute("title","remove border");
             this.borderTrans = borderTransLabel.querySelector("input");

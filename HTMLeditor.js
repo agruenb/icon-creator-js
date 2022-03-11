@@ -13,6 +13,7 @@ class HTMLeditor{
     exclusivView = false;
 
     colorSchemeLight = true;
+    preventBrowsershortcuts = true;
 
     state = {
         currentAction:"none",
@@ -736,17 +737,6 @@ class HTMLeditor{
         //TEMP
         this.currProj().load(projectJSON);
     }
-    /**
-     * Set the attribute "selected" of element to true. All other elements in this group will be set to selected false. This is a UI function.
-     * @param {HTMLElement} element HTMLElement that should be selected
-     * @param {Object} elementGroup HTMLElements of the same radio selection type
-     */
-    selectRadio(element, elementGroup){
-        Object.keys(elementGroup).forEach(key => {
-            elementGroup[key].removeAttribute("selected");
-        });
-        element.setAttribute("selected","true");
-    }
     setDrawingType(type){
         this.closeContextMenu();
         if(["rect0","circle0","ellipse0","line0","path0"].indexOf(type) !== -1){
@@ -759,22 +749,22 @@ class HTMLeditor{
         }
         switch (type) {
             case "none":
-                this.selectRadio(this.environment.control.editSVG.cursor, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.cursor, this.environment.control.editSVG);
                 break;
             case "rect0":
-                this.selectRadio(this.environment.control.editSVG.newRect, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.newRect, this.environment.control.editSVG);
                 break;
             case "circle0":
-                this.selectRadio(this.environment.control.editSVG.newCircle, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.newCircle, this.environment.control.editSVG);
                 break;
             case "ellipse0":
-                this.selectRadio(this.environment.control.editSVG.newEllipse, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.newEllipse, this.environment.control.editSVG);
                 break;
             case "line0":
-                this.selectRadio(this.environment.control.editSVG.newLine, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.newLine, this.environment.control.editSVG);
                 break;
             case "path0":
-                this.selectRadio(this.environment.control.editSVG.newPath, this.environment.control.editSVG);
+                UniversalOps.selectRadio(this.environment.control.editSVG.newPath, this.environment.control.editSVG);
                 break;
             default:
                 break;
@@ -864,15 +854,17 @@ class HTMLeditor{
     }
     exportFile(){
         this.stopEdit();
-        let exportWindow = new ExportWindow(this.environment.layout.overlay, this.currProj());
-        /*
-        let content = Exporter.createSVGFileContent(this.currProj());
-        Exporter.download("easy_svg_online_creation", content);
-        */
+        this.preventBrowsershortcuts = false;
+        let callback = ()=>{
+            this.preventBrowsershortcuts = true;
+        }
+        let exportWindow = new ExportWindow(this.environment.layout.overlay, this.currProj(), undefined , callback);
     }
     blockKeys(event){
-        if([68, 90].indexOf(event.keyCode) !== -1){
-            event.preventDefault();
+        if(this.preventBrowsershortcuts){
+            if([68, 90].indexOf(event.keyCode) !== -1){
+                event.preventDefault();
+            }
         }
     }
     /**

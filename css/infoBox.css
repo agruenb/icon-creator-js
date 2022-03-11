@@ -93,9 +93,6 @@
     margin-left: 5px;
     width: 80px;
 }
-.infobox .opacity_zero{
-    background: repeating-conic-gradient(#575757 0% 25%, #ffffff 0% 50%) 50% / 20px 20px;
-}
 .infobox .border-wrapper{
     width: 120px;
     margin: 10px 0 0 5px;

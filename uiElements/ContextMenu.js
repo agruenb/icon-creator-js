@@ -13,7 +13,7 @@ class ContextMenu{
      */
     constructor(x,y,parentContainer){
         this.container.style.cssText=`position:absolute;top:${y}px;left:${x}px;z-index:10001;`;
-        this.container.classList.add("context-container");
+        this.container.classList.add("context-container","box-shadow");
         this.parentContainer = parentContainer;
     }
 

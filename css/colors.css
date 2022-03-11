@@ -18,7 +18,17 @@
     --viewport-background:#fff;
     --contour-black:#000000;
     --contour-grey:#ccc;
-
+    /*text*/
     --white-text:#fff;
     --muted-grey-text:#636363;
+    /*button*/
+    --button-light-border:#ccc;
+    --button-darker-border: #a2a2a2;
+    --button-background:#fefefe;
+    --button-background-hover: #f8f8f8;
+
+    --button-selected-background:var(--highlight);
+    --button-light-border-selected:#2869d0;
+    --button-darker-border-selected: #144797;
+    --button-background-selected-hover: #1a6bee;
 }
