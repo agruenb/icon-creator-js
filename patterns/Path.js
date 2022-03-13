@@ -1,7 +1,7 @@
 class Path extends Pattern{
 
     displayCurveMarkersSpaceLimit = 40;
-    allowManuelPointDeleteDistance = 20;
+    allowManuelPointEditDistance = 20;
     defaultEdgeRounderDistance = 15;
     cancelActiveDrawDistance = 20;
 
@@ -15,7 +15,11 @@ class Path extends Pattern{
         height:1
     }
 
-    constructor(x,y, points = [{x:100,y:100,method:"L",type:"round"},{x:0,y:100,method:"L",type:"round"},{x:0,y:0,method:"L",type:"round"}], color = "#000000", borderWidth = 0, borderColor = "#000000"){
+    constructor(x,y, points = [
+        {x:100,y:100,method:"L",type:"round",extraX:50,extraY:50},
+        {x:0,y:100,method:"L",type:"round",extraX:50,extraY:100},
+        {x:0,y:0,method:"L",type:"round",extraX:0,extraY:50}
+    ], color = "#000000", borderWidth = 0, borderColor = "#000000"){
         super(x,y);
         this.points = points;
         this.color = color;
@@ -44,7 +48,7 @@ class Path extends Pattern{
             return {x:this.xOrigin, y:this.yOrigin};
         }
         console.trace();
-        console.error("Tryed to access not existant point in path");
+        console.error("Tryed to access not existant point "+index+" in path");
         return undefined;
     }
     afterAlteration(){
@@ -148,20 +152,38 @@ class Path extends Pattern{
         this.updateProperties();
     }
     //@Override
-    additionalOptions(x, y, callback){
+    additionalOptions(x, y, repaint){
         let options =  [
             {
                 label:"add",
                 icon:"img/add_plus.svg",
-                clickHandler:()=>{this.addPoint(x, y);this.matchCenters();this.updateProperties();callback();},
+                clickHandler:()=>{
+                    this.addPoint(x, y);
+                    this.matchCenters();
+                    this.updateProperties();
+                    repaint();
+                },
                 type:"custom"
             }
         ]
-        if(this.getPointsByDistance(x, y).distance[0] <= this.allowManuelPointDeleteDistance){
+        if(this.getPointsByDistance(x, y).distance[0] <= this.allowManuelPointEditDistance){//if click close to marker
             options.push({
                     label:"remove",
                     icon:"img/remove_minus.svg",
-                    clickHandler:()=>{this.removePoint(x, y);this.matchCenters();this.updateProperties();callback();},
+                    clickHandler:()=>{
+                        this.removePoint(x, y);
+                        this.matchCenters();
+                        this.updateProperties();
+                        repaint();},
+                    type:"custom"
+                },{
+                    label:"arc",
+                    icon:"img/remove_minus.svg",
+                    clickHandler:()=>{
+                        let point = this.getPoint(this.getPointsByDistance(x, y).index[0]);
+                        point.method = "A";
+                        repaint();
+                    },
                     type:"custom"
                 })
         }
@@ -183,14 +205,24 @@ class Path extends Pattern{
             originalPosPointA.splice(index, 0, parseInt(i)-1);
         }
         let newPointPos = this.rotatePoint([x,y], true);
+        //set next point to method "L" and set the extra points
+        let lastPoint = this.getPoint(originalPosPointA[0]);
+        let extraPos = PointOperations.halfwayVector([newPointPos[0], newPointPos[1]],[lastPoint.x, lastPoint.y]);
         let newPoint = {
             x:newPointPos[0],
             y:newPointPos[1],
             method:"L",
-            extraX:10,
-            extraY:10,
+            extraX:extraPos[0],
+            extraY:extraPos[1],
             type:"round"
         }
+        //correct next point
+        let nextPoint = this.getPoint(originalPosPointA[0]+1);
+        let nextExtraPos =  PointOperations.halfwayVector([newPointPos[0], newPointPos[1]],[nextPoint.x, nextPoint.y]);
+        nextPoint.extraX = nextExtraPos[0];
+        nextPoint.extraY = nextExtraPos[1];
+        nextPoint.method = "L";
+        //insert new point
         this.points.splice(originalPosPointA[0]+1, 0, newPoint);
     }
     getPointsByDistance(x, y){
@@ -200,7 +232,11 @@ class Path extends Pattern{
         for(let i = 0; i < this.points.length; i++){
             let point = this.points[i];
             let realPoint = this.rotatePoint([point.x, point.y]);
-            let distance = PointOperations.vectorLength([realPoint[0] - x, realPoint[1] - y]);
+            let realExtra = this.rotatePoint([point.extraX, point.extraY]);
+            let distance = Math.min(
+                PointOperations.vectorLength([realPoint[0] - x, realPoint[1] - y]),
+                PointOperations.vectorLength([realExtra[0] - x, realExtra[1] - y])
+            );
             let index = 0;
             while(distances[index] != undefined && distances[index] < distance){
                 index++;
@@ -234,7 +270,7 @@ class Path extends Pattern{
     //Override
     markerEdited(marker, limit, xPrecise, yPrecise){
         let changes;
-        let points = JSON.parse(JSON.stringify(this.points));
+        let points = this.copy(this.points);
         let neutralizeRotation = (point)=>{return PointOperations.rotateAroundPoint(this.center, point, -this.rotation)};
         let pointRotatedToNeutral = neutralizeRotation([marker.x, marker.y]);
         if(marker.memorize == "rotate"){
@@ -243,8 +279,20 @@ class Path extends Pattern{
                 rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
             }
         }else if(marker.memorize === points.length - 1){//if the last point is moved that is equal to origin
+            let pointExtraPos =  PointOperations.halfwayVector([ points[points.length - 2].x,  points[points.length - 2].y],[points[marker.memorize].x, points[marker.memorize].y]);
             points[marker.memorize].x = pointRotatedToNeutral[0];
             points[marker.memorize].y = pointRotatedToNeutral[1];
+            if(points[marker.memorize].method == "L"){
+                points[marker.memorize].extraX = pointExtraPos[0];
+                points[marker.memorize].extraY = pointExtraPos[1];
+            }
+            //correct next point
+            let nextPoint = points[0];
+            if(nextPoint.method == "L"){
+                let nextExtraPos =  PointOperations.halfwayVector([ points[marker.memorize].x,  points[marker.memorize].y],[nextPoint.x, nextPoint.y]);
+                nextPoint.extraX = nextExtraPos[0];
+                nextPoint.extraY = nextExtraPos[1];
+            }
             //move last point and Origin
             changes = {
                 xOrigin: pointRotatedToNeutral[0],
@@ -254,15 +302,30 @@ class Path extends Pattern{
         }else if(String(marker.memorize).substr(0,5) === "extra"){
             //set to curve if moved directly
             let point = points[marker.memorize.substr(5)];
-            if(point.method !== "Q"){
+            //Rechange
+            if(point.method == "L"){
                 point.method = "Q";
             }
             point.extraX = pointRotatedToNeutral[0];
             point.extraY = pointRotatedToNeutral[1];
             changes = {points:points};
-        }else if(marker.memorize != "rotate"){
+        }else if(marker.memorize != "rotate"){//normal marker
+            let lastIndex = (parseInt(marker.memorize) == 0)?points.length - 1:parseInt(marker.memorize) - 1;//last point is before first point
+            let pointExtraPos =  PointOperations.halfwayVector([ points[lastIndex].x,  points[lastIndex].y],[points[marker.memorize].x, points[marker.memorize].y]);
+            if(points[marker.memorize].method == "L"){
+                points[marker.memorize].extraX = pointExtraPos[0];
+                points[marker.memorize].extraY = pointExtraPos[1];
+            }
             points[marker.memorize].x = pointRotatedToNeutral[0];
             points[marker.memorize].y = pointRotatedToNeutral[1];
+            //correct next point
+            let nextPoint = points[parseInt(marker.memorize)+1];
+            if(nextPoint.method == "L"){
+                let nextExtraPos =  PointOperations.halfwayVector([ points[marker.memorize].x,  points[marker.memorize].y],[nextPoint.x, nextPoint.y]);
+                nextPoint.extraX = nextExtraPos[0];
+                nextPoint.extraY = nextExtraPos[1];
+            }
+            
             changes = {points:points};
         }
         return changes;
@@ -280,8 +343,9 @@ class Path extends Pattern{
         newPoints.pop();
         newPoints.pop();
         let mid;
-        if(this.points.length > 0){
-            mid = PointOperations.halfwayVector([this.points[this.points.length - 1].x,this.points[this.points.length - 1].y],[x,y]);
+        if(this.points.length > 1){
+            let point = this.getPoint(this.points.length - 3);//3 because: 1 dummy + 1 identical to self + 1 last point
+            mid = PointOperations.halfwayVector([point.x,point.y],[x,y]);
         }else{
             mid = PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[x,y]);
         }
@@ -297,11 +361,12 @@ class Path extends Pattern{
             this.points.pop();
             this.points.pop();
             let mid = PointOperations.halfwayVector([this.points[this.points.length - 1].x,this.points[this.points.length - 1].y],[x,y]);
-            this.points.push({method:"L",x:this.xOrigin,y:this.yOrigin,extraX:mid[0],extraY:mid[1],type:"round"});
+            this.points.push({x:this.xOrigin,y:this.yOrigin,method:"L",extraX:mid[0],extraY:mid[1],type:"round"});
             return undefined;
-        }else{
+        }else{//insert new point
             let newPoints = this.copy(this.points);
-            let insertPoint = {x:x,y:y,method:"L",type:"round"};
+            let mid = PointOperations.halfwayVector([this.getPoint(this.points.length - 3).x,this.getPoint(this.points.length - 3).y],[x,y]);//3 because: 1 dummy + 1 identical to self + 1 last point
+            let insertPoint = {x:x,y:y,method:"L",type:"round",extraX:mid[0],extraY:mid[1]};
             newPoints.splice(newPoints.length - 1, 0, insertPoint);
             return {
                 points:newPoints
@@ -333,6 +398,24 @@ class Path extends Pattern{
         }
     }
     /**
+     * Creates the string for a arc in a path. Does not include the method "A" and the endpoint coordinates.
+     * @param {*} lastPoint 
+     * @param {*} nextPoint 
+     * @param {*} extraPoint
+     * @returns 
+     */
+    arcString(lastPoint, nextPoint, extraPoint){
+        let paintBiggerArc = false;
+        let rotation = "0";
+        let pointsDistance = PointOperations.distance(lastPoint.x,lastPoint.y, nextPoint.x,nextPoint.y);
+        let markerDistance = PointOperations.lineDistance(...extraPoint, lastPoint.x, lastPoint.y, nextPoint.x, nextPoint.y);
+        let maxRadius = pointsDistance/2
+        let radius = Math.min(markerDistance, maxRadius);//limit max size to half circle
+        let sideOfLine = PointOperations.sideOfLine([lastPoint.x, lastPoint.y] ,[nextPoint.x, nextPoint.y], extraPoint);
+        let paintPositiveDegree = (sideOfLine == "right")?false:true;
+        return `${radius} ${radius} ${rotation} ${(paintBiggerArc)?"1":"0"} ${(paintPositiveDegree)?"1":"0"} `;
+    }
+    /**
      * Transform the points into svg path 
      * @param {Boolean} limitPrecision should the output precision be limited. If true takes performance hit
      * @returns 
@@ -344,8 +427,10 @@ class Path extends Pattern{
             //method
             elementString += point.method+" ";
             //curve point
-            if(["Q"].indexOf(point.method) !== -1){
+            if("Q" == point.method){
                 elementString += point.extraX+" "+point.extraY+" ";
+            }else if("A" == point.method){
+                elementString += this.arcString(this.getPoint(index-1),point, [point.extraX, point.extraY]);
             }
             let rounderDistance = (point.rounderDistance == undefined)?this.defaultEdgeRounderDistance:point.rounderDistance;
             switch (point.type) {
@@ -363,6 +448,26 @@ class Path extends Pattern{
                         //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
                         let maxRoundingDistancetoLast = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - rounderDistance));
                         let maxRoundingDistancetoNext = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - rounderDistance));
+                        //adjust to arc
+                        if(point.method == "A"){
+                            //maxRoundingDistancetoLast = 0;
+                            let lastMainPoint = this.getPoint(index - 1);
+                            toLastPointVector = PointOperations.orthogonalVector([point.x - lastMainPoint.x,point.y - lastMainPoint.y]);//vector orth. on the line
+                            let invertedToLast = [-toLastPointVector[0],-toLastPointVector[1]];
+                            //find the closer vector to extra point to get correct direction
+                            if(PointOperations.distance(lastMainPoint.x + invertedToLast[0], lastMainPoint.y + invertedToLast[1], point.extraX, point.extraY) < PointOperations.distance(lastMainPoint.x + toLastPointVector[0], lastMainPoint.y + toLastPointVector[1], point.extraX, point.extraY)){
+                                toLastPointVector = invertedToLast;
+                            }
+                        }
+                        if(this.getPoint(index+1).method == "A"){//if next point is arc
+                            let nextMainPoint = this.getPoint(index + 1);
+                            toNextPointVector = PointOperations.orthogonalVector([point.x - nextMainPoint.x,point.y - nextMainPoint.y]);//vector orth. on the line
+                            let invertedToNext = [-toNextPointVector[0],-toNextPointVector[1]];
+                            //find the closer vector to extra point to get correct direction
+                            if(PointOperations.distance(nextMainPoint.x + invertedToNext[0], nextMainPoint.y + invertedToNext[1], nextMainPoint.extraX, nextMainPoint.extraY) < PointOperations.distance(nextMainPoint.x + toNextPointVector[0], nextMainPoint.y + toNextPointVector[1], nextMainPoint.extraX, nextMainPoint.extraY)){
+                                toNextPointVector = invertedToNext;
+                            }
+                        }
                         //set the distance of the rounder points from the main point
                         toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
@@ -441,9 +546,8 @@ class Path extends Pattern{
             }else{
                 //if distance from last point is great enough to draw another marker
                 if(PointOperations.vectorLength([point.x-lastPoint.x,point.y-lastPoint.y]) > this.displayCurveMarkersSpaceLimit){
-                    //add marker halfway between last point and current
-                    let rotatedLastPoint = this.rotatePoint([lastPoint.x,lastPoint.y]);
-                    r.push([PointOperations.halfway(rotatedPoint[0],rotatedLastPoint[0]),PointOperations.halfway(rotatedPoint[1],rotatedLastPoint[1]),"extra"+index,"path_straight"]);
+                    let rotatedExtraPoint = this.rotatePoint([point.extraX, point.extraY]);
+                    r.push([rotatedExtraPoint[0],rotatedExtraPoint[1],"extra"+index,"path_straight"]);
                 }
             }
         }

@@ -37,8 +37,8 @@ class Project extends IconCreatorGlobal{
         this.frameContainer.style.cssText = "height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;";
 
         this.viewportOutline = document.createElement("div");
-        let outlineWidth = parseInt(this.dimensions.width) - 2;
-        let outlineHeight = parseInt(this.dimensions.height) - 2;
+        let outlineWidth = parseInt(this.dimensions.width) - 4;
+        let outlineHeight = parseInt(this.dimensions.height) - 4;
         this.viewportOutline.style.cssText = "pointer-events:none;height:"+outlineWidth+"px;width:"+outlineHeight+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border-radius:2px;z-index:10000;";
         
         this.contextContainer = this.frameContainer.cloneNode(false);
@@ -115,7 +115,7 @@ class Project extends IconCreatorGlobal{
         let highlightInterval = 4;
         let schemeColor =  (this.editor.colorSchemeLight)?"#1a1a1a":"#dbdbdb"
         //border
-        this.viewportOutline.style.border = `1px solid ${schemeColor}`;
+        this.viewportOutline.style.border = `2px solid ${schemeColor}`;
         //inner drawing
         let pen = this.bgCanvas.getContext("2d");
         //pen.fillStyle = "white";

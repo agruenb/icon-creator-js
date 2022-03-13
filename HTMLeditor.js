@@ -862,6 +862,17 @@ class HTMLeditor{
         this.currProj().oneDown(pattern);
         this.infoBoxManager().oneDown(pattern);
     }
+    translateFocussedPattern(x = 0, y = 0){
+        let pattern = this.focusedPattern();
+        if(pattern){
+            pattern.translateTo(pattern.xOrigin + x, pattern.yOrigin + y);
+            //repaint point and marker
+            this.currProj().frame().updateInfoBox(pattern);
+            this.clearViewportUI(pattern);
+            this.prepareEdit(pattern);
+            this.currProj().repaint(pattern);
+        }
+    }
     exportFile(){
         this.stopEdit();
         this.preventBrowsershortcuts = false;
@@ -894,12 +905,19 @@ class HTMLeditor{
         }
     }
     hotkey(event){
-        //console.log(event);
         this.closeContextMenu();
         if(event.keyCode == 8){
             event.preventDefault();
             this.removeCurrentPattern();
-        }else
+        }else if(event.keyCode == 39){//arror right
+            this.translateFocussedPattern(this.state.gridsize);
+        }else if(event.keyCode == 37){//arror left
+            this.translateFocussedPattern(-this.state.gridsize);
+        }else if(event.keyCode == 38){//arrow up
+            this.translateFocussedPattern(0, -this.state.gridsize);
+        }else if(event.keyCode == 40){//arrow down
+            this.translateFocussedPattern(0, this.state.gridsize);
+        }
         if(event.ctrlKey){//conrolKey pressed -> action
             if(event.keyCode === 68){//d
                 event.preventDefault();

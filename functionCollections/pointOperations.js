@@ -245,4 +245,38 @@ class PointOperations{
             return [(point[0]+(axisValue - point[0])*2),point[1]];
         }
     }
+    /**
+     * Determinds on which side of a line a point is. So input order matters for pointA ans pointB.
+     * @param {*} pointA 
+     * @param {*} pointB 
+     * @param {*} sidePoint 
+     * @returns "left" or "right"
+     */
+    static sideOfLine(pointA, pointB, sidePoint){
+        let vector = [pointB[0] - pointA[0], pointB[1] - pointA[1]];
+        //g2*(p1-s1)+g1*(p2-s2)
+        let indicator = vector[1] * (sidePoint[0] - pointA[0]) - vector[0] * (sidePoint[1] - pointA[1]);
+        return (indicator < 0)?"right":"left";
+    }
+    /**
+     * 
+     * @param {*} points 
+     * @param {*} point 
+     * @returns closest of the points
+     */
+    static selectClosestPoint(points, mainPoint){
+        let distances = [];
+        let originalPosPoint = [];
+        for(let i = 0; i < points.length; i++){
+            let point = points[i];
+            let distance = PointOperations.distance(point[0], point[1], mainPoint[0], mainPoint[1]);
+            let index = 0;
+            while(distances[index] != undefined && distances[index] > distance){
+                index++;
+            }
+            distances.splice(index, 0, distance);
+            originalPosPoint.splice(index, 0, i);
+        }
+        return points[originalPosPoint[0]];
+    }
 }
