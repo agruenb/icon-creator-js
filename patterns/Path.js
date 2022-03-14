@@ -4,6 +4,8 @@ class Path extends Pattern{
     allowManuelPointEditDistance = 20;
     defaultEdgeRounderDistance = 15;
     cancelActiveDrawDistance = 20;
+    allowArcRoundingRatio = 0.45;//max 0.5
+    arcSmoothingDistance = 5;
 
     rotation = 0;
     center = [0,0];
@@ -43,9 +45,12 @@ class Path extends Pattern{
     getPoint(index){
         if(index < this.points.length && index >= 0){
             return this.points[index];
-        }
+        }else
         if(index === -1){
             return {x:this.xOrigin, y:this.yOrigin};
+        }else
+        if(index == this.points.length){
+            return this.points[0];
         }
         console.trace();
         console.error("Tryed to access not existant point "+index+" in path");
@@ -300,18 +305,41 @@ class Path extends Pattern{
                 points: points
             }
         }else if(String(marker.memorize).substr(0,5) === "extra"){
+            let index = marker.memorize.substr(5);
+            let point = points[index];
             //set to curve if moved directly
-            let point = points[marker.memorize.substr(5)];
-            //Rechange
             if(point.method == "L"){
                 point.method = "Q";
             }
-            point.extraX = pointRotatedToNeutral[0];
-            point.extraY = pointRotatedToNeutral[1];
+            if(point.method == "A"){//arc point
+                let lastPoint = this.getPoint(index - 1);
+                let middlePoint = PointOperations.halfwayVector([lastPoint.x, lastPoint.y],[point.x, point.y]);
+                let distance = PointOperations.lineDistance(...pointRotatedToNeutral, lastPoint.x, lastPoint.y, point.x, point.y);
+                let distBetweenPoints = PointOperations.distance(lastPoint.x,lastPoint.y,point.x,point.y);
+                let minRadius = distBetweenPoints/2;
+                if(distance < minRadius){
+                    let orthVector = PointOperations.orthogonalVector([point.x - lastPoint.x, point.y - lastPoint.y]);
+                    orthVector = PointOperations.chooseVectorDirection(middlePoint, orthVector, pointRotatedToNeutral);
+                    //add more distance when smotthing kicks in to have the marker still on the line
+                    let effectiveDist = distance;
+                    if(point.type = "round"){
+                        if((distance/distBetweenPoints) > this.allowArcRoundingRatio){
+                            effectiveDist += this.arcSmoothingDistance;
+                        }
+                    }
+                    orthVector = PointOperations.trimVectorLength(orthVector, UniversalOps.snap(effectiveDist, this.arcSmoothingDistance, [minRadius+this.arcSmoothingDistance]));
+                    point.extraX = middlePoint[0] + orthVector[0];
+                    point.extraY = middlePoint[1] + orthVector[1];
+                }
+            }else{
+                point.extraX = pointRotatedToNeutral[0];
+                point.extraY = pointRotatedToNeutral[1];
+            }
             changes = {points:points};
         }else if(marker.memorize != "rotate"){//normal marker
             let lastIndex = (parseInt(marker.memorize) == 0)?points.length - 1:parseInt(marker.memorize) - 1;//last point is before first point
             let pointExtraPos =  PointOperations.halfwayVector([ points[lastIndex].x,  points[lastIndex].y],[points[marker.memorize].x, points[marker.memorize].y]);
+            //put point on the middle point between if straight line
             if(points[marker.memorize].method == "L"){
                 points[marker.memorize].extraX = pointExtraPos[0];
                 points[marker.memorize].extraY = pointExtraPos[1];
@@ -405,12 +433,23 @@ class Path extends Pattern{
      * @returns 
      */
     arcString(lastPoint, nextPoint, extraPoint){
+        //does not work when all points are on one line
+        if(1 > PointOperations.lineDistance(...extraPoint,lastPoint.x, lastPoint.y, nextPoint.x, nextPoint.y)){
+            console.warn("Path arc needs 3 Points that are NOT on one line");
+            return "error";
+        }
         let paintBiggerArc = false;
         let rotation = "0";
         let pointsDistance = PointOperations.distance(lastPoint.x,lastPoint.y, nextPoint.x,nextPoint.y);
-        let markerDistance = PointOperations.lineDistance(...extraPoint, lastPoint.x, lastPoint.y, nextPoint.x, nextPoint.y);
-        let maxRadius = pointsDistance/2
-        let radius = Math.min(markerDistance, maxRadius);//limit max size to half circle
+        let markerDistance = PointOperations.distance(nextPoint.extraX, nextPoint.extraY, ...PointOperations.halfwayVector([lastPoint.x, lastPoint.y],[nextPoint.x, nextPoint.y]));
+        let minRadius = pointsDistance/2;
+        let radius;
+        if(markerDistance > minRadius){
+            radius = minRadius;//limit min size to half circle
+        }else{
+            radius = PointOperations.circleRadius(lastPoint.x,lastPoint.y,nextPoint.x,nextPoint.y,extraPoint[0],extraPoint[1],false);
+        }
+        radius = PointOperations.clearInfinity(radius);
         let sideOfLine = PointOperations.sideOfLine([lastPoint.x, lastPoint.y] ,[nextPoint.x, nextPoint.y], extraPoint);
         let paintPositiveDegree = (sideOfLine == "right")?false:true;
         return `${radius} ${radius} ${rotation} ${(paintBiggerArc)?"1":"0"} ${(paintPositiveDegree)?"1":"0"} `;
@@ -430,7 +469,13 @@ class Path extends Pattern{
             if("Q" == point.method){
                 elementString += point.extraX+" "+point.extraY+" ";
             }else if("A" == point.method){
-                elementString += this.arcString(this.getPoint(index-1),point, [point.extraX, point.extraY]);
+                let arcString = this.arcString(this.getPoint(index-1),point, [point.extraX, point.extraY]);
+                if(arcString != "error"){
+                    elementString += arcString;
+                }else{
+                    elementString = elementString.slice(0, elementString.length-2) + "L ";
+                }
+                
             }
             let rounderDistance = (point.rounderDistance == undefined)?this.defaultEdgeRounderDistance:point.rounderDistance;
             switch (point.type) {
@@ -448,24 +493,33 @@ class Path extends Pattern{
                         //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
                         let maxRoundingDistancetoLast = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - rounderDistance));
                         let maxRoundingDistancetoNext = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - rounderDistance));
-                        //adjust to arc
+                        //adjust vectors to arc
                         if(point.method == "A"){
-                            //maxRoundingDistancetoLast = 0;
                             let lastMainPoint = this.getPoint(index - 1);
-                            toLastPointVector = PointOperations.orthogonalVector([point.x - lastMainPoint.x,point.y - lastMainPoint.y]);//vector orth. on the line
-                            let invertedToLast = [-toLastPointVector[0],-toLastPointVector[1]];
-                            //find the closer vector to extra point to get correct direction
-                            if(PointOperations.distance(lastMainPoint.x + invertedToLast[0], lastMainPoint.y + invertedToLast[1], point.extraX, point.extraY) < PointOperations.distance(lastMainPoint.x + toLastPointVector[0], lastMainPoint.y + toLastPointVector[1], point.extraX, point.extraY)){
-                                toLastPointVector = invertedToLast;
+                            let pointsDistance = PointOperations.distance(lastMainPoint.x,lastMainPoint.y, point.x,point.y);
+                            let markerDistance = PointOperations.distance(point.extraX, point.extraY, ...PointOperations.halfwayVector([lastMainPoint.x, lastMainPoint.y],[point.x, point.y]));
+                            //only if circle is full size start rounding
+                            if((markerDistance/pointsDistance) > this.allowArcRoundingRatio){
+                                toLastPointVector = PointOperations.orthogonalVector([point.x - lastMainPoint.x,point.y - lastMainPoint.y]);//vector orth. on the line
+                                //find the closer vector to extra point to get correct direction
+                                toLastPointVector = PointOperations.chooseVectorDirection([lastMainPoint.x, lastMainPoint.y],toLastPointVector,[point.extraX, point.extraY]);
+                                maxRoundingDistancetoLast = this.arcSmoothingDistance;
+                            }else{
+                                maxRoundingDistancetoLast = 0;
                             }
                         }
                         if(this.getPoint(index+1).method == "A"){//if next point is arc
                             let nextMainPoint = this.getPoint(index + 1);
-                            toNextPointVector = PointOperations.orthogonalVector([point.x - nextMainPoint.x,point.y - nextMainPoint.y]);//vector orth. on the line
-                            let invertedToNext = [-toNextPointVector[0],-toNextPointVector[1]];
-                            //find the closer vector to extra point to get correct direction
-                            if(PointOperations.distance(nextMainPoint.x + invertedToNext[0], nextMainPoint.y + invertedToNext[1], nextMainPoint.extraX, nextMainPoint.extraY) < PointOperations.distance(nextMainPoint.x + toNextPointVector[0], nextMainPoint.y + toNextPointVector[1], nextMainPoint.extraX, nextMainPoint.extraY)){
-                                toNextPointVector = invertedToNext;
+                            let pointsDistance = PointOperations.distance(nextMainPoint.x,nextMainPoint.y, point.x,point.y);
+                            let markerDistance = PointOperations.distance(nextMainPoint.extraX, nextMainPoint.extraY, ...PointOperations.halfwayVector([nextMainPoint.x, nextMainPoint.y],[point.x, point.y]));
+                            //only if circle is full size start rounding
+                            if((markerDistance/pointsDistance) > this.allowArcRoundingRatio){
+                                toNextPointVector = PointOperations.orthogonalVector([point.x - nextMainPoint.x,point.y - nextMainPoint.y]);//vector orth. on the line
+                                //find the closer vector to extra point to get correct direction
+                                toNextPointVector = PointOperations.chooseVectorDirection([nextMainPoint.x, nextMainPoint.y],toNextPointVector,[nextMainPoint.extraX, nextMainPoint.extraY]);
+                                maxRoundingDistancetoNext = this.arcSmoothingDistance;
+                            }else{
+                                maxRoundingDistancetoNext = 0;
                             }
                         }
                         //set the distance of the rounder points from the main point
@@ -493,6 +547,38 @@ class Path extends Pattern{
                         //limit the distance of the rounder points from the main point, so the rounder points are not place behind the last/next point
                         let maxRoundingDistancetoLast = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toLastPointVector) - rounderDistance));
                         let maxRoundingDistancetoNext = Math.min(rounderDistance, Math.max(0, PointOperations.vectorLength(toNextPointVector) - rounderDistance));
+                        //adjust vectors to arc
+                        if(point.method == "A"){
+                            let lastMainPoint = this.getPoint(index - 1);
+                            let pointsDistance = PointOperations.distance(lastMainPoint.x,lastMainPoint.y, point.x,point.y);
+                            let markerDistance = PointOperations.distance(point.extraX, point.extraY, ...PointOperations.halfwayVector([lastMainPoint.x, lastMainPoint.y],[point.x, point.y]));
+                            //only if circle is full size start rounding
+                            if((markerDistance/pointsDistance) > this.allowArcRoundingRatio){
+                                toLastPointVector = PointOperations.orthogonalVector([point.x - lastMainPoint.x,point.y - lastMainPoint.y]);//vector orth. on the line
+                                //find the closer vector to extra point to get correct direction
+                                toLastPointVector = PointOperations.chooseVectorDirection([lastMainPoint.x, lastMainPoint.y],toLastPointVector,[point.extraX, point.extraY]);
+                                //limit rounding to prevent big jumps
+                                maxRoundingDistancetoLast = this.arcSmoothingDistance;
+                            }else{
+                                maxRoundingDistancetoLast = this.arcSmoothingDistance;
+                                maxRoundingDistancetoLast = 0;
+                            }
+                        }
+                        if(this.points.length > 1 && this.getPoint(index+1).method == "A"){//if next point is arc
+                            let nextMainPoint = this.getPoint(index + 1);
+                            let pointsDistance = PointOperations.distance(nextMainPoint.x,nextMainPoint.y, point.x,point.y);
+                            let markerDistance = PointOperations.distance(nextMainPoint.extraX, nextMainPoint.extraY, ...PointOperations.halfwayVector([nextMainPoint.x, nextMainPoint.y],[point.x, point.y]));
+                            //only if circle is full size start rounding
+                            if((markerDistance/pointsDistance) > this.allowArcRoundingRatio){
+                                toNextPointVector = PointOperations.orthogonalVector([point.x - nextMainPoint.x,point.y - nextMainPoint.y]);//vector orth. on the line
+                                //find the closer vector to extra point to get correct direction
+                                toNextPointVector = PointOperations.chooseVectorDirection([nextMainPoint.x, nextMainPoint.y],toNextPointVector,[nextMainPoint.extraX, nextMainPoint.extraY]);
+                                //limit rounding to prevent big jumps
+                                maxRoundingDistancetoNext = this.arcSmoothingDistance;
+                            }else{
+                                maxRoundingDistancetoNext = 0;
+                            }
+                        }
                         //set the distance of the rounder points from the main point
                         toLastPointVector = PointOperations.trimVectorLength(toLastPointVector, maxRoundingDistancetoLast);
                         toNextPointVector = PointOperations.trimVectorLength(toNextPointVector, maxRoundingDistancetoNext);
@@ -539,8 +625,11 @@ class Path extends Pattern{
             //for extra point
             let lastPoint = this.getPoint(index - 1);
             //if extra point is Quadratic
-            if(["Q"].indexOf(point.method) !== -1){
+            if(point.method == "Q"){
                 //add marker on the point
+                let rotatedExtraPoint = this.rotatePoint([point.extraX, point.extraY]);
+                r.push([...rotatedExtraPoint,"extra"+index,"path_curve"]);
+            }else if(point.method == "A"){
                 let rotatedExtraPoint = this.rotatePoint([point.extraX, point.extraY]);
                 r.push([...rotatedExtraPoint,"extra"+index,"path_curve"]);
             }else{

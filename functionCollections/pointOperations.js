@@ -258,25 +258,59 @@ class PointOperations{
         let indicator = vector[1] * (sidePoint[0] - pointA[0]) - vector[0] * (sidePoint[1] - pointA[1]);
         return (indicator < 0)?"right":"left";
     }
-    /**
-     * 
-     * @param {*} points 
-     * @param {*} point 
-     * @returns closest of the points
-     */
-    static selectClosestPoint(points, mainPoint){
-        let distances = [];
-        let originalPosPoint = [];
-        for(let i = 0; i < points.length; i++){
-            let point = points[i];
-            let distance = PointOperations.distance(point[0], point[1], mainPoint[0], mainPoint[1]);
-            let index = 0;
-            while(distances[index] != undefined && distances[index] > distance){
-                index++;
-            }
-            distances.splice(index, 0, distance);
-            originalPosPoint.splice(index, 0, i);
+    static chooseVectorDirection(vectorPosition, vector, targetPoint){
+        let distance = PointOperations.distance(vectorPosition[0] + vector[0],vectorPosition[1] + vector[1], targetPoint[0], targetPoint[1]);
+        let invertedDist = PointOperations.distance(vectorPosition[0] - vector[0],vectorPosition[1] - vector[1], targetPoint[0], targetPoint[1]);
+        if(distance < invertedDist){
+            return vector;
+        }else{
+            return [-vector[0],-vector[1]];
         }
-        return points[originalPosPoint[0]];
+    }
+    /**
+     * Finds a circle radius from 3 Points. Credit: geeksforgeeks.org
+     * @param {*} x1 
+     * @param {*} y1 
+     * @param {*} x2 
+     * @param {*} y2 
+     * @param {*} x3 
+     * @param {*} y3 
+     */
+    static circleRadius(x1,  y1,  x2,  y2, x3, y3, parseToInt = true){
+        var x12 = (x1 - x2);
+        var x13 = (x1 - x3);
+    
+        var y12 =( y1 - y2);
+        var y13 = (y1 - y3);
+    
+        var y31 = (y3 - y1);
+        var y21 = (y2 - y1);
+    
+        var x31 = (x3 - x1);
+        var x21 = (x2 - x1);
+        var sx13 = Math.pow(x1, 2) - Math.pow(x3, 2);
+        var sy13 = Math.pow(y1, 2) - Math.pow(y3, 2);
+    
+        var sx21 = Math.pow(x2, 2) - Math.pow(x1, 2);
+        var sy21 = Math.pow(y2, 2) - Math.pow(y1, 2);
+    
+        var f = ((sx13) * (x12)
+                + (sy13) * (x12)
+                + (sx21) * (x13)
+                + (sy21) * (x13))
+                / (2 * ((y31) * (x12) - (y21) * (x13)));
+        var g = ((sx13) * (y12)
+                + (sy13) * (y12)
+                + (sx21) * (y13)
+                + (sy21) * (y13))
+                / (2 * ((x31) * (y12) - (x21) * (y13)));
+    
+        var c = -(Math.pow(x1, 2)) -
+        Math.pow(y1, 2) - 2 * g * x1 - 2 * f * y1;
+        var h = -g;
+        var k = -f;
+        var sqr_of_r = h * h + k * k - c;
+        var r = Math.sqrt(sqr_of_r);
+        return (parseToInt)?parseInt(r):r;
     }
 }
