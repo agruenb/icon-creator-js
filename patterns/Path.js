@@ -187,6 +187,7 @@ class Path extends Pattern{
                     clickHandler:()=>{
                         let point = this.getPoint(this.getPointsByDistance(x, y).index[0]);
                         point.method = "A";
+                        this.fixSurroundingPoints(this.points, this.getPointsByDistance(x, y).index[0]);
                         repaint();
                     },
                     type:"custom"
@@ -346,38 +347,43 @@ class Path extends Pattern{
         }
         //adjust other points
         if(marker.memorize != "rotate" && String(marker.memorize).substr(0,5) != "extra"){
-            //adjust based on last point
-            let lastIndex = (parseInt(marker.memorize) == 0)?points.length - 1:parseInt(marker.memorize) - 1;//last point is before first point
-            let point = points[marker.memorize];
-            let pointExtraPos, nextPoint;
-            if(marker.memorize === points.length - 1){
-                pointExtraPos =  PointOperations.halfwayVector([ points[points.length - 2].x,  points[points.length - 2].y],[point.x, point.y]);
-                nextPoint = points[0];
-            }else{
-                pointExtraPos =  PointOperations.halfwayVector([ points[lastIndex].x,  points[lastIndex].y],[point.x, point.y]);
-                nextPoint = points[parseInt(marker.memorize)+1];
-            }
-            //correct last point
-            if(point.method == "L"){
-                point.extraX = pointExtraPos[0];
-                point.extraY = pointExtraPos[1];
-            }else if(points[marker.memorize].method == "A"){
-                let limitedPoint = this.limitToArcPoint(point, marker.memorize, point.extraX, point.extraY);
-                point.extraX = limitedPoint[0];
-                point.extraY = limitedPoint[1];
-            }
-            //correct next point
-            if(nextPoint.method == "L"){
-                let nextExtraPos =  PointOperations.halfwayVector([ points[marker.memorize].x,  points[marker.memorize].y],[nextPoint.x, nextPoint.y]);
-                nextPoint.extraX = nextExtraPos[0];
-                nextPoint.extraY = nextExtraPos[1];
-            }else if(nextPoint.method == "A"){
-                let limitedPoint = this.limitToArcPoint(nextPoint, marker.memorize + 1, nextPoint.extraX, nextPoint.extraY);
-                nextPoint.extraX = limitedPoint[0];
-                nextPoint.extraY = limitedPoint[1];
-            }
+            this.fixSurroundingPoints(points, marker.memorize);
         }
         return changes;
+    }
+    fixSurroundingPoints(points, index){
+        index = parseInt(index);
+        //adjust based on last point
+        let lastIndex = (index == 0)?points.length - 1:index - 1;//last point is before first point
+        let point = points[index];
+        let pointExtraPos, nextPoint;
+        if(index == points.length - 1){
+            pointExtraPos =  PointOperations.halfwayVector([ points[points.length - 2].x,  points[points.length - 2].y],[point.x, point.y]);
+            nextPoint = points[0];
+        }else{
+            pointExtraPos =  PointOperations.halfwayVector([ points[lastIndex].x,  points[lastIndex].y],[point.x, point.y]);
+            nextPoint = points[index+1];
+        }
+        //correct last point
+        if(point.method == "L"){
+            point.extraX = pointExtraPos[0];
+            point.extraY = pointExtraPos[1];
+        }else if(points[index].method == "A"){
+            let limitedPoint = this.limitToArcPoint(point,index, point.extraX, point.extraY);
+            point.extraX = limitedPoint[0];
+            point.extraY = limitedPoint[1];
+        }
+        //correct next point
+        if(nextPoint.method == "L"){
+            let nextExtraPos =  PointOperations.halfwayVector([ points[index].x,  points[index].y],[nextPoint.x, nextPoint.y]);
+            nextPoint.extraX = nextExtraPos[0];
+            nextPoint.extraY = nextExtraPos[1];
+        }else if(nextPoint.method == "A"){
+            let limitedPoint = this.limitToArcPoint(nextPoint, index + 1, nextPoint.extraX, nextPoint.extraY);
+            nextPoint.extraX = limitedPoint[0];
+            nextPoint.extraY = limitedPoint[1];
+        }
+        return points;
     }
     startActiveDraw(x, y){
         return {
@@ -431,8 +437,9 @@ class Path extends Pattern{
             let splitMemo = [String(marker.memorize).substring(0, 5), String(marker.memorize).substring(5)];
             if(splitMemo[0] == "extra"){//curve point
                 let index = parseInt(splitMemo[1]);
-                if(this.points[index].method == "Q"){
+                if(this.points[index].method === "Q" || this.points[index].method === "A"){
                     this.points[index].method = "L";
+                    this.fixSurroundingPoints(this.points, index);
                 }else{
                     this.points[index].method = "Q";
                 }
@@ -669,15 +676,18 @@ class Path extends Pattern{
         let  l = [];
         for(let index in this.points){
             let point = this.points[index];
-            let lastPoint = this.getPoint(index - 1);
-            //if extra point is Quadratic
-            if(["Q"].indexOf(point.method) !== -1){
-                //add lines
+            if(point.method === "Q" || point.method === "A"){
+                let lastPoint = this.getPoint(index - 1);
                 let rotatedLastPoint = this.rotatePoint([lastPoint.x,lastPoint.y]);
                 let rotatedExtraPoint = this.rotatePoint([point.extraX, point.extraY]);
                 let rotatedPoint = this.rotatePoint([point.x,point.y]);
-                l.push([...rotatedLastPoint, ...rotatedExtraPoint]);
-                l.push([...rotatedPoint,...rotatedExtraPoint]);
+                //if extra point is Quadratic
+                if("Q" === point.method){
+                    l.push([...rotatedLastPoint, ...rotatedExtraPoint]);
+                    l.push([...rotatedPoint,...rotatedExtraPoint]);
+                }else if("A" === point.method){
+                    l.push([...PointOperations.halfwayVector(rotatedLastPoint, rotatedPoint), ...rotatedExtraPoint]);
+                }
             }
         }
         return l;
