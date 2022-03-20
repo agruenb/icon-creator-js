@@ -1,0 +1,20 @@
+.overlay.overlay-fade-in{
+    background: rgb(255 255 255 / 70%);
+}
+.wind-in{
+    animation-name: exp-wind-in;
+    animation-duration: 0.4s;
+}
+.wind-out{
+    animation-name: exp-wind-out;
+    animation-duration: 0.4s;
+    animation-fill-mode: forwards;
+}
+@keyframes exp-wind-in{
+    from{transform:translateY(-100vh)}
+    to{transform:translateY(0)}
+}
+@keyframes exp-wind-out{
+    from{transform:translateY(0)}
+    to{transform:translateY(-100vh)}
+}

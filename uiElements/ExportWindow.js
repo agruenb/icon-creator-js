@@ -21,7 +21,7 @@ class ExportWindow{
             resButtonString += this.pngResButton(""+res);
         }
         let scaffold = `
-            <div class="export-wrapper vert-scroll box-shadow exp-wind-in">
+            <div class="export-wrapper vert-scroll box-shadow wind-in">
                 <div class="close-button"><img src="img/close_cross.svg"></div>
                 <div class="headline"><img src="img/download.svg">Export Project</div>
                 <div class="section-header">Preview</div>
@@ -36,6 +36,7 @@ class ExportWindow{
                     <button class="exp-png">PNG</button>
                     <button class="exp-svg">SVG</button>
                     <button class="exp-inline">HTML</button>
+                    ${(glob_dev)?'Development: <button class="exp-json">JSON</button><button class="save-icon">Create Icon</button>':""}
                 </div>
                 <div id="pngOptions" style="${(this.exportType == "png")?"":"opacity:0.5;pointer-events:none;"}">
                     <div class="section-header">PNG resolution</div>
@@ -52,6 +53,7 @@ class ExportWindow{
         //configure container
         this.container.innerHTML = scaffold;
         this.container.style.cssText = "display:block;";
+        this.container.classList.add("overlay-fade-in");
         this.container.addEventListener("click",()=>{
             this.close();
         });
@@ -88,6 +90,21 @@ class ExportWindow{
             this.exportType = "inline";
             this.updateButtons();
         });
+        //development only
+        if(glob_dev){
+            //export json
+            this.selectJSONButton = this.container.querySelector(".exp-json");
+            this.selectJSONButton.addEventListener("click",()=>{
+                this.exportType = "json";
+                this.updateButtons();
+            });
+            //save icon
+            this.saveIconButton = this.container.querySelector(".save-icon");
+            this.saveIconButton.addEventListener("click",()=>{
+                let data = JSON.stringify(Exporter.extractSavefileJSON(this.project));
+                DataService.sendIcon(data);
+            });
+        }
         //file extension element
         this.fileExtensionEl = this.container.querySelector(".file-ext");
         //filename input
@@ -120,7 +137,7 @@ class ExportWindow{
         `;
     }
     updateButtons(){
-        let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton];
+        let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton, this.selectJSONButton];
         this.pngOptionsWrapper.style.cssText = "opacity:0.5;pointer-events:none;";
         switch (this.exportType) {
             case "svg":
@@ -135,6 +152,10 @@ class ExportWindow{
             case "inline":
                 UniversalOps.selectRadio(this.selectInlineButton, buttons);
                 this.fileExtensionEl.innerHTML = ".html";
+                break;
+            case "json":
+                UniversalOps.selectRadio(this.selectJSONButton, buttons);
+                this.fileExtensionEl.innerHTML = ".json";
                 break;
         }
     }
@@ -160,12 +181,16 @@ class ExportWindow{
             case "inline":
                 Exporter.downloadHTML(filename, svgString);
                 break;
+            case "json":
+                console.log(JSON.stringify(Exporter.extractSavefileJSON(this.project)));
+                alert("Has been logged!");
+                break;
         }
     }
-    updateSelectedButtons
     close(){
-        this.innerWrapper.classList.remove("exp-wind-in");
-        this.innerWrapper.classList.add("exp-wind-out");
+        this.innerWrapper.classList.remove("wind-in");
+        this.innerWrapper.classList.add("wind-out");
+        this.container.classList.remove("overlay-fade-in");
         this.onClose();
         setTimeout(()=>{
             this.container.style.cssText = "display:none;";

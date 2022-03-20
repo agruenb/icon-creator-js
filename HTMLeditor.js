@@ -838,6 +838,7 @@ class HTMLeditor{
     }
     repaint(pattern){
         this.currProj().repaint(pattern);
+        this.updateHistoryButtons();
     }
     /**
      * Getter for infoBoxManager of current frame

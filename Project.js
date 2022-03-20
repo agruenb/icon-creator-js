@@ -239,6 +239,7 @@ class Project extends IconCreatorGlobal{
             console.error("Project cannot load save of type "+projectJSON.type);
             return;
         }
+        this.id = projectJSON.attributes.id;
         //clear
         for(let index in this.keyframes){
             this.keyframes[index].delete();
@@ -267,7 +268,6 @@ class Project extends IconCreatorGlobal{
             attributes:{
                 initialized: this.initialized,
                 id:this.id,
-
                 keyframes: passKeyframes
             }
         });

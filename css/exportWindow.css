@@ -14,10 +14,6 @@
     right: 15px;
     width:20px;
     height:20px;
-    cursor: pointer;
-}
-.export-wrapper .close-button:hover{
-    transform:scale(1.2);
 }
 .export-wrapper .headline{
     font-size: 20px;
@@ -107,21 +103,4 @@
 }
 .export-wrapper .export-row .download-button{
     margin-left:10px;
-}
-.exp-wind-in{
-    animation-name: exp-wind-in;
-    animation-duration: 0.4s;
-}
-.exp-wind-out{
-    animation-name: exp-wind-out;
-    animation-duration: 0.4s;
-    animation-fill-mode: forwards;
-}
-@keyframes exp-wind-in{
-    from{transform:translateY(-100vh)}
-    to{transform:translateY(0)}
-}
-@keyframes exp-wind-out{
-    from{transform:translateY(0)}
-    to{transform:translateY(-100vh)}
 }

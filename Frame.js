@@ -230,6 +230,7 @@ class Frame extends IconCreatorGlobal{
      * Removes patterns from this Frame. Does not remove Frame.
      */
     clear(){
+        this.focusedPattern = undefined;
         for(let id in this.patterns){
             this.remove(this.patterns[id]);
         }
@@ -250,7 +251,7 @@ class Frame extends IconCreatorGlobal{
             return;
         }
         //load
-        this.id = frameJSON.attributes.id;
+        if(trueCopy) this.id = frameJSON.attributes.id;
         for(let i in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
             let patternJSON = this.copy(frameJSON.attributes.patterns[i]);
             let pattern = eval(`new ${patternJSON.subtype}`);
@@ -287,6 +288,10 @@ class Frame extends IconCreatorGlobal{
             }
         });
         return obj;
+    }
+    reset(){
+        this.clear();
+        this.history.clear();
     }
     /**
      * Removes all ui elements from dom

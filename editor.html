@@ -14,8 +14,12 @@
     <link rel="stylesheet" href="css/fonts.css">
     <link rel="stylesheet" href="css/rotateDisplay.css">
     <link rel="stylesheet" href="css/customComponents.css">
-    <link rel="stylesheet" href="css/colors.css">
+    <link rel="stylesheet" href="css/vars.css">
     <link rel="stylesheet" href="css/exportWindow.css">
+    <link rel="stylesheet" href="css/itemImporter.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/confirmWindow.css">
+
     <title>SVG editor</title>
 </head>
 <body>
@@ -26,25 +30,28 @@
             </div>
         </div>
         <div class="topbar">
-            <div class="logo">
-                <div class="bg-image">
-                    <img src="img/header_background.svg" alt="Header background">
+            <div class="topbar-tools tools-left">
+                <div class="left-menu-button topbar-action" id="openSaveMenu">
+                    <img src="img/burger_menu.svg" alt="burger menu">
                 </div>
-                <div class="header-text">
-                    Easy Icon Online
+                <div class="left-menu-button topbar-action" id="openIconMenu">
+                    <img src="img/download.svg" alt="burger menu">
                 </div>
             </div>
-            <div class="topbar-tools">
-                <div id="historyBack" class="history-button">
+            <div class="topbar-tools tools-right">
+                <div id="historyBack" class="history-button topbar-action">
                     <img src="img/undo_arrow.svg" alt="Arrow back">
                 </div>
-                <div id="historyForwards" class="history-button">
+                <div id="historyForwards" class="history-button topbar-action">
                     <img src="img/undo_arrow.svg" alt="Arrow back" style="transform:scaleX(-1)">
                 </div>
-                <div class="export-button" id="exportFile">
+                <div class="export-button topbar-action" id="exportFile">
                     <img src="img/download.svg" alt="Download icon">
                 </div>
             </div>
+        </div>
+        <div class="item-import box-shadow outside" id="itemImport">
+
         </div>
         <div class="toolbar">
             <div id="cursor" class="anno-button"><div class="tool-icon"><img src="img/cursor_icon.svg" alt="circle"></div></div>
@@ -107,8 +114,10 @@
     <div id="preview" style="display:none;height:200px;width:200px;"></div>
     <!--<svg viewBox="0 0 512 512"><path d="M 96 320 L 128 320 Q 160 320 160 256 Q 256 224 352 256 Q 352 320 384 320 L 432 320 Q 464 320 448 256 Q 436 236 416 224 Q 256 128 96 224 Q 76 236 64 256 Q 48 320 96 320 Z" stroke="#000000" fill="#1c750a" stroke-width="4"/></svg>-->
 </body>
+<script src="EditorManager.js"></script>
 <script src="IconCreatorGlobal.js"></script>
 <script src="HTMLeditor.js"></script>
+<script src="ItemImporter.js"></script>
 <script src="Project.js"></script>
 <script src="Frame.js"></script>
 <script src="MaskFrame.js"></script>
@@ -123,6 +132,7 @@
 <script src="functionCollections/pointOperations.js"></script>
 <script src="functionCollections/universalOps.js"></script>
     <script src="uiElements/MenuButton.js"></script>
+    <script src="uiElements/ConfirmWindow.js"></script>
     <script src="uiElements/ContextMenu.js"></script>
     <script src="uiElements/RotateDisplay.js"></script>
     <script src="uiElements/ExportWindow.js"></script>
@@ -140,11 +150,22 @@
     <script src="patterns/Path.js"></script>
     <script src="patterns/Rect.js"></script>
     <script src="patterns/Text.js"></script>
+<script src="functionCollections/dataService.js"></script>
+
+<!--Icons for testing purposes-->
+<script src="assets/icon_0.js"></script>
+<script src="assets/makukuma.js"></script>
+<script src="assets/phone_outline.js"></script>
+<script src="assets/desktop_book.js"></script>
+<script src="assets/desktop_outline.js"></script>
+<script src="assets/full_red.js"></script>
+<script src="assets/button_heart_full.js"></script>
+<script src="assets/button_heart_outline.js"></script>
 
 <script>
-    let environment = {
+    let editorEnvironment = {
         document: document,
-        window:window,
+        window: window,
         layout:{
             container:document.getElementById("mainContainer"),
             viewport:document.getElementById("viewport"),
@@ -201,10 +222,19 @@
             }]
         }
     }
-    let e = new HTMLeditor(environment);
-    e.newProject();
-    let p = e.activeProjects[0]
-    p = document.getElementById("preview");
-
+    itemLoaderEnvironment = {
+        document: document,
+        window: window,
+        layout:{
+            container:document.getElementById("itemImport"),
+            overlay:document.getElementById("overlayLayer")
+        },
+        openSavesButton:document.getElementById("openSaveMenu"),
+        openIconsButton:document.getElementById("openIconMenu")
+    }
+    glob_dev = true;
+    glob_backend = "http://localhost/easyIconOnline";
+    m = new EditorManager();
+    m.init(editorEnvironment, itemLoaderEnvironment);
 </script>
 </html>

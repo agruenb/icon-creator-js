@@ -72,4 +72,16 @@ class Exporter {
         }
         return fileContent.replace(/\s\s+/g, ' ')+'</svg>';
     }
+    static extractSavefileJSON(project, name){
+        let editorInfo = project.keyframes[0].get();
+        let previewIcon = Exporter.createSVGFileContent(project);
+        return ({
+            version: (new IconCreatorGlobal()).version,
+            exportTime: (new Date).getTime(),
+            name:name,
+            type:"containsFrame",
+            preview:previewIcon,
+            editorData:editorInfo
+        });
+    }
 }

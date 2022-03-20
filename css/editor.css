@@ -9,29 +9,48 @@ button{
     all:unset;
     box-sizing: border-box;
     user-select: none;
+    text-align: center;
     cursor:pointer;
     padding:8px;
     border:1px solid var(--button-light-border);
-    border-bottom: 2px solid var(--button-darker-border);
     background-color: var(--button-background);
     border-radius: 4px;
+    --button-icon-color: var(--dark-text);
     transition: 0.1s;
 }
+button svg{height: 0.9em;width: 0.9em;display: inline;margin-right: 10px;transform: scale(1.4);}
 button:hover{
     background-color: var(--button-background-hover);
 }
 button[selected]{
     background-color: var(--button-selected-background);
     border: 1px solid var(--button-light-border-selected);
-    border-bottom: 2px solid var(--button-darker-border-selected);
     color: var(--white-text);
+    --button-icon-color: var(--white-text);
 }
 button[selected]:hover{
     background-color: var(--button-background-selected-hover);
 }
 button:active{
-    padding-bottom:9px;
-    border-bottom-width: 1px;
+    transform: scale(0.9);
+}
+button.compact{padding: 2px 4px;font-size: 13px;}
+.close-button{
+    cursor:pointer;
+}
+.close-button:hover{
+    transform:scale(1.2);
+}
+.tab{
+    border-radius: 10px 10px 0 0;
+    background: var(--tab-set-back);
+    padding: 5px;
+    height: 19px;
+    text-align: center;
+    cursor: pointer;
+}
+.tab[selected]{
+    background: var(--panel-background);
 }
 .overlay_bucket{
     width:100%;
@@ -80,33 +99,12 @@ button:active{
 .editor-container .topbar{
     position:fixed;
     top:0;
-    height:44px;
+    height: 70px;
     width:100%;
     z-index: 4;
     pointer-events: none;
     display:flex;
-    justify-content: flex-end;
-}
-.topbar .logo{
-    font-size: 28px;
-    font-weight:bold;
-    line-height: 44px;
-}
-.topbar .logo .bg-image{
-    position: absolute;
-    top: 0;
-    left: 0;
-    --size: 230px;
-    height: var(--size);
-    width: var(--size);
-}
-.topbar .logo .header-text{
-    position: absolute;
-    top: 13px;
-    left: 169px;
-    font-family: 'Fredoka One', cursive;
-    color: #ca7fb0;
-    transform: rotate(-5deg);
+    justify-content: space-between;
 }
 .topbar .topbar-tools{
     pointer-events: all;
@@ -116,25 +114,9 @@ button:active{
     height: 60px;
     margin: 5px;
 }
-.topbar .export-button{
+.topbar .topbar-action{
     height: 40px;
     width: 40px;
-    cursor:pointer;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    padding: 5px;
-    margin: 5px;
-    border-left: 3px solid #fff;
-}
-.topbar .export-button img{
-    --size: 80%;
-    height:var(--size);
-    width:var(--size);
-}
-.editor-container .history-button{
-    width: 40px;
-    height: 40px;
     padding: 5px;
     margin: 5px;
     display:flex;
@@ -142,6 +124,14 @@ button:active{
     cursor: pointer;
     align-items: center;
     border-radius:5px;
+}
+.topbar .export-button{
+    border-left: 3px solid #fff;
+}
+.topbar .export-button img{
+    --size: 80%;
+    height:var(--size);
+    width:var(--size);
 }
 .editor-container .history-button.disabled{
     opacity: 0.6;
@@ -165,6 +155,17 @@ button:active{
     justify-content:center;
     align-items:center;
     background: var(--viewport-background);
+}
+.editor-container .item-import{
+    position:fixed;
+    top: 10px;
+    overflow: hidden;
+    left:0;
+    z-index: 9000;
+    width:290px;
+    background:var(--panel-background);
+    height: calc(100vh - 60px);
+    border-radius: 0 15px 15px 0;
 }
 .editor-container .toolbar{
     position:fixed;
@@ -233,7 +234,9 @@ button:active{
     top:0;
     left:0;
     z-index: 10000;
-    display:none;
+    display: none;
+    background: rgb(255 255 255 / 0%);
+    transition:var(--overlay-trans-time);
 }
 .editor-container .box-menu{
     width:calc(100% - 10px);

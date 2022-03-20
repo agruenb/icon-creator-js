@@ -64,4 +64,9 @@ class ActionHistory{
             console.log("Now in state "+this.currentState);
         }
     }
+    clear(){
+        this.history = new Array();
+        this.firstPreserved = 0;
+        this.currentState = -1;
+    }
 }

@@ -4,9 +4,6 @@ class ContextMenu{
 
     parentContainer;
     /**
-     * z-index:0-9999 patterns
-     * 10000 viewport outline
-     * 10001 context menu
      * @param {*} x 
      * @param {*} y 
      * @param {*} parentContainer 
