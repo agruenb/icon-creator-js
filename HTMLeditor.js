@@ -64,6 +64,10 @@ class HTMLeditor{
         this.environment.control.history.forwards.addEventListener("click",()=>{this.reInitLastReverse()});
         this.environment.control.history.back.classList.add("disabled");
         this.environment.control.history.forwards.classList.add("disabled");
+
+        this.environment.control.meta.moreOptions.addEventListener("click",()=>{
+            this.addReferenceImage();
+        });
         //setup for keyboard shortcuts
         this.environment.document.addEventListener('keydown', event=>{
             this.blockKeys(event);
@@ -107,7 +111,7 @@ class HTMLeditor{
                         this.state.editedObject = closestMarker.marker;
                         this.state.currentAction = "dragMarker";
                     }else if(event.target.parentElement.id == this.focusedPattern().id){//start dragging pattern
-                        this.setDraggingInfo(this.currProj().frame().patterns[event.target.parentElement.id], event);
+                        this.setDraggingInfo(this.patternById(event.target.parentElement.id), event);
                         this.state.currentAction = "dragPattern";
                     }else{//do nothing
                         this.state.currentAction = "edit";
@@ -176,11 +180,10 @@ class HTMLeditor{
             }
         }else{
             this.clearViewportUI();
-            //if pattern is clicked -> start editing
-            if(event.target.parentElement.getAttribute("role") === "main"){
+            let role = event.target.parentElement.getAttribute("role");
+            if(role === "main" || role === "reference"){
                 //dont focus main pattern on mask frame
                 if(this.currProj().frame().boundId != event.target.parentElement.id){
-                    //this.focus(this.patternById(event.target.parentElement.id));
                     this.addHelperOutline(this.patternById(event.target.parentElement.id));
                 }
             }
@@ -195,10 +198,11 @@ class HTMLeditor{
             let yPrecise = this.relY(event.clientY,0,undefined,1);
             let x = this.relX(event.clientX);
             let y = this.relY(event.clientY);
+            let patternRole = event.target.parentElement.getAttribute("role");
             switch (this.state.currentAction) {
                 case "none":
                     //if pattern is clicked -> start editing
-                    if(event.target.parentElement.getAttribute("role") === "main"){
+                    if(patternRole === "main" || patternRole === "reference"){
                         //dont focus main pattern on mask frame
                         if(this.currProj().frame().boundId != event.target.parentElement.id){
                             this.startEdit(this.patternById(event.target.parentElement.id));
@@ -239,7 +243,7 @@ class HTMLeditor{
                     //stop edit on active element
                     this.stopEdit();
                     //if pattern is clicked -> start editing
-                    if(event.target.parentElement.getAttribute("role") === "main"){
+                    if(patternRole === "main" || patternRole == "reference"){
                         //dont focus main pattern on mask frame
                         if(this.currProj().frame().boundId != event.target.parentElement.id){
                             this.startEdit(this.patternById(event.target.parentElement.id));
@@ -346,7 +350,7 @@ class HTMLeditor{
                     this.prepareEdit(pattern);
                     this.currProj().frame().updateInfoBox(pattern);
                 }
-                this.currProj().repaint(pattern);
+                this.repaint(pattern);
                 break;
             default:
                 //edit, but no further action
@@ -528,7 +532,7 @@ class HTMLeditor{
      */
     removePattern(pattern){
         this.stopEdit();
-        this.currProj().frame().remove(pattern);
+        this.currProj().remove(pattern);
     }
     reverseLastAction(){
         let focusedId = (this.focusedPattern() != undefined)?this.focusedPattern().id:undefined;
@@ -614,7 +618,7 @@ class HTMLeditor{
         this.state.currentAction = "edit";
         this.focus(pattern);
         this.prepareEdit(pattern);
-        if(this.exclusivView){
+        if(this.exclusivView && !pattern.isReference){
             //hide all patterns that are not selected
             for(let id in this.currProj().frame().patterns){
                 if(id != this.focusedPattern().id){
@@ -657,7 +661,7 @@ class HTMLeditor{
         this.repaint();
     }
     patternById(id){
-        return this.currProj().frame().patternById(id);
+        return this.currProj().patternById(id);
     }
     focusedPattern(){
         return this.currProj().frame().focusedPattern;
@@ -822,20 +826,6 @@ class HTMLeditor{
     setCursor(element,style = "cursor"){
         element.style.cursor = style;
     }
-    getPatternClientRect(pattern,inViewport = false){
-        if(inViewport){
-            let rect = document.getElementById(String(pattern.id)).querySelector('[svg-editor-type="mainPattern"]').getBoundingClientRect();
-            let box = {
-                x:this.relX(rect.x),
-                y:this.relY(rect.y),
-                height:rect.height,
-                width:rect.width
-            }
-            return box;
-        }else{
-            return document.getElementById(String(pattern.id)).querySelector('[svg-editor-type="mainPattern"]').getBoundingClientRect();
-        }
-    }
     repaint(pattern){
         this.currProj().repaint(pattern);
         this.updateHistoryButtons();
@@ -873,6 +863,16 @@ class HTMLeditor{
             this.prepareEdit(pattern);
             this.currProj().repaint(pattern);
         }
+    }
+    addReferenceImage(){
+        let callback = image =>{
+            if(image){
+                this.currProj().addReferenceImage(image);
+            }else{
+                console.warn("No image given");
+            }
+        }
+        ImageProcessor.requestImage(callback);
     }
     exportFile(){
         this.stopEdit();

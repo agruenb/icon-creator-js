@@ -17,7 +17,9 @@ class InfoBoxManager{
     updateBox(pattern){
         if(pattern != undefined){
             let box = this.boxById(pattern.id);
-            box.update();
+            if(box != undefined){
+                box.update();
+            }
         }else{//update all
             console.log("update all");
             for(let i in this.boxes){
@@ -58,7 +60,9 @@ class InfoBoxManager{
             let box = this.boxes.filter((box)=>{
                 return box.boundId == this.keyframe.renderOrder[i];
             })[0];
-            this.appendTop(box);
+            if(box != undefined){
+                this.appendTop(box);
+            }
         }
     }
     appendTop(box){

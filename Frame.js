@@ -2,6 +2,8 @@ class Frame extends IconCreatorGlobal{
 
     history = new ActionHistory(this);
     opacity = 1;
+
+    role="main";
     
     paintPanel = document.createElement("div");
     uiLayer = document.createElement("div");
@@ -26,6 +28,7 @@ class Frame extends IconCreatorGlobal{
         this.paintPanel.style.cssText = "width:"+parentElement.style.width+";height:"+parentElement.style.height+";";
         this.paintPanel.style.display = "none";
         this.paintPanel.setAttribute("frameId",this.id);
+        this.paintPanel.classList.add("paint-panel");
         parentElement.append(this.paintPanel);
         this.uiLayer.setAttribute("el-type","uiLayer");
         //z-index is also rel to elements so if there are more than 9999 elements, thw ui is behind them
@@ -71,9 +74,12 @@ class Frame extends IconCreatorGlobal{
         this.infoBoxManager.updateBox(pattern);
     }
     hide(){
+        this.paintPanel.innerHTML = "";
+        this.paintPanel.style.display = "none";
         this.infoBoxManager.hide();
     }
     show(){
+        this.paintPanel.style.display = "block";
         this.infoBoxManager.show();
     }
     basicPattern(type,xOrigin,yOrigin,color){
@@ -216,7 +222,7 @@ class Frame extends IconCreatorGlobal{
             if(this.boundId == pattern.id){//dont rotate on ausschneide ansicht
                 pattern.rotation = 0;
             }
-            let domString = "<svg role='main' id='"+id+"' viewBox='-"+parseInt(paintPortRect.x)+" -"+parseInt(paintPortRect.y)+" "+parseInt(bodyRect.width) + " " + parseInt(bodyRect.height) + "' style='z-index:"+(this.renderOrder.indexOf(id)+3)+";pointer-events:none;position:absolute;top:0;left:0;height:100%;width:100%;'>"+pattern.fullHTML(true)+"</svg>";
+            let domString = "<svg role="+this.role+" id='"+id+"' viewBox='-"+parseInt(paintPortRect.x)+" -"+parseInt(paintPortRect.y)+" "+parseInt(bodyRect.width) + " " + parseInt(bodyRect.height) + "' style='z-index:"+(this.renderOrder.indexOf(id)+3)+";pointer-events:none;position:absolute;top:0;left:0;height:100%;width:100%;'>"+pattern.fullHTML(true)+"</svg>";
             pattern.rotation = rotation;
             let template = document.createElement('template');
             domString = domString.trim();

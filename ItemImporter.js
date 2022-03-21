@@ -50,7 +50,11 @@ class ItemImporter{
         });
 
         this.appendSaves([full_red, global_icon_0, makukuma, full_red, desktop_outline, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global]);
-        this.appendIcons([global_icon_0, makukuma, desktop_outline, full_red, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global]);
+        DataService.getIcons(0,"line").then(
+            (data)=>{
+                this.appendIcons(data);
+            }
+        );
 
         this.initialized = true;
     }

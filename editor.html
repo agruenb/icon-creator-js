@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta http-equiv="Cache-control" content="public">
@@ -47,6 +46,9 @@
                 </div>
                 <div class="export-button topbar-action" id="exportFile">
                     <img src="img/download.svg" alt="Download icon">
+                </div>
+                <div class="topbar-action" id="moreOptions">
+                    <img src="img/more_dots.svg" alt="More options">
                 </div>
             </div>
         </div>
@@ -131,6 +133,8 @@
 <script src="functionCollections/patternManipulator.js"></script>
 <script src="functionCollections/pointOperations.js"></script>
 <script src="functionCollections/universalOps.js"></script>
+<script src="functionCollections/dataService.js"></script>
+<script src="functionCollections/imageProcessor.js"></script>
     <script src="uiElements/MenuButton.js"></script>
     <script src="uiElements/ConfirmWindow.js"></script>
     <script src="uiElements/ContextMenu.js"></script>
@@ -150,7 +154,8 @@
     <script src="patterns/Path.js"></script>
     <script src="patterns/Rect.js"></script>
     <script src="patterns/Text.js"></script>
-<script src="functionCollections/dataService.js"></script>
+    <script src="patterns/ReferenceImage.js"></script>
+
 
 <!--Icons for testing purposes-->
 <script src="assets/icon_0.js"></script>
@@ -193,7 +198,8 @@
                     dark:document.getElementById("bgColor_dark")
                 },
                 paintColor:document.getElementById("paintColor"),
-                exclusiveView:document.getElementById("exclusiveView")
+                exclusiveView:document.getElementById("exclusiveView"),
+                moreOptions:document.getElementById("moreOptions")
             },
             export:{
                 file:document.getElementById("exportFile"),

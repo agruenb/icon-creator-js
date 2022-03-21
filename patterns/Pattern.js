@@ -6,6 +6,7 @@ class Pattern extends IconCreatorGlobal{
     isMask = false;
     isFiller = false;//the filler is always identical to the main pattern
     repaintOnKeyUp = false;
+    isReference = false;
     maskLayer;
     boundId;
 
@@ -206,11 +207,8 @@ class Pattern extends IconCreatorGlobal{
         let rotation = (reverse)?-this.rotation:this.rotation;
         return PointOperations.rotateAroundPoint(this.center, point, rotation);
     };
-    systemHTML(){
-        return this.cleanHTML().slice(0,-2)+' svg-editor-type="mainPattern"/>';
-    }
     fullHTML(systemAttributes = false, limitPrecision = false){
-        return ((this.hasMask())?this.mask(limitPrecision):"") + ((systemAttributes)?this.systemHTML():this.cleanHTML(limitPrecision));
+        return ((this.hasMask())?this.mask(limitPrecision):"") + this.cleanHTML(limitPrecision);
     }
     /**
      * Returns the JSON representation of this pattern.

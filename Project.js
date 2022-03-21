@@ -5,7 +5,6 @@ class Project extends IconCreatorGlobal{
     infoBoxContainer;
     container;
     frameContainer;
-    contextContainer;
     viewportOutline;
 
     initialized = false;
@@ -31,20 +30,15 @@ class Project extends IconCreatorGlobal{
     init(fullViewport){
         this.initialized = true;
         this.container = document.createElement("div");
-        //this.container.style.cssText = "top:10px";
+        this.container.style.cssText = "display:grid";
+        this.container.id = "id"+IconCreatorGlobal.id();
 
         this.frameContainer = document.createElement("div");
         this.frameContainer.style.cssText = "height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;";
 
         this.viewportOutline = document.createElement("div");
-        let outlineWidth = parseInt(this.dimensions.width) - 4;
-        let outlineHeight = parseInt(this.dimensions.height) - 4;
-        this.viewportOutline.style.cssText = "pointer-events:none;height:"+outlineWidth+"px;width:"+outlineHeight+"px;position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);border-radius:2px;z-index:10000;";
-        
-        this.contextContainer = this.frameContainer.cloneNode(false);
-        this.contextContainer.style.cssText = "position:absolute;top:calc((100vh - 512px) / 2);left:calc((100vw - 512px) / 2);";
-        this.contextContainer.style.opacity = "0.4";
-        this.contextContainer.style.pointerEvents = "none";
+        this.outlineThiccness = 2;
+        this.viewportOutline.style.cssText = `pointer-events:none;height:${this.dimensions.height}px;width:${this.dimensions.width}px;border-radius:2px;z-index:10000;transform:translate(-${this.outlineThiccness}px, -${this.outlineThiccness}px);`;
 
         let firstFrame = new Frame(this.frameContainer,this.infoBoxContainer, this.editor);
         firstFrame.paintPanel.style.display = "block";
@@ -57,15 +51,14 @@ class Project extends IconCreatorGlobal{
         this.container.append(this.frameContainer);
         this.container.append(this.bgCanvas);
         this.container.append(this.viewportOutline);
-        this.container.append(this.contextContainer);
         //configure canvas after viewport size
         this.fullViewport = fullViewport;
         this.drawBg();
         
         //setup css inside head
-        var css = 'svg[role=main] *{pointer-events:all;}',
-        head = document.head || document.getElementsByTagName('head')[0],
-        style = document.createElement('style');
+        let css = `svg[role=main] *{pointer-events:all;}svg[role=reference] *{pointer-events:all;} #${this.container.id} > div{grid-column: 1;grid-row: 1;}`;
+        let head = document.head || document.getElementsByTagName('head')[0];
+        let style = document.createElement('style');
         head.appendChild(style);
         style.type = 'text/css';
         style.appendChild(document.createTextNode(css));
@@ -82,29 +75,98 @@ class Project extends IconCreatorGlobal{
      * @param {Frame} frame 
      */
     setFrame(frame){
-        this.currentFrame.paintPanel.innerHTML = "";
-        this.currentFrame.paintPanel.style.display = "none";
         this.currentFrame.hide();
         this.currentFrame = frame;
-        this.currentFrame.paintPanel.style.display = "block";
         this.currentFrame.show();
         this.repaint();
     }
-    /**
-     * Sets a frame as drawing context. This means the frame will be displayed as background with low opacity.
-     * @param {Frame} frame that should be seen as context. If frame is undefined the context is removed.
-     */
-    setContext(frame){
-        return
-        if(frame){
-            this.contextContainer.innerHTML = "";
-            let contextFrame = new Frame(this.contextContainer, this.infoBoxContainer, this.editor);
-            contextFrame.load(frame.get(), false, false);
-            contextFrame.paintPanel.style.display = "block";
-            contextFrame.repaint();
-        }else{
-            this.contextContainer.innerHTML = "";
+    addReferenceImage(image){
+        let url = URL.createObjectURL(image);
+        if(this.referenceFrame == undefined){
+            this.initRefFrame();
         }
+        let callback = (width, height) => {
+            this.referenceFrame.processAndAppend(new ReferenceImage(0,0, 100*width/height, 100, url, width/height));
+            this.referenceFrame.show();
+            this.referenceFrame.repaint();
+        }
+        ImageProcessor.imageDimensions(image, callback);
+    }
+    initRefFrame(){
+        this.referenceFrameContainer = document.createElement("div");
+        this.referenceFrameContainer.style.cssText = "height:"+this.dimensions.height+"px;width:"+this.dimensions.width+"px;";
+        this.referenceFrameContainer.classList.add("ref-frame-container");
+        this.referenceFrame = new Frame(this.referenceFrameContainer, document.createElement("div"), this.editor);
+        this.referenceFrame.role = "reference";
+        this.container.prepend(this.referenceFrameContainer);
+    }
+    newPattern(type,xOrigin,yOrigin){
+        return this.frame().newPattern(type, xOrigin, yOrigin, this.getColor());
+    }
+    getColor(){
+        let color;
+        if(this.paintColor == "default" && this.generateColors){
+            color = this.editor.environment.control.meta.paintColor.querySelector("input").value;
+            let newColor = this.colorMachine.next();
+            this.editor.environment.control.meta.paintColor.querySelector("input").value = newColor;
+            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
+        }else{
+            color = this.paintColor;
+        }
+        return color;
+    }
+    setColor(color = "#000000"){
+        this.paintColor = color;
+        if(this.editor.environment.control.meta.paintColor.querySelector("input").value != color){
+            this.editor.environment.control.meta.paintColor.querySelector("input").value = color;
+            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
+        }
+    }
+    patternById(id){
+        let pattern =  this.frame().patternById(id);
+        if(pattern == undefined){//if not in focussed frame it could be a refernce image
+            pattern =  this.referenceFrame.patternById(id);
+        }
+        return pattern;
+    }
+    /**
+     * Calls the alterPattern function of the active Frame. Passed attributes in attrObject are adjusted in pattern. Use this function to alter Patterns, because is also adjusts the mask.
+     * @param {Pattern} pattern pattern that should be altered
+     * @param {Object} attrObject object containing the changes
+     * @param {Boolean} repaint default true; repaint the frame after altering
+     */
+    alterPattern(pattern,attrObject,repaint = true){
+        if(pattern && pattern.isReference){
+            this.referenceFrame.alterPattern(pattern,attrObject,repaint);
+        }else{
+            this.frame().alterPattern(pattern,attrObject,repaint);
+        }
+    }
+    repaint(pattern){
+        if(pattern && pattern.isReference){
+            this.referenceFrame.paint(pattern);
+        }else{
+            this.frame().paint(pattern);
+        }
+    }
+    remove(pattern){
+        if(pattern && pattern.isReference){
+            this.referenceFrame.remove(pattern);
+        }else{
+            this.frame().remove(pattern);
+        }
+    }
+    toTop(pattern){
+        this.frame().toTop(pattern);
+    }
+    toBottom(pattern){
+        this.frame().toBottom(pattern);
+    }
+    oneUp(pattern){
+        this.frame().oneUp(pattern);
+    }
+    oneDown(pattern){
+        this.frame().oneDown(pattern);
     }
     drawBg(){
         let lightLinesLightBg = "#eaeaea";
@@ -115,7 +177,7 @@ class Project extends IconCreatorGlobal{
         let highlightInterval = 4;
         let schemeColor =  (this.editor.colorSchemeLight)?"#1a1a1a":"#dbdbdb"
         //border
-        this.viewportOutline.style.border = `2px solid ${schemeColor}`;
+        this.viewportOutline.style.border = `${this.outlineThiccness}px solid ${schemeColor}`;
         //inner drawing
         let pen = this.bgCanvas.getContext("2d");
         //pen.fillStyle = "white";
@@ -179,52 +241,6 @@ class Project extends IconCreatorGlobal{
                     break;
             }
         }
-    }
-    newPattern(type,xOrigin,yOrigin){
-        return this.frame().newPattern(type, xOrigin, yOrigin, this.getColor());
-    }
-    getColor(){
-        let color;
-        if(this.paintColor == "default" && this.generateColors){
-            color = this.editor.environment.control.meta.paintColor.querySelector("input").value;
-            let newColor = this.colorMachine.next();
-            this.editor.environment.control.meta.paintColor.querySelector("input").value = newColor;
-            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
-        }else{
-            color = this.paintColor;
-        }
-        return color;
-    }
-    setColor(color = "#000000"){
-        this.paintColor = color;
-        if(this.editor.environment.control.meta.paintColor.querySelector("input").value != color){
-            this.editor.environment.control.meta.paintColor.querySelector("input").value = color;
-            this.editor.environment.control.meta.paintColor.querySelector("input").dispatchEvent(new Event('change'));
-        }
-    }
-    /**
-     * Calls the alterPattern function of the active Frame. Passed attributes in attrObject are adjusted in pattern. Use this function to alter Patterns, because is also adjusts the mask.
-     * @param {Pattern} pattern pattern that should be altered
-     * @param {Object} attrObject object containing the changes
-     * @param {Boolean} repaint default true; repaint the frame after altering
-     */
-    alterPattern(pattern,attrObject,repaint = true){
-        this.frame().alterPattern(pattern,attrObject,repaint);
-    }
-    repaint(pattern){
-        this.frame().paint(pattern);
-    }
-    toTop(pattern){
-        this.frame().toTop(pattern);
-    }
-    toBottom(pattern){
-        this.frame().toBottom(pattern);
-    }
-    oneUp(pattern){
-        this.frame().oneUp(pattern);
-    }
-    oneDown(pattern){
-        this.frame().oneDown(pattern);
     }
     /**
      * Loads a project and its frames + patterns that hast been exported with project.get(). Note that the current project will be overwritten.

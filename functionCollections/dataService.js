@@ -7,20 +7,36 @@ class DataService{
         let type = prompt("type");
         fetch(url, {
             method: 'POST',
-            cache: 'no-cache',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: DataService.encodeUrlData({"what":"icon","key":key,"name":name,"type":type,"filecontent":data}) // body data type must match "Content-Type" header
+            body: DataService.encodeUrlData({"what":"icon","key":key,"name":name,"type":type,"filecontent":data})
           }).then(
               function(response) {
                 return response.text();
               }
           ).then(
               function(text){
-                console.log("Response", text);
+                alert("Response: " + text);
               }
-          )
+          );
+    }
+    static async getIcons(page = 0, type="full"){
+        let url = glob_backend + "/get?" + DataService.encodeUrlData({"what":"icon","key":"null","page":page, "type":type});
+        return fetch(url, {
+            method: "GET"
+        }).then(
+            function(response) {
+              return response.json();
+            }
+        ).then(
+            function(json){
+                for(let key in json){
+                    json[key] = JSON.parse(json[key]);
+                }
+                return json;
+            }
+        );
     }
     static encodeUrlData(jsonData){
         let formBody = [];

@@ -57,6 +57,52 @@ class PointOperations{
         return PointOperations.normalize(returnVector);
     }
     /**
+     * Finds intersection point between two lines
+     *  @param {number} x1 - point x coordinate line 1 x1
+     *  @param {number} y1 - point y coordinate line 1 y1
+     *  @param {number} x2 - point x coordinate line 1 x2
+     *  @param {number} y2 - point y coordinate line 1 y2
+     *  @param {number} x3 - point x coordinate line 2 x1
+     *  @param {number} y3 - point y coordinate line 2 y1
+     *  @param {number} x4 - point x coordinate line 2 x2
+     *  @param {number} y4 - point y coordinate line 2 y2
+     * @returns {{x:Number,y:Number}} X and Y coordinates of intersection point.
+     */
+    static geradeIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+        // Check if none of the lines are of length 0
+        if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+            return false
+        }
+        const denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+        // Lines are parallel
+        if (denominator === 0) {
+            return false
+        }
+        let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+        // Return a object with the x and y coordinates of the intersection
+        let x = x1 + ua * (x2 - x1)
+        let y = y1 + ua * (y2 - y1)
+
+        return [ x, y ]
+    }
+    /**
+     * Get the distance between a point and an infinite line
+     * @param {*} x1 
+     * @param {*} y1 
+     * @param {*} x2 
+     * @param {*} y2 
+     * @param {*} px 
+     * @param {*} py 
+     * @returns 
+     */
+    static geradeDistance(x1, y1, x2, y2, px, py){
+        let orthV = PointOperations.orthogonalVector([x2 - x1, y2 -y1]);
+        let pointLineEnd = [orthV[0] + px, orthV[1] + py];
+        let intersect = PointOperations.geradeIntersect(x1, y1, x2, y2, px, py, ...pointLineEnd);
+        let distance = PointOperations.distance(px, py, ...intersect)
+        return distance;
+    }
+    /**
      * Finds the shortest distance between a line and a point
      * @param {*} pointX 
      * @param {*} pointY 
