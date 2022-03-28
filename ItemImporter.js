@@ -90,16 +90,19 @@ class ItemImporter{
             <div class="header">
                 <div class="close-button"><img src="img/close_cross.svg"></div>
                 <div class="tab saves header-item">
-                    Saved
+                    <img src="img/save_icon.svg" alt="burger menu"> Saved
                 </div>
                 <div class="tab icons header-item">
-                    Icons
+                <img src="img/icons_icon.svg" alt="burger menu"> Icons
                 </div>
             </div>
             <div class="content vert-scroll">
                 <div class="saved-projects">
                     <div class="save-current-wrapper">
                         <button selected>Save project</button>
+                    </div>
+                    <div class="roadmap-link-wrapper">
+                        <div>Feature may come soon. Visit <a href="https://www.easyicononline.com/roadmap" target="_blank">www.easyicononline.com/roadmap</a> for more information.</div>
                     </div>
                 </div>
                 <div class="preset-icons">

@@ -46,7 +46,12 @@ class MaskFrame extends Frame{
     }
     //@Override
     show(){
-        
+        this.paintPanel.style.display = "block";
+    }
+    //@Override
+    hide(){
+        this.paintPanel.innerHTML = "";
+        this.paintPanel.style.display = "none";
     }
     /**
      * !!! only loads mask patterns, not loading the main pattern or the filler, they have to be there already or added manuelly

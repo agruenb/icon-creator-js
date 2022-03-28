@@ -79,6 +79,7 @@ class Project extends IconCreatorGlobal{
         this.currentFrame = frame;
         this.currentFrame.show();
         this.repaint();
+        console.log(this.currentFrame);
     }
     addReferenceImage(image){
         let url = URL.createObjectURL(image);

@@ -44,13 +44,26 @@ button.compact{padding: 2px 4px;font-size: 13px;}
 .tab{
     border-radius: 10px 10px 0 0;
     background: var(--tab-set-back);
-    padding: 5px;
-    height: 19px;
+    border: 1px solid var(--panel-background-set-back);
+    padding: 6px;
+    line-height: 23px;
+    height: 23px;
+    /* font-weight: bold; */
     text-align: center;
     cursor: pointer;
 }
 .tab[selected]{
     background: var(--panel-background);
+    border: 1px solid var(--panel-outline);
+    border-bottom: none;
+    font-weight: bold;
+    z-index: 1;
+}
+.tab > img{
+   height: 1em;
+   width: 1em;
+   transform: scale(1.2);
+   margin-right: 5px;
 }
 .overlay_bucket{
     width:100%;
