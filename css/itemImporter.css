@@ -53,13 +53,13 @@ width: 100%;
     width: 90%;
 }
 .item-import .content .preset-icons{
+}
+.item-import .content .preset-icons .preset-icons-content{
     display: grid;
     gap: 5px;
     grid-template-columns: 1fr 1fr 1fr;
 }
 .item-import .content .preset-icons .type-selection{
-    grid-column-start: 1;
-    grid-column-end: 4;
     display: flex;
     justify-content: space-around;
 }

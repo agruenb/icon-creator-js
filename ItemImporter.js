@@ -3,6 +3,9 @@ class ItemImporter{
     container;
     topParent;
 
+    lineIcons;
+    fullIcons;
+
     initialized = false;
 
     constructor(editor, environment){
@@ -48,14 +51,12 @@ class ItemImporter{
         this.selectLineIcons.addEventListener("click", ()=>{
             this.changeIconType("line");
         });
+        this.fullIconsContent = this.topParent.querySelector(".preset-icons-content.full");
 
-        this.appendSaves([full_red, global_icon_0, makukuma, full_red, desktop_outline, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global, global_icon_0, makukuma, desktop_outline, desktop_book, phone_global]);
-        DataService.getIcons(0,"line").then(
-            (data)=>{
-                this.appendIcons(data);
-            }
-        );
-
+        this.lineIconsContent = this.topParent.querySelector(".preset-icons-content.line");
+        
+        //load selected icons page
+        this.changeIconType("line");
         this.initialized = true;
     }
     openTab(tabName){
@@ -106,6 +107,10 @@ class ItemImporter{
                         <button class="full-icons" selected>${button_icon_full}Full</button>
                         <button class="line-icons">${button_icon_outlined}Lines</button>
                     </div>
+                    <div class="preset-icons-content full">
+                    </div>
+                    <div class="preset-icons-content line">
+                    </div>
                 </div>
             </div>
         `);
@@ -135,7 +140,7 @@ class ItemImporter{
             </div>`;
         return el;
     }
-    appendIcons(iterableExportedJSON){
+    appendIcons(element, iterableExportedJSON){
         for(let i in iterableExportedJSON){
             let item = iterableExportedJSON[i];
             let itemElement = this.iconElement(item.preview);
@@ -143,7 +148,7 @@ class ItemImporter{
             insertButton.addEventListener("click",()=>{
                 this.insertItem(item);
             });
-            this.iconsContent.append(itemElement);
+            element.append(itemElement);
         }
     }
     appendSaves(iterableExportedJSON){
@@ -188,12 +193,32 @@ class ItemImporter{
     changeIconType(type){
         switch(type){
             case "line":
+                if(!this.lineIcons){
+                    DataService.getIcons(0,"line").then(
+                        (data)=>{
+                            this.lineIcons = data;
+                            this.appendIcons(this.lineIconsContent, this.lineIcons);
+                        }
+                    );
+                }
                 this.selectLineIcons.setAttribute("selected","true");
                 this.selectFullIcons.removeAttribute("selected");
+                this.fullIconsContent.style.display = "none";
+                this.lineIconsContent.style.display = "grid";
                 break;
             case "full":
+                if(!this.fullIcons){
+                    DataService.getIcons(0,"full").then(
+                        (data)=>{
+                            this.fullIcons = data;
+                            this.appendIcons(this.fullIconsContent, this.fullIcons);
+                        }
+                    );
+                }
                 this.selectFullIcons.setAttribute("selected","true");
                 this.selectLineIcons.removeAttribute("selected");
+                this.fullIconsContent.style.display = "grid";
+                this.lineIconsContent.style.display = "none";
                 break;
             default:
                 console.warn("Unkown icons type name "+tabName);

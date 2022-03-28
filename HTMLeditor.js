@@ -588,7 +588,6 @@ class HTMLeditor{
                 case "arange":
                     this.state.view = view;
                     this.currProj().setFrame(this.currProj().keyframes[0]);
-                    this.currProj().setContext();
                     this.saveToHistory();
                     
                     break;

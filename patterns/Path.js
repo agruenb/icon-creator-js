@@ -404,7 +404,7 @@ class Path extends Pattern{
         }else{
             mid = PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[x,y]);
         }
-        newPoints.push({x:x,y:y,method:"L",type:"round",extraX:mid[0],extraY:mid[1]});
+        newPoints.push({x:x,y:y,method:"L",type:"sharp",extraX:mid[0],extraY:mid[1]});
         newPoints.push({method:"L",x:this.xOrigin,y:this.yOrigin,extraX:0,extraY:0,type:"round"});   
         return {
             points:newPoints
@@ -423,6 +423,7 @@ class Path extends Pattern{
             let mid = PointOperations.halfwayVector([this.getPoint(this.points.length - 3).x,this.getPoint(this.points.length - 3).y],[x,y]);//3 because: 1 dummy + 1 identical to self + 1 last point
             let insertPoint = {x:x,y:y,method:"L",type:"round",extraX:mid[0],extraY:mid[1]};
             newPoints.splice(newPoints.length - 1, 0, insertPoint);
+            newPoints[newPoints.length - 3].type = "round";//change from sharp to round after placement
             return {
                 points:newPoints
             }
