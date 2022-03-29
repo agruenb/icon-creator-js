@@ -202,6 +202,15 @@ class Text extends Pattern{
         outline.center = this.center;
         return outline;
     }
+    icon(){
+        return `
+            <path
+            d="M 1 1 L 7 1 L 7 3 L 5 3 L 5 7 L 3 7 L 3 3 L 1 3 Z"
+            fill="${this.color}"
+            ${(this.borderWidth > 0)?`stroke-width=1 stroke="${this.borderColor}"`:""}
+            />
+        `;
+    }
     keypress(event){
         if(this.isEditing){
             //add chars

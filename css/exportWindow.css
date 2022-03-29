@@ -71,6 +71,8 @@
 }
 .export-wrapper .preview .preview-item{
     background-color: var(--viewport-background);
+    border: 1px solid var(--contour-grey);
+    border-radius: 2px;
 }
 .export-wrapper .export-options{
     margin:20px 0;

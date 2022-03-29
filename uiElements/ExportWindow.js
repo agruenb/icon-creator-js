@@ -23,7 +23,7 @@ class ExportWindow{
         let scaffold = `
             <div class="export-wrapper vert-scroll box-shadow wind-in">
                 <div class="close-button"><img src="img/close_cross.svg"></div>
-                <div class="headline"><img src="img/download.svg">Export Project</div>
+                <div class="headline"><img src="img/sys_download_icon.svg">Export Project</div>
                 <div class="section-header">Preview</div>
                 <div class="preview">
                     ${this.preview("256",svgString)}
@@ -137,7 +137,10 @@ class ExportWindow{
         `;
     }
     updateButtons(){
-        let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton, this.selectJSONButton];
+        let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton];
+        if(glob_dev){
+            buttons.push(this.selectJSONButton);
+        }
         this.pngOptionsWrapper.style.cssText = "opacity:0.5;pointer-events:none;";
         switch (this.exportType) {
             case "svg":

@@ -465,11 +465,8 @@ class HTMLeditor{
         }
         //no options possible
         if(options.length == 0){
-            options = [{
-                label:"no actions here",
-                clickHandler:()=>{this.closeContextMenu();},
-                icon:"X"
-            }]
+            console.warn("No context menu in this area");
+            return;
         }
         this.contextMenu = new ContextMenu(event.clientX, event.clientY, this.environment.layout.viewport);
         this.contextMenu.deploy(options);
@@ -911,12 +908,16 @@ class HTMLeditor{
             this.removeCurrentPattern();
         }else if(event.keyCode == 39){//arror right
             this.translateFocussedPattern(this.state.gridsize);
+            this.saveToHistory();
         }else if(event.keyCode == 37){//arror left
             this.translateFocussedPattern(-this.state.gridsize);
+            this.saveToHistory();
         }else if(event.keyCode == 38){//arrow up
             this.translateFocussedPattern(0, -this.state.gridsize);
+            this.saveToHistory();
         }else if(event.keyCode == 40){//arrow down
             this.translateFocussedPattern(0, this.state.gridsize);
+            this.saveToHistory();
         }
         if(event.ctrlKey){//conrolKey pressed -> action
             if(event.keyCode === 68){//d

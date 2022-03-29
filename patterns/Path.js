@@ -156,6 +156,15 @@ class Path extends Pattern{
         }
         this.updateProperties();
     }
+    icon(){
+        return `
+            <path
+            d="M 1 1 L 4 2 L 7 1 L 6 4 L 7 7 L 4 6 L 1 7 L 2 4 Z"
+            fill="${this.color}"
+            ${(this.borderWidth > 0)?`stroke-width=1 stroke="${this.borderColor}"`:""}
+            />
+        `;
+    }
     //@Override
     additionalOptions(x, y, repaint){
         let options =  [

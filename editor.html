@@ -44,11 +44,11 @@
                 <div id="historyForwards" class="history-button topbar-action clickable">
                     <img src="img/undo_arrow.svg" alt="Arrow back" style="transform:scaleX(-1)">
                 </div>
-                <div class="export-button topbar-action clickable" id="exportFile">
-                    <img src="img/download.svg" alt="Download icon">
-                </div>
                 <div class="topbar-action clickable" id="moreOptions">
-                    <img src="img/more_dots.svg" alt="More options">
+                    <img src="img/sys_add_image_icon.svg" alt="More options">
+                </div>
+                <div class="export-button topbar-action clickable" id="exportFile">
+                    <img src="img/sys_download_icon.svg" alt="Download icon">
                 </div>
             </div>
         </div>
@@ -58,15 +58,15 @@
         <div class="toolbar">
             <div id="cursor" class="anno-button"><div class="tool-icon"><img src="img/cursor_icon.svg" alt="circle"></div></div>
             
-            <div id="paintColor" class="anno-button" style="margin-top: 20px;"><img class="overlay_bucket" src="img/color_bucket_2.svg" alt="color bucket"></div>
+            <div id="paintColor" class="anno-button color-picker" style="margin-top: 20px;"></div>
             
-            <div id="newRect" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/rect_icon.svg" alt="circle"></div></div>
-            <div id="newLine" class="anno-button"><div class="tool-icon"><img src="img/line_icon.svg" alt="circle"></div></div>
-            <div id="newCircle" class="anno-button"><div class="tool-icon"><img src="img/circle_icon.svg" alt="circle"></div></div>
-            <div id="newEllipse" class="anno-button"><div class="tool-icon"><img src="img/ellipse_icon.svg" alt="circle"></div></div>
-            
-            <div id="newPath" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/path_icon.svg" alt="circle"></div></div>
-            <div id="newText" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/path_icon.svg" alt="circle"></div></div>
+            <div id="newPath" class="anno-button"><div class="tool-icon"><img src="img/sys_star_icon.svg" alt="circle"></div></div>
+            <div id="newText" class="anno-button"><div class="tool-icon"><img src="img/sys_capital_t_icon.svg" alt="circle"></div></div>
+
+            <div id="newRect" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/sys_rect_icon.svg" alt="circle"></div></div>
+            <div id="newLine" class="anno-button"><div class="tool-icon"><img src="img/sys_line_icon.svg" alt="circle"></div></div>
+            <div id="newCircle" class="anno-button"><div class="tool-icon"><img src="img/sys_circle_icon.svg" alt="circle"></div></div>
+            <div id="newEllipse" class="anno-button"><div class="tool-icon"><img src="img/sys_ellipse_icon.svg" alt="circle"></div></div>
         </div>
         <div id="sidebar" class="sidebar">
             <div id="elementOverview" class="vert-scroll box-menu">
@@ -77,22 +77,22 @@
             <div class="gridsize-wrapper">
                 <input type="radio" style="display:none;" value="3" id="gridsize_3" name="gridsize" checked></input>
                 <label for="gridsize_3">
-                    <div class="icon"></div>
+                    <img class="icon" src="img/sys_grid_none_icon.svg" alt="Gridsize none icon">
                 </label>
                 <input type="radio" style="display:none;" value="4" id="gridsize_4" name="gridsize"></input>
                 <label for="gridsize_4">
-                    <img class="icon" src="img/grid_fine.svg" alt="Gridsize fine icon">
+                    <img class="icon" src="img/sys_grid_small_icon.svg" alt="Gridsize fine icon">
                 </label>
                 <input type="radio" style="display:none;" value="5" id="gridsize_5" name="gridsize"></input>
                 <label for="gridsize_5">
-                    <img class="icon" src="img/grid_medium.svg" alt="Gridsize medium icon">
+                    <img class="icon" src="img/sys_grid_medium_icon.svg" alt="Gridsize medium icon">
                 </label>
                 <input type="radio" style="display:none;" value="6" id="gridsize_6" name="gridsize"></input>
                 <label for="gridsize_6">
-                    <img class="icon" src="img/grid_large.svg" alt="Gridsize large icon">
+                    <img class="icon" src="img/sys_grid_large_icon.svg" alt="Gridsize large icon">
                 </label>
             </div>
-            <div class="background-color-wrapper">
+            <div class="background-color-wrapper" style="display:none">
                 <input type="radio" style="display:none;" value="light" id="bgColor_light" name="bgColor" checked></input>
                 <label for="bgColor_light">
                     <img class="icon" src="img/light_mode_icon.svg" alt="Gridsize medium icon">
@@ -105,7 +105,7 @@
             <div class="exclusive-view-wrapper">
                 <input type="checkbox" style="display:none" id="exclusiveView">
                 <label for="exclusiveView">
-                    <img class="icon" src="img/exclusive_view_icon.svg" alt="exclusive view icon">
+                    <img class="icon" src="img/sys_crosshair_icon.svg" alt="exclusive view icon">
                 </label>
             </div>
         </div>
@@ -238,7 +238,7 @@
         openSavesButton:document.getElementById("openSaveMenu"),
         openIconsButton:document.getElementById("openIconMenu")
     }
-    glob_dev = true;
+    glob_dev = false;
     glob_backend = "http://localhost/easyIconOnline";
     m = new EditorManager();
     m.init(editorEnvironment, itemLoaderEnvironment);
