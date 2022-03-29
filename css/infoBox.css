@@ -1,18 +1,20 @@
 .editor-container .infobox{
     border-radius: 10px;
     padding:10px;
-    width: 260px;
+    width: 280px;
+    height: 60px;
+    box-sizing: border-box;
     position:relative;
-    margin-top:5px;
+    margin: 5px;
     background: var(--panel-background);
     /* --animation-time: 0.5s; */
-}
-.editor-container .infobox:hover{
-    transition: 0.2s;
 }
 .editor-container .infobox.highlight{
     /*background:linear-gradient(180deg, var(--header-panel-grey)35px, var(--panel-background) 35px);*/
     opacity:1;
+    margin: 10px 5px;
+    height: 165px;
+    border-left: 5px solid var(--highlight);
 }
 .infobox .headline{
     width:100%;
@@ -45,34 +47,39 @@
     display:block;
 }
 .infobox .top-wrapper{
-    position: relative;
-    /* width:330px; */
+    position: absolute;
+    left: 10px;
+    width: 260px;
     height: 30px;
+    display: flex;
+    flex-wrap: wrap;
 }
 .infobox.expanded .top-wrapper{
     height: 135px;
+    left: 5px;
+}
+.infobox .order-wrapper{
+    margin-left: 15px;
 }
 .infobox .order-wrapper, .infobox .color-wrapper, .infobox .border-wrapper{
     display:flex;
     justify-content:flex-start;
-    flex-wrap:wrap;
-    margin-right: 5px;
 }
 .infobox .line{
-    position:absolute;
     display:flex;
-    width:226px;
 }
 .infobox .line.upper{
-    transform: translate(40px, -35px);
+    /* transform: translate(40px, -35px); */
+    width: 220px;
 }
 .infobox .line.lower{
     display:none;
+    width: 260px;
 }
 .infobox.expanded .line.lower{
     display:flex;
     flex-direction: column;
-    transform: translate(40px, 14px);
+    margin: 10px 0 0 1px;
 }
 .infobox .pseudo-input{
     display: flex;
@@ -89,16 +96,16 @@
 .infobox .hide-wrapper .hide-button{
     margin: 0 0 0 4px;
 }
-.infobox .color-wrapper{
-    margin-left: 5px;
-    width: 80px;
+.infobox .lower .icon{
+    margin: 5px 20px 5px 5px;
+    width: 30px;
+    height: 30px;
 }
 .infobox .border-wrapper{
-    width: 120px;
-    margin: 10px 0 0 5px;
+    margin-top: 10px;
 }
 .infobox .shape-icon{
-    --icon-size:30px;
+    --icon-size: 40px;
     height:var(--icon-size);
     width:var(--icon-size);
 }
@@ -111,7 +118,7 @@
 .infobox .pseudo-input:last-child{
     margin-right:0;
 }
-.infobox .order-wrapper button, .infobox .hide-wrapper button, .infobox .delete-wrapper button{
+.infobox .order-wrapper > div, .infobox .hide-wrapper > div, .infobox .delete-wrapper > div{
     display: flex;
     justify-content:center;
     align-items:center;
@@ -120,7 +127,6 @@
     padding:0;
     height: 40px;
     width: 40px;
-    margin-right: 4px;
     cursor: default;
     color:var(--white-text);
     border-radius:8px;
@@ -128,12 +134,12 @@
     opacity: 0.6;
     padding: 8px;
 }
-.infobox.highlight .order-wrapper button,
-.infobox.highlight .hide-wrapper button,
-.infobox.highlight .delete-wrapper button,
-.infobox:hover .order-wrapper button,
-.infobox:hover .hide-wrapper button,
-.infobox:hover .delete-wrapper button{
+.infobox.highlight .order-wrapper > div,
+.infobox.highlight .hide-wrapper > div,
+.infobox.highlight .delete-wrapper > div,
+.infobox:hover .order-wrapper > div,
+.infobox:hover .hide-wrapper > div,
+.infobox:hover .delete-wrapper > div{
     opacity: 1;
 }
 .infobox .order-wrapper button:hover,

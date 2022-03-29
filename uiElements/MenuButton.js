@@ -14,7 +14,7 @@ class MenuButton{
         labelElement.innerHTML = label;
         this.element.append(iconElement);
         this.element.append(labelElement);
-        this.element.classList.add("contextmenu-button");
+        this.element.classList.add("contextmenu-button","clickable");
         this.element.addEventListener("mousedown", (mouseEvent)=>{
             mouseEvent.stopPropagation();
         });

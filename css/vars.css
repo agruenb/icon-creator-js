@@ -15,6 +15,8 @@
     --viewport-background:#fff;
     --contour-black:#000000;
     --contour-grey:#ccc;
+    --interactive-hover-background:#dcdcdc;
+    --clickable-border-radius:5px;
     /*text*/
     --white-text:#fff;
     --dark-text:#161616;

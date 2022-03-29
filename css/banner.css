@@ -1,55 +1,62 @@
 .editor-container .banner{
     width: 400px;
-    height: 44px;
+    height: 60px;
     padding: 5px;
-    top:20px;
+    top: 10px;
     left: calc(50% - 210px);
     position: absolute;
     background-color: var(--panel-background);
     border-radius: 10px;
-    /* box-shadow: var(--panel-shadow); */
     animation-name:slideDown;
     animation-duration:0.3s;
 }
 .editor-container .banner .top-wrapper{
     display:flex;
     width: 100%;
-    height:44px;
+    height: 100%;
     overflow: hidden;
 }
 .editor-container .banner .title{
     width:330px;
+    color: var(--icon-interactive);
     padding-left:10px;
-    height:44px;
-    line-height:44px;
+    height: 100%;
+    line-height: 60px;
     font-size: 22px;
     font-weight: 500;
 }
+.editor-container .banner .title > img{
+    width: 22px;
+    height: 22px;
+    transform: translateY(3px) scale(1.6);
+    margin: 0 15px;
+    display: inline;
+}
 .editor-container .banner .close-button{
     width:60px;
+    margin: auto 7px;
     height:44px;
-    color:var(--white-text);
-    background-color:var(--highlight);
-    border-radius:5px;
-    text-align: center;
-    font-size: 14px;
 }
 .editor-container .banner .tool-buttons{
     width:100%;
     height:100%;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    display: flex;
+    justify-content: space-evenly;
 }
 .editor-container .banner .tool-buttons .contextmenu-button{
-    cursor: pointer
-    ;display: flex;
+    cursor: pointer;
+    display: flex;
+    --size: 50px;
     align-items: center;
+    justify-content: space-between;
+    width: var(--size);
+    height: var(--size);
     flex-direction: column;
     font-size: 12px;
+    padding: 5px;
 }
 .editor-container .banner .tool-buttons .contextmenu-button .icon{
-    --size: 30px;
+    --size: 34px;
     height: var(--size);
     width:var(--size);
 }

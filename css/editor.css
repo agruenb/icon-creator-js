@@ -34,12 +34,12 @@ button[selected]:hover{
 button:active{
     transform: scale(0.9);
 }
-button.compact{padding: 2px 4px;font-size: 13px;}
+button.compact{
+    padding: 2px 4px;
+    font-size: 13px;
+}
 .close-button{
     cursor:pointer;
-}
-.close-button:hover{
-    transform:scale(1.2);
 }
 .tab{
     border-radius: 10px 10px 0 0;
@@ -48,7 +48,6 @@ button.compact{padding: 2px 4px;font-size: 13px;}
     padding: 6px;
     line-height: 23px;
     height: 23px;
-    /* font-weight: bold; */
     text-align: center;
     cursor: pointer;
 }
@@ -64,6 +63,10 @@ button.compact{padding: 2px 4px;font-size: 13px;}
    width: 1em;
    transform: scale(1.2);
    margin-right: 5px;
+}
+.clickable:hover{
+    background:var(--interactive-hover-background);
+    border-radius:var(--clickable-border-radius);
 }
 .overlay_bucket{
     width:100%;
@@ -136,7 +139,6 @@ button.compact{padding: 2px 4px;font-size: 13px;}
     justify-content: center;
     cursor: pointer;
     align-items: center;
-    border-radius:5px;
 }
 .topbar .export-button{
     border-left: 3px solid #fff;
@@ -148,9 +150,6 @@ button.compact{padding: 2px 4px;font-size: 13px;}
 }
 .editor-container .history-button.disabled{
     opacity: 0.6;
-}
-.editor-container .history-button:hover{
-    background: var(--viewport-background);
 }
 .editor-container .history-button.disabled:hover{
     background: var(--panel-background);
@@ -252,12 +251,10 @@ button.compact{padding: 2px 4px;font-size: 13px;}
     transition:var(--overlay-trans-time);
 }
 .editor-container .box-menu{
-    width:calc(100% - 10px);
+    width: 100%;
     pointer-events: all;
-    max-height:100%;
-}
-.editor-container .box-menu > *{
-    margin-bottom:8px;
+    max-height: 75vh;
+    border-bottom: 3px solid var(--contour-grey);
 }
 .editor-container .vert-scroll{
     overflow-y:auto;

@@ -410,30 +410,30 @@ class HTMLeditor{
             options.push({
                 label:"carve out",
                 clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
-                icon:"img/carve_out_icon.svg",
+                icon:"img/sys_carve_out_icon.svg",
                 type:"general"
             });
         }
         options.push({
             label:"duplicate",
             clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
-            icon:"img/duplicate_icon.svg",
+            icon:"img/sys_duplicate_icon.svg",
             type:"general"
         },{
             label:"flip",
             clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
-            icon:"img/flip_icon.svg",
+            icon:"img/sys_flip_icon.svg",
             type:"general"
         },{
             label:"flip",
             clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
-            icon:"img/flip_icon.svg",
+            icon:"img/sys_flip_icon.svg",
             type:"general",
             transform:"rotate(90deg)"
         },{
             label:"delete",
             clickHandler:()=>{this.removeCurrentPattern();this.closeContextMenu();},
-            icon:"img/trash_icon_temp.svg",
+            icon:"img/sys_trash_icon.svg",
             type:"general"
         });
         return options;
@@ -598,7 +598,7 @@ class HTMLeditor{
                             this.currProj().setFrame(focusedPattern.maskLayer);
                             //ui
                             let callback = ()=>{this.changeView("arange")};
-                            let headline = IconCreatorGlobal.el("div","Carve out mode","title");
+                            let headline = IconCreatorGlobal.el("div","<img src='img/sys_carve_out_icon.svg'>Carve out mode","title");
                             let banner = new Banner(headline, "Quit", callback);
                             banner.addTo(this.environment.layout.container);
                         }else{

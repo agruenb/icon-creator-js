@@ -33,7 +33,7 @@ class PatternInfoBox{
         this.boundId = pattern.id;
         this.element = document.createElement("div");
         this.element.id = "infoBox"+this.boundId;
-        this.element.classList.add("infobox");
+        this.element.classList.add("infobox","box-shadow");
         this.name = this.pattern.constructor.name;
         this.fillBody();
         this.update();
@@ -84,22 +84,6 @@ class PatternInfoBox{
             this.displayedIcon.src = this.HIDDEN;
         }
     }
-    getIconUrl(){
-        switch (this.pattern.constructor.name) {
-            case "Rect":
-                return "img/rect_icon.svg";
-            case "Circle":
-                return "img/circle_icon.svg";
-            case "Ellipse":
-                return "img/ellipse_icon.svg";
-            case "Line":
-                return "img/line_icon.svg";
-            case "Path":
-                return "img/path_icon.svg";
-            default:
-                break;
-        }
-    }
     fillBody(){
         let topWrapper = IconCreatorGlobal.el("div","", "top-wrapper");
         //icon
@@ -111,20 +95,24 @@ class PatternInfoBox{
         line.classList.add("lower");
         //order
         let orderWrapper = IconCreatorGlobal.el("div","","order-wrapper");
-        let toTop = IconCreatorGlobal.el("button","","toTop");
+        let toTop = IconCreatorGlobal.el("div","","toTop");
+        toTop.classList.add("clickable");
         let toTopIcon = document.createElement("img");
         toTopIcon.src = this.toTopImg;
         toTop.append(toTopIcon);
-        let oneUp = IconCreatorGlobal.el("button","","oneUp");
+        let oneUp = IconCreatorGlobal.el("div","","oneUp");
+        oneUp.classList.add("clickable");
         let oneUpIcon = document.createElement("img");
         oneUpIcon.src = this.oneUpImg;
         oneUp.append(oneUpIcon);
-        let toBottom = IconCreatorGlobal.el("button","","toBottom");
+        let toBottom = IconCreatorGlobal.el("div","","toBottom");
+        toBottom.classList.add("clickable");
         let toBottomIcon = document.createElement("img");
         toBottomIcon.src = this.toTopImg;
         toBottomIcon.style.transform = "scale(-1, -1)";
         toBottom.append(toBottomIcon);
-        let oneDown = IconCreatorGlobal.el("button","","oneDown");
+        let oneDown = IconCreatorGlobal.el("div","","oneDown");
+        oneDown.classList.add("clickable");
         let oneDownIcon = document.createElement("img");
         oneDownIcon.src = this.oneUpImg;
         oneDownIcon.style.transform = "scale(-1, -1)";
@@ -132,7 +120,8 @@ class PatternInfoBox{
         orderWrapper.append(toTop, oneUp, oneDown, toBottom);
         //hide
         let hideWrapper = IconCreatorGlobal.el("div","","hide-wrapper");
-        let hideButton = IconCreatorGlobal.el("button", "", "hide-button");
+        let hideButton = IconCreatorGlobal.el("div", "", "hide-button");
+        hideButton.classList.add("clickable");
         let hideButtonImg = IconCreatorGlobal.el("img", "", "hide-image");
         hideButtonImg.src = this.VISIBLE;
         this.displayedIcon = hideButtonImg;
@@ -148,8 +137,11 @@ class PatternInfoBox{
         upperLine.append(orderWrapper, hideWrapper);
         
         //fill
-        let colorWrapper = IconCreatorGlobal.el("div","","button-group");
-        colorWrapper.classList.add("color-wrapper");
+        let colorWrapper = IconCreatorGlobal.el("div","","color-wrapper");
+        //icon
+        let fillIcon = IconCreatorGlobal.el("div","<img src='img/sys_bucket_icon.svg'>", "icon");
+        //inputs
+        let colorButtonGroup = IconCreatorGlobal.el("div","","button-group");
         if(this.pattern.color != undefined){
             let colorInput = new CustomColorInput("pseudo-input", (this.pattern.color == "transparent")?"#ffffff":this.pattern.color);
             this.fillColorLabel = colorInput;
@@ -158,7 +150,7 @@ class PatternInfoBox{
             fillTransLabel.setAttribute("title","remove filling");
             fillTransLabel.classList.add("checkerboard-bg");
             this.fillTrans = fillTransLabel.querySelector("input");
-            colorWrapper.append(colorInput, fillTransLabel);
+            colorButtonGroup.append(colorInput, fillTransLabel);
             this.fillColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {color:e.target.value}, true);
                 this.updateIcon();
@@ -183,9 +175,11 @@ class PatternInfoBox{
                 this.updateFill();
             });
         }
+        colorWrapper.append(fillIcon, colorButtonGroup);
         //border
         let borderWrapper = IconCreatorGlobal.el("div", "", "border-wrapper");
-        borderWrapper.classList.add("button-group");
+        let borderIcon = IconCreatorGlobal.el("div","<img src='img/sys_border_icon.svg'>", "icon");
+        let borderButtonGroup = IconCreatorGlobal.el("div","","button-group");
         if(this.pattern.borderWidth != undefined){
             let borderColorInput = new CustomColorInput("pseudo-input", (this.pattern.borderColor == "transparent")?"#ffffff":this.pattern.borderColor);
             this.borderColorLabel = borderColorInput;
@@ -197,7 +191,7 @@ class PatternInfoBox{
             this.borderWidthLabel = borderWidthInput;
             borderTransLabel.setAttribute("title","remove border");
             this.borderTrans = borderTransLabel.querySelector("input");
-            borderWrapper.append(borderColorInput, borderWidthInput, borderTransLabel);
+            borderButtonGroup.append(borderColorInput, borderWidthInput, borderTransLabel);
             this.borderColor.addEventListener("change",(e)=>{
                 this.keyFrame.alterPattern(this.pattern, {borderColor:e.target.value}, true);
                 this.updateIcon();
@@ -233,8 +227,8 @@ class PatternInfoBox{
                 this.updateBorder();
             });
         }
+        borderWrapper.append(borderIcon, borderButtonGroup);
         line.append(colorWrapper, borderWrapper);
-
         topWrapper.append(iconWrapper, upperLine, line);
 
         this.element.append(topWrapper);
