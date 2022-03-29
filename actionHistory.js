@@ -46,8 +46,6 @@ class ActionHistory{
             this.frame.load(lastState);
             this.currentState--;
             this.frame.repaint();
-            console.log("Items in history: "+this.history.length);
-            console.log("Now in state "+this.currentState);
         }
     }
     reInitLast(){
@@ -60,8 +58,6 @@ class ActionHistory{
             this.frame.load(lastState);
             this.currentState++;
             this.frame.repaint();
-            console.log("Items in history: "+this.history.length);
-            console.log("Now in state "+this.currentState);
         }
     }
     clear(){

@@ -79,7 +79,6 @@ class Project extends IconCreatorGlobal{
         this.currentFrame = frame;
         this.currentFrame.show();
         this.repaint();
-        console.log(this.currentFrame);
     }
     addReferenceImage(image){
         let url = URL.createObjectURL(image);
@@ -156,6 +155,14 @@ class Project extends IconCreatorGlobal{
         }else{
             this.frame().remove(pattern);
         }
+    }
+    reset(){
+        this.currentFrame.hide();
+        let newFrame = new Frame(this.frameContainer, this.infoBoxContainer, this.editor);
+        newFrame.paintPanel.style.display = "block";
+        this.keyframes = [];
+        this.keyframes.push(newFrame);
+        this.currentFrame = this.keyframes[0];
     }
     toTop(pattern){
         this.frame().toTop(pattern);

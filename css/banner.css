@@ -4,6 +4,7 @@
     padding: 5px;
     top: 10px;
     left: calc(50% - 210px);
+    z-index: 10001;
     position: absolute;
     background-color: var(--panel-background);
     border-radius: 10px;

@@ -50,6 +50,9 @@
                 <div class="export-button topbar-action clickable" id="exportFile">
                     <img src="img/sys_download_icon.svg" alt="Download icon">
                 </div>
+                <div class="reset-button topbar-action clickable" id="clearAll">
+                    <img src="img/sys_big_cross_icon.svg" alt="Download icon">
+                </div>
             </div>
         </div>
         <div class="item-import box-shadow outside" id="itemImport">
@@ -102,7 +105,7 @@
                     <img class="icon" src="img/dark_mode_icon.svg" alt="Gridsize medium icon">
                 </label>
             </div>
-            <div class="exclusive-view-wrapper">
+            <div class="exclusive-view-wrapper" style="display:none">
                 <input type="checkbox" style="display:none" id="exclusiveView">
                 <label for="exclusiveView">
                     <img class="icon" src="img/sys_crosshair_icon.svg" alt="exclusive view icon">
@@ -180,7 +183,8 @@
         },
         control:{
             editSVG:{
-                cursor:document.getElementById("cursor")
+                cursor:document.getElementById("cursor"),
+                clearAll: document.getElementById("clearAll")
             },
             history:{
                 back:document.getElementById("historyBack"),

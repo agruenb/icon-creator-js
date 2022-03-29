@@ -32,14 +32,34 @@ class HTMLeditor{
         this.drawingViewport = this.environment.layout.resultViewport;
         this.drawingViewport.style.cssText = "height:512px;width:512px;";
         //init control
-        this.environment.control.editSVG.cursor.addEventListener("click",() => {this.focus();this.setDrawingType("none")});
-        
+        this.environment.control.editSVG.cursor.addEventListener("click",() => {
+            this.focus();
+            this.setDrawingType("none");
+        });
+        this.environment.control.editSVG.clearAll.addEventListener("click",()=>{
+            let onAccept = ()=>{
+                this.currProj().reset();
+                this.saveToHistory();
+                this.repaint();
+            }
+            let onReject = ()=>{return;}
+            let message = "Everything will be cleared. A recovery will not be possible.";
+            new ConfirmWindow(this.environment.layout.overlay, "New Project",message,onAccept, onReject);
+        });
         //pattern creation
         for(let i in this.environment.config.patterns){
             let item = this.environment.config.patterns[i];
             if(item.startPaintButton){
-                item.startPaintButton.addEventListener("mousedown",() => {this.setDrawingType("dragOut");this.state.paintPatternName = item.constructorName;});
-                item.startPaintButton.addEventListener("mouseup",() => {this.setDrawingType("clickedPaintPattern");this.state.paintPatternName = item.constructorName;});
+                item.startPaintButton.addEventListener("mousedown",() => {
+                    this.setDrawingType("dragOut");
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    this.state.paintPatternName = item.constructorName;
+                });
+                item.startPaintButton.addEventListener("mouseup",() => {
+                    this.setDrawingType("clickedPaintPattern");
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    this.state.paintPatternName = item.constructorName;
+                });
             }
         }
         //meta edits
@@ -94,14 +114,26 @@ class HTMLeditor{
     mouseDown(event){
         this.closeContextMenu();
         this.setMouseInfo(event);
-        if(event.which==1 && this.currentAction !== "none"){
+        if(event.which==1){
             //if new drawing type is selected
             if(["edit","activePaintPattern"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
+            let patternRole = event.target.parentElement.getAttribute("role");
             switch (this.state.currentAction) {
                 case "clickedPaintPattern":
                     this.state.currentAction = "mousedownPaintPattern";
+                    break;
+                case "none":
+                    //if pattern is on mouse -> start editing
+                    if(patternRole === "main" || patternRole === "reference"){
+                        //dont focus main pattern on mask frame
+                        if(this.currProj().frame().boundId != event.target.parentElement.id){
+                            this.startEdit(this.patternById(event.target.parentElement.id));
+                            this.setDraggingInfo(this.focusedPattern(), event);
+                            this.state.currentAction = "dragPattern";
+                        }
+                    }
                     break;
                 //edit
                 case "edit":
@@ -113,6 +145,13 @@ class HTMLeditor{
                     }else if(event.target.parentElement.id == this.focusedPattern().id){//start dragging pattern
                         this.setDraggingInfo(this.patternById(event.target.parentElement.id), event);
                         this.state.currentAction = "dragPattern";
+                    }else if(patternRole === "main" || patternRole === "reference"){//not focused pattern is clicked but pattern
+                        //dont focus main pattern on mask frame
+                        if(this.currProj().frame().boundId != event.target.parentElement.id){
+                            this.startEdit(this.patternById(event.target.parentElement.id));
+                            this.setDraggingInfo(this.focusedPattern(), event);
+                            this.state.currentAction = "dragPattern";
+                        }
                     }else{//do nothing
                         this.state.currentAction = "edit";
                     }
@@ -200,15 +239,6 @@ class HTMLeditor{
             let y = this.relY(event.clientY);
             let patternRole = event.target.parentElement.getAttribute("role");
             switch (this.state.currentAction) {
-                case "none":
-                    //if pattern is clicked -> start editing
-                    if(patternRole === "main" || patternRole === "reference"){
-                        //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != event.target.parentElement.id){
-                            this.startEdit(this.patternById(event.target.parentElement.id));
-                        }
-                    }
-                    break;
                 case "mousedownPaintPattern":
                     pattern = eval(`new ${this.state.paintPatternName}(0,0)`);
                     pattern.color = this.currProj().getColor();
@@ -240,14 +270,9 @@ class HTMLeditor{
                     break;
                 //edit
                 case "edit":
-                    //stop edit on active element
-                    this.stopEdit();
-                    //if pattern is clicked -> start editing
-                    if(patternRole === "main" || patternRole == "reference"){
-                        //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != event.target.parentElement.id){
-                            this.startEdit(this.patternById(event.target.parentElement.id));
-                        }
+                    if(patternRole !== "main" && patternRole !== "reference"){
+                        //stop edit on active element
+                        this.stopEdit();
                     }
                     break;
                 case "dragMarker"://also click marker
@@ -338,7 +363,6 @@ class HTMLeditor{
                 }
                 this.prepareEdit(pattern);
                 this.currProj().frame().updateInfoBox(pattern);
-                this.currProj().repaint(pattern);
                 break;
             case "dragPattern":
                 let newOriginX = this.relX(event.clientX,(this.state.draggingInfo.relToPatternOriginX));
@@ -350,7 +374,6 @@ class HTMLeditor{
                     this.prepareEdit(pattern);
                     this.currProj().frame().updateInfoBox(pattern);
                 }
-                this.repaint(pattern);
                 break;
             default:
                 //edit, but no further action
@@ -405,6 +428,14 @@ class HTMLeditor{
         }
     }
     defaultOptions(pattern){
+        if(pattern.isReference){
+            return [{
+                label:"delete",
+                clickHandler:()=>{this.removeCurrentPattern();this.closeContextMenu();},
+                icon:"img/sys_trash_icon.svg",
+                type:"general"
+            }];
+        }
         let options = [];
         if(!pattern.isMask){
             options.push({
@@ -610,6 +641,9 @@ class HTMLeditor{
         }
     }
     startEdit(pattern){
+        if(this.focusedPattern()){
+            this.stopEdit();
+        }
         this.setDrawingType("none");
         this.state.currentAction = "edit";
         this.focus(pattern);
@@ -757,27 +791,8 @@ class HTMLeditor{
         if(this.state.currentAction == "edit"){
             this.stopEdit();
         }
-        switch (type) {
-            case "none":
-                UniversalOps.selectRadio(this.environment.control.editSVG.cursor, this.environment.control.editSVG);
-                break;
-            case "rect0":
-                UniversalOps.selectRadio(this.environment.control.editSVG.newRect, this.environment.control.editSVG);
-                break;
-            case "circle0":
-                UniversalOps.selectRadio(this.environment.control.editSVG.newCircle, this.environment.control.editSVG);
-                break;
-            case "ellipse0":
-                UniversalOps.selectRadio(this.environment.control.editSVG.newEllipse, this.environment.control.editSVG);
-                break;
-            case "line0":
-                UniversalOps.selectRadio(this.environment.control.editSVG.newLine, this.environment.control.editSVG);
-                break;
-            case "path0":
-                UniversalOps.selectRadio(this.environment.control.editSVG.newPath, this.environment.control.editSVG);
-                break;
-            default:
-                break;
+        if(type == "none"){
+            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map(item=>{return item.startPaintButton})]);
         }
         this.state.currentAction = type;
     }

@@ -194,6 +194,7 @@ class Frame extends IconCreatorGlobal{
     }
     paint(pattern){
         if(pattern === undefined){//render all
+            console.warn("Full re-render");
             this.paintPanel.innerHTML = "";
             this.renderOrder.forEach(id => {
                 if(this.patterns[id] == undefined){
