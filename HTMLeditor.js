@@ -325,7 +325,7 @@ class HTMLeditor{
             break;
         }
     }
-    prepareEdit(pattern = this.focusedPattern()){
+    addEditUI(pattern = this.focusedPattern()){
         if(["edit","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
             let infoBox = this.infoBoxManager().boxById(pattern.id);
             if(infoBox != undefined){
@@ -333,7 +333,6 @@ class HTMLeditor{
             }
             let markers = pattern.getMarkers();
             let lines = pattern.getLines();
-            
             for(let i in lines){
                 let lineParams = lines[i];
                 this.addHelperLine(...lineParams);
@@ -357,11 +356,12 @@ class HTMLeditor{
                 //get changes that should be done to the pattern accordingly
                 let changes = pattern.markerEdited(editedObject,this.state.gridsize, this.relX(event.clientX,0,undefined,1), this.relY(event.clientY,0,undefined,1));
                 this.currProj().alterPattern(pattern, changes);
+                this.addEditUI(pattern);
                 //repaint point and marker and outline
                 if(changes.rotation != undefined){
                     this.addHelperRotation(pattern);
+                    console.log("here");
                 }
-                this.prepareEdit(pattern);
                 this.currProj().frame().updateInfoBox(pattern);
                 break;
             case "dragPattern":
@@ -371,7 +371,7 @@ class HTMLeditor{
                     this.clearViewportUI();
                     pattern.translateTo(newOriginX, newOriginY);
                     //repaint point and marker
-                    this.prepareEdit(pattern);
+                    this.addEditUI(pattern);
                     this.currProj().frame().updateInfoBox(pattern);
                 }
                 break;
@@ -508,7 +508,7 @@ class HTMLeditor{
             this.currProj().repaint(this.focusedPattern());
             this.saveToHistory();
             this.clearViewportUI();
-            this.prepareEdit();
+            this.addEditUI();
         }
     }
     mirrorCurrentPatternHorizontal(){
@@ -517,7 +517,7 @@ class HTMLeditor{
             this.currProj().repaint(this.focusedPattern());
             this.saveToHistory();
             this.clearViewportUI();
-            this.prepareEdit();
+            this.addEditUI();
         }
     }
     duplicateCurrentPattern(){
@@ -647,7 +647,7 @@ class HTMLeditor{
         this.setDrawingType("none");
         this.state.currentAction = "edit";
         this.focus(pattern);
-        this.prepareEdit(pattern);
+        this.addEditUI(pattern);
         if(this.exclusivView && !pattern.isReference){
             //hide all patterns that are not selected
             for(let id in this.currProj().frame().patterns){
@@ -871,7 +871,7 @@ class HTMLeditor{
             //repaint point and marker
             this.currProj().frame().updateInfoBox(pattern);
             this.clearViewportUI(pattern);
-            this.prepareEdit(pattern);
+            this.addEditUI(pattern);
             this.currProj().repaint(pattern);
         }
     }

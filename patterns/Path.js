@@ -156,6 +156,30 @@ class Path extends Pattern{
         }
         this.updateProperties();
     }
+    resize(scale){
+        let scalePoint = function(point, center, scale){
+            let distToCenter = PointOperations.distance(point[0], point[1], center[0], center[1]);
+            let targetLength = distToCenter*scale;
+            let centerToPointVector = [point[0] - center[0], point[1] - center[1]];
+            let newVectorFromCenter = PointOperations.trimVectorLength(centerToPointVector, targetLength);
+            return [center[0] + newVectorFromCenter[0], center[1] + newVectorFromCenter[1]];
+        }
+        //origin
+        let newOrigin = scalePoint([this.xOrigin, this.yOrigin], this.center, scale);
+        this.xOrigin = newOrigin[0];
+        this.yOrigin = newOrigin[1];
+        for(let index in this.points){
+            //points itself
+            let point = this.points[index];
+            let newPoint = scalePoint([point.x, point.y], this.center, scale);
+            point.x = newPoint[0];
+            point.y = newPoint[1];
+            //point extra
+            let newPointExtra = scalePoint([point.extraX, point.extraY], this.center, scale);
+            point.extraX = newPointExtra[0];
+            point.extraY = newPointExtra[1];
+        }
+    }
     icon(){
         return `
             <path
@@ -323,9 +347,19 @@ class Path extends Pattern{
             changes = {
                 rotation: parseInt(UniversalOps.snap(angle, this.snapTolerance, this.rotationSnap, true, 360))
             }
+        }else if(marker.memorize === "resize"){
+            let oldDistance = PointOperations.distance(...this.center, ...this.scaleMarkerPosition);
+            let newDistance = PointOperations.distance(...this.center, xPrecise, yPrecise);
+            this.resize(newDistance/oldDistance);
+            changes = {
+                xOrigin:this.xOrigin,
+                yOrigin:this.yOrigin,
+                points:this.points
+            };
         }else if(marker.memorize === points.length - 1){//if the last point is moved that is equal to origin
             points[marker.memorize].x = pointRotatedToNeutral[0];
             points[marker.memorize].y = pointRotatedToNeutral[1];
+            this.fixSurroundingPoints(points, marker.memorize);
             //move last point and Origin
             changes = {
                 xOrigin: pointRotatedToNeutral[0],
@@ -352,11 +386,8 @@ class Path extends Pattern{
         }else if(marker.memorize != "rotate"){//normal marker
             points[marker.memorize].x = pointRotatedToNeutral[0];
             points[marker.memorize].y = pointRotatedToNeutral[1];
-            changes = {points:points};
-        }
-        //adjust other points
-        if(marker.memorize != "rotate" && String(marker.memorize).substr(0,5) != "extra"){
             this.fixSurroundingPoints(points, marker.memorize);
+            changes = {points:points};
         }
         return changes;
     }
@@ -652,6 +683,12 @@ class Path extends Pattern{
         let r = [];
         //position of rotation marker
         r.push([...this.rotatePoint(PointOperations.orthogonalIcon(this.boundingRect.x,this.boundingRect.y,this.boundingRect.x + this.boundingRect.width,this.boundingRect.y, this.rotationMarkerDistanceFromPattern, "top")),"rotate", "arrow-rotate", this.rotation]);
+        //scale marker
+        let boundingTopLeft = [this.boundingRect.x,this.boundingRect.y];
+        let boundingBottomRight = [this.boundingRect.x + this.boundingRect.width, this.boundingRect.y + this.boundingRect.height];
+        let scaleMarkerDistance = PointOperations.distance(...boundingTopLeft, ...boundingBottomRight)/2 + this.rotationMarkerDistanceFromPattern;
+        this.scaleMarkerPosition = PointOperations.rotateAroundPoint(this.center, PointOperations.orthogonalIcon(...boundingTopLeft,...boundingBottomRight, scaleMarkerDistance , "top"), 90);
+        r.push([...this.scaleMarkerPosition,"resize","arrow-resize", 0])
         for(let index in this.points){
             let point = this.points[index];
             let rotatedPoint = this.rotatePoint([point.x,point.y]);

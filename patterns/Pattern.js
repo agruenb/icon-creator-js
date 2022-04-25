@@ -1,21 +1,23 @@
 class Pattern extends IconCreatorGlobal{
-    
-    display = true;
-
-    isUI = false;
-    isMask = false;
-    isFiller = false;//the filler is always identical to the main pattern
-    repaintOnKeyUp = false;
-    isReference = false;
-    maskLayer;
-    boundId;
-
-    rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
-    snapTolerance = 3;
-    defaultTranslation = [-50,-50];
 
     constructor(xOrigin = 0,yOrigin = 0){
         super();
+        
+        this.display = true;
+
+        this.isUI = false;
+        this.isMask = false;
+        this.isFiller = false;//the filler is always identical to the main pattern
+        this.repaintOnKeyUp = false;
+        this.isReference = false;
+        this.maskLayer;
+        this.boundId;
+
+        this.rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
+        this.snapTolerance = 3;
+        this.defaultTranslation = [-50,-50];
+        this.scaleMarkerPosition = [];
+
         this.xOrigin = xOrigin;
         this.yOrigin = yOrigin; 
     }
@@ -31,6 +33,9 @@ class Pattern extends IconCreatorGlobal{
                 }
             }
         }
+    }
+    resize(scale){
+        
     }
     initialDefaultTranslation(){
         this.translateTo(this.xOrigin + this.defaultTranslation[0], this.yOrigin + this.defaultTranslation[1]);

@@ -18,7 +18,7 @@ class RotateDisplay{
         this.innerElement.classList.add("text-box");
         this.canvas.height = this.size;
         this.canvas.width = this.size;
-        this.canvas.style.cssText = "height:100%;width:100%;top:0;left:0;position:absolute;z-index:-1;";
+        this.canvas.style.cssText = "height:100%;width:100%;";
         this.element.append(this.canvas, this.innerElement);
         this.update();
     }
