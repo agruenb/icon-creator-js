@@ -359,4 +359,18 @@ class PointOperations{
         var r = Math.sqrt(sqr_of_r);
         return (parseToInt)?parseInt(r):r;
     }
+    /**
+     * Scales a point's distance to a center. 
+     * @param {Array} point The point that should be scaled
+     * @param {Array} center The center to which the distance will be scaled
+     * @param {Number} scale The value by which the scale should be multiplied
+     * @returns the scaled point
+     */
+    static scalePoint(point, center, scale){
+        let distToCenter = PointOperations.distance(point[0], point[1], center[0], center[1]);
+        let targetLength = distToCenter*scale;
+        let centerToPointVector = [point[0] - center[0], point[1] - center[1]];
+        let newVectorFromCenter = PointOperations.trimVectorLength(centerToPointVector, targetLength);
+        return [center[0] + newVectorFromCenter[0], center[1] + newVectorFromCenter[1]];
+    }
 }

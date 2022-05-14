@@ -1,9 +1,5 @@
 class Rect extends Pattern{
     
-    allowMask = true;
-    rotation = 0;
-    center = [0,0];
-    
     constructor(x,y, width = 100, height = 100, color = "#000000", borderWidth = 0, borderColor = "#000000", stroke = ""){
         super(x,y);
         this.height = height;
@@ -12,7 +8,18 @@ class Rect extends Pattern{
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
         this.stroke = stroke;
+        //static props
+        this.allowMask = true;
+        this.rotation = 0;
+        this.center = [0,0];
+        this.scaleMarkerDistance = 20;
         this.updateProperties();
+    }
+    updateProperties(){
+        if(this.rotation != 0){
+            this.matchCenters();
+        }
+        this.center = this.getCenterUntransformed();
     }
     translateTo(newOriginX,newOriginY){
         this.translateMaskTo(newOriginX, newOriginY);//important to call before manipulating origin, because origin is fetched by mask elements
@@ -53,11 +60,20 @@ class Rect extends Pattern{
         this.yOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin+this.height])[1];
         this.center = this.getCenterUntransformed();
     }
-    updateProperties(){
-        if(this.rotation != 0){
-            this.matchCenters();
+    resize(scale, anchorPoint = this.center){
+        //min width and heigh of 1
+        if(scale > 1 || (this.width > 1 && this.height > 1)){
+            let origin = [this.xOrigin, this.yOrigin];
+            let newOrigin = PointOperations.scalePoint(origin, anchorPoint, scale);
+            let widthChange = origin[0] - newOrigin[0];
+            let heightChange = origin[1] - newOrigin[1];
+            this.width += widthChange*2;
+            this.height += heightChange*2;
+            this.xOrigin = newOrigin[0];
+            this.yOrigin = newOrigin[1];
+        }else{
+            console.warn("Cannot resize Rect further");
         }
-        this.center = this.getCenterUntransformed();
     }
     topLeft(){
         return PointOperations.rotateAroundPoint(this.center,[this.xOrigin,this.yOrigin],this.rotation);
@@ -127,6 +143,16 @@ class Rect extends Pattern{
             changes = {
                 width: PointOperations.lineDistance(marker.x,marker.y,...this.topLeft(),...this.bottomLeft())
             }
+        }else if(marker.memorize === "resize"){
+            let oldDistance = PointOperations.distance(...this.center, ...this.scaleMarkerPosition);
+            let newDistance = PointOperations.distance(...this.center, xPrecise, yPrecise);
+            this.resize(newDistance/oldDistance);
+            changes = {
+                xOrigin:this.xOrigin,
+                yOrigin:this.yOrigin,
+                height:this.height,
+                width:this.width
+            };
         }
         return changes;
     }
@@ -189,7 +215,10 @@ class Rect extends Pattern{
         r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin+this.width,this.yOrigin],[this.xOrigin+this.width,this.yOrigin+this.height])),"right","arrow-double", this.rotation]);
         r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin],[this.xOrigin+this.width,this.yOrigin])),"top","arrow-double", this.rotation + 90]);
         r.push([...this.rotatePoint(PointOperations.halfwayVector([this.xOrigin,this.yOrigin+this.height],[this.xOrigin+this.width,this.yOrigin+this.height])),"bottom","arrow-double", this.rotation + 90]);
-        return r;
+        //scale
+        this.scaleMarkerPosition = [this.center[0]+this.width/2+this.scaleMarkerDistance, this.center[1]+this.height/2+this.scaleMarkerDistance];
+        r.push([...this.scaleMarkerPosition,"resize","arrow-resize", 0]);
+        return r;   
     }
     icon(){
         return `

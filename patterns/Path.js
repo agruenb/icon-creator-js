@@ -156,26 +156,20 @@ class Path extends Pattern{
         }
         this.updateProperties();
     }
-    resize(scale){
-        let scalePoint = function(point, center, scale){
-            let distToCenter = PointOperations.distance(point[0], point[1], center[0], center[1]);
-            let targetLength = distToCenter*scale;
-            let centerToPointVector = [point[0] - center[0], point[1] - center[1]];
-            let newVectorFromCenter = PointOperations.trimVectorLength(centerToPointVector, targetLength);
-            return [center[0] + newVectorFromCenter[0], center[1] + newVectorFromCenter[1]];
-        }
+    resize(scale, anchorPoint = this.center){
+        let scalePoint = PointOperations.scalePoint;
         //origin
-        let newOrigin = scalePoint([this.xOrigin, this.yOrigin], this.center, scale);
+        let newOrigin = scalePoint([this.xOrigin, this.yOrigin], anchorPoint, scale);
         this.xOrigin = newOrigin[0];
         this.yOrigin = newOrigin[1];
         for(let index in this.points){
             //points itself
             let point = this.points[index];
-            let newPoint = scalePoint([point.x, point.y], this.center, scale);
+            let newPoint = scalePoint([point.x, point.y], anchorPoint, scale);
             point.x = newPoint[0];
             point.y = newPoint[1];
             //point extra
-            let newPointExtra = scalePoint([point.extraX, point.extraY], this.center, scale);
+            let newPointExtra = scalePoint([point.extraX, point.extraY], anchorPoint, scale);
             point.extraX = newPointExtra[0];
             point.extraY = newPointExtra[1];
         }

@@ -360,7 +360,6 @@ class HTMLeditor{
                 //repaint point and marker and outline
                 if(changes.rotation != undefined){
                     this.addHelperRotation(pattern);
-                    console.log("here");
                 }
                 this.currProj().frame().updateInfoBox(pattern);
                 break;
