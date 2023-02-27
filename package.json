@@ -1,0 +1,27 @@
+{
+    "scripts": {
+        "dev": "webpack serve --config webpack_config/webpack.dev.js --open",
+        "build": "webpack --config webpack_config/webpack.prod.js",
+        "test": "jest --watch",
+        "lint": "eslint src tests --fix",
+        "compress": "node ./deploy/bundle_all.js"
+    },
+    "dependencies": {
+        "compressing": "^1.6.2",
+        "css-loader": "^6.7.1",
+        "css-minimizer-webpack-plugin": "^4.0.0",
+        "file-loader": "^6.2.0",
+        "mini-css-extract-plugin": "^2.6.1",
+        "style-loader": "^3.3.1",
+        "webpack": "^5.73.0",
+        "webpack-bundle-analyzer": "^4.5.0",
+        "webpack-dev-server": "^4.9.1",
+        "webpack-merge": "^5.8.0"
+    },
+    "devDependencies": {
+        "dotenv-webpack": "^7.1.1",
+        "ts-loader": "^9.4.2",
+        "typescript": "^4.9.4",
+        "webpack-cli": "^4.9.2"
+    }
+}

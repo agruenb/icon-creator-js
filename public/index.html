@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta http-equiv="Cache-control" content="public">
+
+    <title>Icon Editor</title>
+</head>
+<body>
+    <div class="editor-container" id="mainContainer">
+        <div class="viewport" id="viewport">
+            <div id="drawingViewport" class="canvasContainer">
+
+            </div>
+        </div>
+        <div class="topbar">
+            <div class="topbar-tools tools-left">
+                <div class="left-menu-button topbar-action clickable" id="openSaveMenu">
+                    <img src="img/save_icon.svg" alt="burger menu">
+                </div>
+                <div class="left-menu-button topbar-action clickable" id="openIconMenu">
+                    <img src="img/icons_icon.svg" alt="burger menu">
+                </div>
+            </div>
+            <div class="topbar-tools tools-right">
+                <div id="historyBack" class="history-button topbar-action clickable">
+                    <img src="img/undo_arrow.svg" alt="Arrow back">
+                </div>
+                <div id="historyForwards" class="history-button topbar-action clickable">
+                    <img src="img/undo_arrow.svg" alt="Arrow back" style="transform:scaleX(-1)">
+                </div>
+                <div class="topbar-action clickable" id="moreOptions">
+                    <img src="img/sys_add_image_icon.svg" alt="More options">
+                </div>
+                <div class="export-button topbar-action clickable" id="exportFile">
+                    <img src="img/sys_download_icon.svg" alt="Download icon">
+                </div>
+                <div class="reset-button topbar-action clickable" id="clearAll">
+                    <img src="img/sys_big_cross_icon.svg" alt="Download icon">
+                </div>
+            </div>
+        </div>
+        <div class="item-import box-shadow outside" id="itemImport">
+
+        </div>
+        <div class="toolbar">
+            <div id="cursor" class="anno-button"><div class="tool-icon"><img src="img/cursor_icon.svg" alt="circle"></div></div>
+            
+            <div id="paintColor" class="anno-button color-picker" style="margin-top: 20px;"></div>
+            
+            <div id="newPath" class="anno-button"><div class="tool-icon"><img src="img/sys_star_icon.svg" alt="circle"></div></div>
+            <div id="newText" class="anno-button"><div class="tool-icon"><img src="img/sys_capital_t_icon.svg" alt="circle"></div></div>
+
+            <div id="newRect" class="anno-button" style="margin-top: 20px;"><div class="tool-icon"><img src="img/sys_rect_icon.svg" alt="circle"></div></div>
+            <div id="newLine" class="anno-button"><div class="tool-icon"><img src="img/sys_line_icon.svg" alt="circle"></div></div>
+            <div id="newCircle" class="anno-button"><div class="tool-icon"><img src="img/sys_circle_icon.svg" alt="circle"></div></div>
+            <div id="newEllipse" class="anno-button"><div class="tool-icon"><img src="img/sys_ellipse_icon.svg" alt="circle"></div></div>
+        </div>
+        <div id="sidebar" class="sidebar">
+            <div id="elementOverview" class="vert-scroll box-menu">
+
+            </div>
+        </div>
+        <div class="bottom-bar">
+            <div class="gridsize-wrapper">
+                <input type="radio" style="display:none;" value="3" id="gridsize_3" name="gridsize" checked></input>
+                <label for="gridsize_3">
+                    <img class="icon" src="img/sys_grid_none_icon.svg" alt="Gridsize none icon">
+                </label>
+                <input type="radio" style="display:none;" value="4" id="gridsize_4" name="gridsize"></input>
+                <label for="gridsize_4">
+                    <img class="icon" src="img/sys_grid_small_icon.svg" alt="Gridsize fine icon">
+                </label>
+                <input type="radio" style="display:none;" value="5" id="gridsize_5" name="gridsize"></input>
+                <label for="gridsize_5">
+                    <img class="icon" src="img/sys_grid_medium_icon.svg" alt="Gridsize medium icon">
+                </label>
+                <input type="radio" style="display:none;" value="6" id="gridsize_6" name="gridsize"></input>
+                <label for="gridsize_6">
+                    <img class="icon" src="img/sys_grid_large_icon.svg" alt="Gridsize large icon">
+                </label>
+            </div>
+            <div class="background-color-wrapper" style="display:none">
+                <input type="radio" style="display:none;" value="light" id="bgColor_light" name="bgColor" checked></input>
+                <label for="bgColor_light">
+                    <img class="icon" src="img/light_mode_icon.svg" alt="Gridsize medium icon">
+                </label>
+                <input type="radio" style="display:none;" value="dark" id="bgColor_dark" name="bgColor"></input>
+                <label for="bgColor_dark">
+                    <img class="icon" src="img/dark_mode_icon.svg" alt="Gridsize medium icon">
+                </label>
+            </div>
+            <div class="exclusive-view-wrapper" style="display:none">
+                <input type="checkbox" style="display:none" id="exclusiveView">
+                <label for="exclusiveView">
+                    <img class="icon" src="img/sys_crosshair_icon.svg" alt="exclusive view icon">
+                </label>
+            </div>
+        </div>
+        <div id="overlayLayer" class="overlay">
+            
+        </div>
+    </div>
+    <div id="preview" style="display:none;height:200px;width:200px;"></div>
+    <!--<svg viewBox="0 0 512 512"><path d="M 96 320 L 128 320 Q 160 320 160 256 Q 256 224 352 256 Q 352 320 384 320 L 432 320 Q 464 320 448 256 Q 436 236 416 224 Q 256 128 96 224 Q 76 236 64 256 Q 48 320 96 320 Z" stroke="#000000" fill="#1c750a" stroke-width="4"/></svg>-->
+</body>
+<script src="main.js"></script>
+
+
+<!--Icons for testing purposes-->
+
+<script>
+    glob_dev = false;
+    glob_backend = "http://localhost/easyIconOnline";
+</script>
+</html>
