@@ -1,3 +1,5 @@
+import MenuButton from "./MenuButton";
+
 export default class ContextMenu{
     
     container = document.createElement("div");

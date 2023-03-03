@@ -1,7 +1,7 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
 import ActionHistory from "./actionHistory";
 import InfoBoxManager from "./infoBoxes/InfoBoxManager";
-import ClassLoader from "./functionCollections/PatternClassLoader";
+import PatternClassLoader from "./shared/PatternClassLoader";
 
 export default class Frame extends IconCreatorGlobal{
 
@@ -13,7 +13,7 @@ export default class Frame extends IconCreatorGlobal{
     paintPanel = document.createElement("div");
     uiLayer = document.createElement("div");
 
-    patterns = {};
+    patterns = new Object();
     renderOrder = new Array();
 
     markers = new Array();
@@ -135,17 +135,6 @@ export default class Frame extends IconCreatorGlobal{
         this.infoBoxManager.muteAll();
         this.clearUI();
     }
-    /**
-     * Adjusts attributes to make a pattern a mask filler. The mask filler is a fully white copy of the main pattern to make its shape appear.
-     * @param {Pattern} pattern pattern that should be converted
-     */
-    makeMaskFiller(pattern){
-        pattern.display = false;
-        pattern.isMask = true;
-        pattern.isFiller = true;
-        pattern.borderColor = "#ffffff";
-        pattern.color = "#ffffff";
-    };
     toTop(pattern = {}){
         let indexOfId = this.renderOrder.indexOf(String(pattern.id));
         if(indexOfId != this.renderOrder.length -1){
@@ -178,15 +167,6 @@ export default class Frame extends IconCreatorGlobal{
     }
     alterPattern(pattern,attrObject,repaint = false){
         Object.assign(pattern,attrObject);
-        //change mask filler
-        if(!pattern.isMask && pattern.maskLayer){
-            let copy = JSON.parse(JSON.stringify(attrObject));
-            this.makeMaskFiller(copy);
-            let maskFiller = pattern.maskLayer.patterns.filter((pos)=>{
-                return pattern.maskLayer.patterns[pos].id === id+"filler";
-            })[0];
-            Object.assign(maskFiller,copy);
-        }
         pattern.afterAlteration();
         pattern.updateProperties();
         if(repaint){
@@ -266,9 +246,9 @@ export default class Frame extends IconCreatorGlobal{
         }
         //load
         if(trueCopy) this.id = frameJSON.attributes.id;
-        for(let i in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
+        for(let i in frameJSON.attributes.patterns){
             let patternJSON = this.copy(frameJSON.attributes.patterns[i]);
-            let pattern = new (ClassLoader.patternClassFromString(patternJSON.subtype))();
+            let pattern = new (PatternClassLoader.patternClassFromString(patternJSON.subtype))();
             //directly inject id
             if(trueCopy) pattern.id = patternJSON.attributes.id;
             delete patternJSON.attributes.id;
@@ -283,7 +263,7 @@ export default class Frame extends IconCreatorGlobal{
      * Returns the JSON representation of this frame.
      */
      get(){
-        //get patterns (without main pattern and filler if is maskLayer)
+        //get patterns
         let passPatterns = [];
         for(let i = 0;i < this.renderOrder.length;i++){
             let currPat = this.patterns[this.renderOrder[i]];

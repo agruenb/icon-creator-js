@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
-import UniversalOps from "../functionCollections/UniversalOps";
-import PointOperations from "../functionCollections/PointOperations.js";
+import UniversalOps from "../shared/UniversalOps";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Ellipse extends Pattern{
 
@@ -123,7 +123,7 @@ export default class Ellipse extends Pattern{
         let defaultPattern = new Ellipse(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         let cleanHTML = ''
-        +'<ellipse '+ ((this.hasMask())?this.maskLink()+' ':'')
+        +'<ellipse '+ (this.maskReference())
         +'cx="'+this.xOrigin
         +'" cy="'+this.yOrigin
         +'" rx="'+this.xRadius

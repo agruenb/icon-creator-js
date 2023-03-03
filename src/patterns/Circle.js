@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
 
-import PointOperations from "../functionCollections/PointOperations.js";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Circle extends Pattern{
 
@@ -121,7 +121,7 @@ export default class Circle extends Pattern{
         let defaultPattern = new Circle(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         let cleanHTML = ''
-        +'<circle '+ ((this.hasMask())?this.maskLink():'')
+        +'<circle '+ (this.maskReference())
         +' cx="'+this.xOrigin
         +'" cy="'+this.yOrigin
         +'" r="'+this.radius

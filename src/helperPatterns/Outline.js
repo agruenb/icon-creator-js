@@ -1,11 +1,12 @@
-import PatternManipulator from "../functionCollections/patternManipulator";
+import PatternManipulator from "../shared/patternManipulator";
 import HelperPattern from "./HelperPattern";
 
 export default class Outline extends HelperPattern{
     constructor(viewportElement,pattern,memorize){
         super(viewportElement);
         this.memorize = memorize;
-        this.ownPattern = PatternManipulator.duplicate(pattern);
+        this.ownPattern = pattern.getOutline();
+        this.ownPattern.maskLayer && delete this.ownPattern.maskLayer;
         //not all patterns get an outline
         if(["Line"].indexOf(pattern.constructor.name) == -1){
             this.ownPattern.isUI = true;

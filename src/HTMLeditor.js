@@ -2,24 +2,28 @@ import IconCreatorGlobal from "./IconCreatorGlobal";
 import CustomColorInput from "./components/CustomColorInput";
 import Project from "./Project";
 
-import UniversalOps from "./functionCollections/UniversalOps";
-import PointOperations from "./functionCollections/PointOperations";
-import PatternManipulator from "./functionCollections/patternManipulator";
+import UniversalOps from "./shared/UniversalOps";
+import PointOperations from "./shared/PointOperations";
+import PatternManipulator from "./shared/patternManipulator";
 
 import Outline from "./helperPatterns/Outline";
 import Marker from "./helperPatterns/marker";
-import UILine from "./helperPatterns/UILine";//Problem with import order! -> MaskFrame needs to be removed -> patterns get an array of patterns for their mask instead
+import UILine from "./helperPatterns/UILine";
 import ContextMenu from "./uiElements/ContextMenu";
 import MenuButton from "./uiElements/MenuButton";
 import Banner from "./components/Banner.js";
 import RotateDisplay from "./uiElements/RotateDisplay";
+
+import ExportWindow from "./uiElements/ExportWindow";
+import ConfirmWindow from "./uiElements/ConfirmWindow";
+import TouchInputAdapter from "./shared/TouchInputAdapter";
 
 export default class HTMLeditor{
 
     activeProjects = new Array();
     toolBanner;
 
-    detectMouseOnMarkerDistance = 11;
+    detectMouseOnMarkerDistance = 8;
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
@@ -53,11 +57,7 @@ export default class HTMLeditor{
             this.setDrawingType("none");
         });
         this.environment.control.editSVG.clearAll.addEventListener("click",()=>{
-            let onAccept = ()=>{
-                this.currProj().reset();
-                this.saveToHistory();
-                this.repaint();
-            }
+            let onAccept = ()=>this.clearProject();
             let onReject = ()=>{return;}
             let message = "Everything will be cleared. A recovery will not be possible.";
             new ConfirmWindow(this.environment.layout.overlay, "New Project",message,onAccept, onReject);
@@ -111,15 +111,32 @@ export default class HTMLeditor{
         this.environment.document.addEventListener('keyup', event=>{
             this.keyup(event);
         });
-        //init mouse events
+        //init mouse & touch events
         this.environment.layout.viewport.addEventListener("contextmenu", event => {
             event.preventDefault();
             this.openContextMenu(event);
             return false;
         },false);
         this.environment.layout.viewport.addEventListener("mousemove",event => {this.mouseMoved(event);});
+        this.environment.layout.viewport.addEventListener("touchmove",event => {
+            console.log("Touch move");
+            this.mouseMoved(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+            event.preventDefault();
+        });
         this.environment.layout.viewport.addEventListener("mousedown",event => {this.mouseDown(event);});
+        this.environment.layout.viewport.addEventListener("touchstart",event => {
+            console.log("Touch start");
+            this.mouseDown(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+        });
         this.environment.layout.viewport.addEventListener("mouseup",event => {this.mouseUp(event);});
+        this.environment.layout.viewport.addEventListener("touchend",event => {
+            console.log("Touch end");
+            this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+        });
+        this.environment.layout.viewport.addEventListener("touchcancel",event => {
+            console.log("Touch cancel");
+            this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+        });
         this.environment.layout.viewport.addEventListener("dblclick",event => {this.doubleclick(event);});
         //resize listeners
         this.environment.window.addEventListener("resize",()=>{
@@ -130,7 +147,7 @@ export default class HTMLeditor{
     mouseDown(event){
         this.closeContextMenu();
         this.setMouseInfo(event);
-        if(event.which==1){
+        if(event.which === 1){
             //if new drawing type is selected
             if(["edit","activePaintPattern"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
@@ -148,6 +165,8 @@ export default class HTMLeditor{
                             this.startEdit(this.patternById(event.target.parentElement.id));
                             this.setDraggingInfo(this.focusedPattern(), event);
                             this.state.currentAction = "dragPattern";
+                        }else{
+                            console.warn("You cannot edit the main pattern in carve out mode!");
                         }
                     }
                     break;
@@ -248,7 +267,7 @@ export default class HTMLeditor{
     mouseUp(event){
         this.closeContextMenu();
         this.clearViewportUI("rotationDisplay");
-        if(event.which==1){
+        if(event.which === 1){
             let pattern = this.focusedPattern();
             let xPrecise = this.relX(event.clientX,0,undefined,1);
             let yPrecise = this.relY(event.clientY,0,undefined,1);
@@ -453,7 +472,7 @@ export default class HTMLeditor{
             }];
         }
         let options = [];
-        if(!pattern.isMask){
+        if(!pattern.isMask && pattern.allowMask){
             options.push({
                 label:"carve out",
                 clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
@@ -633,7 +652,6 @@ export default class HTMLeditor{
                     this.state.view = view;
                     this.currProj().setFrame(this.currProj().keyframes[0]);
                     this.saveToHistory();
-                    
                     break;
                 case "mask":
                     if(editPossible){
@@ -899,6 +917,11 @@ export default class HTMLeditor{
             }
         }
         ImageProcessor.requestImage(callback);
+    }
+    clearProject(){
+        this.clearViewportUI();
+        this.currProj().reset();
+        this.repaint();
     }
     exportFile(){
         this.stopEdit();

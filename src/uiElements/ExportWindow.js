@@ -1,3 +1,7 @@
+import Exporter from "../external/Exporter";
+import UniversalOps from "../shared/UniversalOps";
+import DataService from "../shared/dataService";
+
 export default class ExportWindow{
 
     exportType = "png";
@@ -36,7 +40,7 @@ export default class ExportWindow{
                     <button class="exp-png">PNG</button>
                     <button class="exp-svg">SVG</button>
                     <button class="exp-inline">HTML</button>
-                    ${(glob_dev)?'Development: <button class="exp-json">JSON</button><button class="save-icon">Create Icon</button>':""}
+                    ${(!process.env.IS_PRODUCTION_BUILD)?'Development: <button class="exp-json">JSON</button><button class="save-icon">Create Icon</button>':""}
                 </div>
                 <div id="pngOptions" style="${(this.exportType == "png")?"":"opacity:0.5;pointer-events:none;"}">
                     <div class="section-header">PNG resolution</div>
@@ -91,7 +95,7 @@ export default class ExportWindow{
             this.updateButtons();
         });
         //development only
-        if(glob_dev){
+        if(!process.env.IS_PRODUCTION_BUILD){
             //export json
             this.selectJSONButton = this.container.querySelector(".exp-json");
             this.selectJSONButton.addEventListener("click",()=>{
@@ -138,7 +142,7 @@ export default class ExportWindow{
     }
     updateButtons(){
         let buttons = [this.selectSvgButton, this.selectPngButton, this.selectInlineButton];
-        if(glob_dev){
+        if(!process.env.IS_PRODUCTION_BUILD){
             buttons.push(this.selectJSONButton);
         }
         this.pngOptionsWrapper.style.cssText = "opacity:0.5;pointer-events:none;";
@@ -186,7 +190,7 @@ export default class ExportWindow{
                 break;
             case "json":
                 console.log(JSON.stringify(Exporter.extractSavefileJSON(this.project)));
-                alert("Has been logged!");
+                alert("JSON is available in console");
                 break;
         }
     }

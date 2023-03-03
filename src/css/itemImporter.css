@@ -1,117 +1,138 @@
-.item-import{
+.item-import {
     transition: 0.2s;
 }
-.item-import.outside{
+
+.item-import.outside {
     transform: translateX(-300px);
 }
-.item-import.inside{
+
+.item-import.inside {
     transform: translateX(0)
 }
-.item-import .top-parent{
-    
-height: 100%;
-    
-width: 100%;
+
+.item-import .top-parent {
+
+    height: 100%;
+
+    width: 100%;
 }
-.item-import .header{
+
+.item-import .header {
     height: 35px;
     position: relative;
     padding: 5px 0 0 0;
     width: 100%;
     display: flex;
-    color: var(
-    --muted-grey-text);
+    color: var(--muted-grey-text);
     justify-content: flex-start;
 }
-.item-import .close-button{
+
+.item-import .close-button {
     position: absolute;
     height: 16px;
     width: 16px;
     top: 10px;
     right: 10px;
 }
-.item-import .header-item{
+
+.item-import .header-item {
     width: 38%;
 }
-.item-import .content{
+
+.item-import .content {
     padding: 10px;
     height: calc(100% - 61px);
     border-top: 1px solid var(--panel-outline);
     position: relative;
 }
-.item-import .content .saved-projects{
+
+.item-import .content .saved-projects {
     display: grid;
     gap: 10px;
     grid-template-columns: 1fr 1fr;
 }
-.item-import .content .saved-projects .save-current-wrapper{
+
+.item-import .content .saved-projects .save-current-wrapper {
     grid-column-start: 1;
     grid-column-end: 3;
     display: flex;
     justify-content: center;
 }
-.item-import .content .saved-projects .save-current-wrapper > button{
+
+.item-import .content .saved-projects .save-current-wrapper>button {
     width: 90%;
 }
-.item-import .content .preset-icons{
-}
-.item-import .content .preset-icons .preset-icons-content{
+
+.item-import .content .preset-icons {}
+
+.item-import .content .preset-icons .preset-icons-content {
     display: grid;
     gap: 5px;
     padding-top: 20px;
     grid-template-columns: 1fr 1fr 1fr;
 }
-.item-import .content .preset-icons .type-selection{
+
+.item-import .content .preset-icons .type-selection {
     display: flex;
     justify-content: space-around;
 }
-.item-import .content .preset-icons .type-selection > button{
+
+.item-import .content .preset-icons .type-selection>button {
     width: 48%;
 }
-.item-import .content .item{
+
+.item-import .content .item {
     padding: 5px;
     background: var(--viewport-background);
     border-radius: 5px;
 }
-.item-import .content .saved-projects .item .preview{
+
+.item-import .content .saved-projects .item .preview {
     width: 110px;
     height: 110px;
     margin: 5px;
 }
-.item-import .content .preset-icons .item .preview{
+
+.item-import .content .preset-icons .item .preview {
     width: 61px;
     height: 61px;
     margin: 5px;
 }
-.item-import .content .item .actions{
-    display:flex;
+
+.item-import .content .item .actions {
+    display: flex;
     justify-content: space-evenly;
 }
-.item-import .content .saved-projects .item .actions > button{
-    width:45%;
+
+.item-import .content .saved-projects .item .actions>button {
+    width: 45%;
 }
-.item-import .content .preset-icons .item .actions > button{
-    width:90%;
+
+.item-import .content .preset-icons .item .actions>button {
+    width: 90%;
 }
-.item-import .content .hidden{
-    display:none !important;
+
+.item-import .content .hidden {
+    display: none !important;
 }
-.roadmap-link-wrapper{
-position: absolute;
-top: 0;
-width: calc(100% - 40px);
-height: calc(100% - 40px);
-left: 0;
-background: rgba(255, 255, 255, 0.7);
-background-filter: blur(3px);
-backdrop-filter: blur(1px);
-padding: 20px;
-display: flex;
-align-items: center;
+
+.roadmap-link-wrapper {
+    position: absolute;
+    top: 0;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    left: 0;
+    background: rgba(255, 255, 255, 0.7);
+    background-filter: blur(3px);
+    backdrop-filter: blur(1px);
+    padding: 20px;
+    display: flex;
+    align-items: center;
 }
-.roadmap-link-wrapper > div{
-    text-align: center;
+
+.roadmap-link-wrapper>div {
+
+    text-align: center;
 }
-.roadmap-link-wrapper a{
-    
-}
+
+.roadmap-link-wrapper a {}

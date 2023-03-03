@@ -1,3 +1,5 @@
+import IconCreatorGlobal from "../IconCreatorGlobal";
+
 export default class Exporter {
     static downloadSVG(filename, SVGfilecontent){
         let downloadElement = document.createElement("a");

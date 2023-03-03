@@ -1,6 +1,6 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
 import Frame from "./Frame";
-import ClassLoader from "./functionCollections/PatternClassLoader";
+import ClassLoader from "./shared/PatternClassLoader";
 
 export default class MaskFrame extends Frame{
 
@@ -16,13 +16,22 @@ export default class MaskFrame extends Frame{
         pattern.color = "rgba(224, 0, 0, 0.5)";
     }
     //@Override
-    append(patternObj){
-        if(this.boundId != patternObj.id && !patternObj.isFiller){
-            this.makeMask(patternObj);
+    append(pattern){
+        //for all patterns that are not the pattern that should be masked
+        if(this.boundId != pattern.id){
+            this.makeMask(pattern);
+            //patterns that are already in the maskLayer do not add again
+            let patternAlreadyInMask = this.patterns[this.boundId].maskLayer.patterns.filter((existingPattern)=>{
+                return pattern.id === existingPattern.id;
+            }).length > 0;
+            
+            if(!patternAlreadyInMask){
+                this.patterns[this.boundId].maskLayer.patterns.push(pattern);
+            }
         }
-        let id = patternObj.id;
-        this.patterns[id] = patternObj;
-        this.renderOrder.push(String(id));
+        let id = pattern.id;
+        this.patterns[id] = pattern;
+        this.renderOrder.push(String(id));     
     }
     //@Override
     saveToHistory(){
@@ -58,12 +67,10 @@ export default class MaskFrame extends Frame{
         this.paintPanel.style.display = "none";
     }
     /**
-     * !!! only loads mask patterns, not loading the main pattern or the filler, they have to be there already or added manuelly
-     * Loads a Frame + patterns that hast been exported with Frame.get().
      * @param {JSON} FrameJSON a JSON Object that will be loaded
      * @param {boolean} trueCopy also copies the IDs if true
      */
-     load(frameJSON = {}, trueCopy = true){
+    load(frameJSON = {}, trueCopy = true){
         //check valid
         if(frameJSON.version != this.version){
             console.warn("Loading MaskFrame from another version");
@@ -73,45 +80,19 @@ export default class MaskFrame extends Frame{
             return;
         }
         //load
-        if(trueCopy) this.id = frameJSON.attributes.id;
-        if(trueCopy) this.boundId = frameJSON.attributes.boundId;
-        for(let id in frameJSON.attributes.patterns){//cannot iterate render order because of maskFiller in there
-            let patternJSON = this.copy(frameJSON.attributes.patterns[id]);
-            let pattern = new (ClassLoader.patternClassFromString(pattern.subtype))();
-            //directly inject id
-            if(trueCopy) pattern.id = patternJSON.attributes.id;
-            delete patternJSON.attributes.id;
-            this.append(pattern);
-            pattern.load(patternJSON);
-        }
+        super.load(frameJSON, trueCopy);
     }
     /**
      * Returns the JSON representation of this frame.
      */
-     get(full = false){
-        //get patterns (without main pattern and filler)
-        let passPatterns = {};
-        for(let key in this.patterns){
-            let currPat = this.patterns[key];
-            if(full || (currPat.isMask && !currPat.isFiller)){
-                passPatterns[key] = currPat.get(false);
-            } 
-        }
-        let global = new IconCreatorGlobal();
-        let obj = {
-            id: global.id,
-            version: global.version
-        };
+     get(){
+        let obj = super.get();
         Object.assign(obj, 
         {
             type: "Frame",
-            subtype: "MaskFrame",
-            attributes:{
-                id:this.id,
-                patterns: this.copy(passPatterns),
-                boundId: this.boundId,
-            }
+            subtype: "MaskFrame"
         });
+        obj.attributes.boundId = this.boundId;
         return obj;
     }
 }

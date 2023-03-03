@@ -90,6 +90,6 @@ let itemLoaderEnvironment = {
     openSavesButton:document.getElementById("openSaveMenu"),
     openIconsButton:document.getElementById("openIconMenu")
 }
-
+window.icon_creator_global_index_counter = 0;
 const manager = new EditorManager();
 manager.init(editorEnvironment, itemLoaderEnvironment);;

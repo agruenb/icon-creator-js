@@ -1,9 +1,9 @@
 import IconCreatorGlobal from "../IconCreatorGlobal";
 
-import PatternManipulator from "../functionCollections/patternManipulator";
-import PointOperations from "../functionCollections/PointOperations.js";
+import PatternManipulator from "../shared/patternManipulator";
+import PointOperations from "../shared/PointOperations.js";
 import Marker from "../helperPatterns/marker";
-import PatternClassLoader from "../functionCollections/PatternClassLoader";
+import PatternClassLoader from "../shared/PatternClassLoader";
 
 type Coordinate2d = Array<number>;
 type Translation2d = Array<number>;
@@ -47,7 +47,6 @@ export default class Pattern extends IconCreatorGlobal {
         this.repaintOnKeyUp = false;
         this.isReference = false;
         this.maskLayer = undefined;
-        this.boundId;
 
         this.rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
         this.snapTolerance = 3;
@@ -61,11 +60,9 @@ export default class Pattern extends IconCreatorGlobal {
         if (!this.isMask && this.maskLayer) {
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
-                if (maskItem.isMask) {//only translate mask, because pattern itself is also in the MaskFrame
-                    let xDiff = maskItem.xOrigin - this.xOrigin;
-                    let yDiff = maskItem.yOrigin - this.yOrigin;
-                    maskItem.translateTo(newMainOriginX + xDiff, newMainOriginY + yDiff);
-                }
+                let xDiff = maskItem.xOrigin - this.xOrigin;
+                let yDiff = maskItem.yOrigin - this.yOrigin;
+                maskItem.translateTo(newMainOriginX + xDiff, newMainOriginY + yDiff);
             }
         }
     }
@@ -82,24 +79,11 @@ export default class Pattern extends IconCreatorGlobal {
     initialDefaultTranslation() {
         this.translateTo(this.xOrigin + this.defaultTranslation[0], this.yOrigin + this.defaultTranslation[1]);
     }
-    /**
-     * Add a maskLayer to this pattern
-     */
-    addMaskLayer() {
-        let maskFillerPattern = PatternManipulator.duplicate(this);
-        maskFillerPattern.id = this.id + "filler";
-        maskFillerPattern.display = false;
-        maskFillerPattern.isMask = true;
-        maskFillerPattern.isFiller = true;
-        this.maskLayer = {
-            patterns: [maskFillerPattern]
-        }
-    }
     hasMask() {
-        return this.maskLayer;
+        return this.maskLayer != undefined && !this.isMask && this.maskLayer.patterns && this.maskLayer.patterns.length > 0;
     }
-    maskLink() {
-        return (!this.isMask) ? ('mask="url(#' + this.id + 'mask)"') : "";
+    maskReference() {
+        return (this.hasMask()) ? ('mask="url(#' + this.id + 'mask)"') : "";
     }
     /**
      * 
@@ -137,19 +121,21 @@ export default class Pattern extends IconCreatorGlobal {
     mask(limitPrecision: boolean) {
         if (!this.isMask) {
             let maskPatterns = "";
+            //add mask filler
+            let fillerPattern = PatternManipulator.duplicate(this);
+            fillerPattern.isMask = true;
+            fillerPattern.isFiller = true;
+            fillerPattern.color = "#ffffff";
+            fillerPattern.borderColor = "#ffffff";
+            fillerPattern.rotation = 0;
+            maskPatterns += fillerPattern.cleanHTML();
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
                 if (maskItem.isMask) {
                     let tempC = maskItem.color;
                     let tempR = maskItem.rotation;
-                    if (!maskItem.isFiller) {//all but filler
-                        maskItem.color = "#000000";
-                        maskItem.borderColor = "#000000";
-                    } else {//filler only
-                        maskItem.rotation = 0;
-                        maskItem.color = "#ffffff";
-                        maskItem.borderColor = "#ffffff";
-                    }
+                    maskItem.color = "#000000";
+                    maskItem.borderColor = "#000000";
                     maskPatterns += maskItem.cleanHTML(limitPrecision);
                     maskItem.color = tempC;
                     maskItem.borderColor = tempC;
@@ -245,6 +231,13 @@ export default class Pattern extends IconCreatorGlobal {
 
     }
     /**
+     * Optional. If not overwritten the pattern itself is used for outline.
+     * @returns 
+     */
+    getOutline():undefined{
+        return PatternManipulator.duplicate(this);
+    }
+    /**
      * Should be overwritten by sub classes
      */
     cleanHTML(limitPrecision: boolean): (string | void) {
@@ -295,8 +288,7 @@ export default class Pattern extends IconCreatorGlobal {
                 id: this.id,
                 display: this.display,
                 isMask: this.isMask,
-                isFiller: this.isFiller,//the filler is always identical to the main pattern
-                maskLayer: (this.maskLayer) ? {
+                maskLayer: (this.hasMask()) ? {
                     patterns: this.maskLayer.patterns.map(pattern => pattern.get()),
                 } : undefined,
                 boundId: this.boundId,
@@ -315,12 +307,15 @@ export default class Pattern extends IconCreatorGlobal {
             console.error(`Cannot load ${this.constructor.name} from ${patternJSON.subtype}`);
             return;
         }
-        //if this pattern has been given a mask layer, load the passed data into it
+        //if this pattern has been given a mask layer, add it
         if (patternJSON.attributes.maskLayer) {
+            this.maskLayer = {
+                patterns:[]
+            };
             //@ts-expect-error
             this.maskLayer.patterns = patternJSON.attributes.maskLayer.patterns.map(pattern => {
-                let maskPattern = PatternClassLoader.patternClassFromString(pattern.subtype);
-                //@ts-expect-error
+                let MaskPatternClass = PatternClassLoader.patternClassFromString(pattern.subtype);
+                let maskPattern = new MaskPatternClass()
                 maskPattern.load(pattern);
                 return maskPattern;
             })

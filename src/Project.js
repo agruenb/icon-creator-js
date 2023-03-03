@@ -91,15 +91,17 @@ export default class Project extends IconCreatorGlobal{
     switchToMask(pattern){
         //create new mask frame
         let maskFrame = new MaskFrame(this.frameContainer,this.infoBoxContainer, this.editor);
+        maskFrame.boundId = pattern.id;
         //add mask layer if not there yet
         if(!pattern.maskLayer){
             pattern.maskLayer = {
                 patterns:[]
             }
         }
+        maskFrame.append(pattern);
         //add all masking patterns of pattern
-        for(let pos in pattern.maskLayer){
-            maskFrame.append(pattern.maskLayer[pos]);
+        for(let pos in pattern.maskLayer.patterns){
+            maskFrame.append(pattern.maskLayer.patterns[pos]);
         }
         this.setFrame(maskFrame);
     }

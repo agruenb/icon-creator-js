@@ -1,5 +1,5 @@
 import Pattern from "./Pattern";
-import PointOperations from "../functionCollections/PointOperations.js";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Line extends Pattern{
 

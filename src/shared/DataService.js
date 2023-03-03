@@ -1,7 +1,7 @@
 export default class DataService{
 
     static sendIcon(data){
-        let url = glob_backend + "/post";
+        let url = process.env.ICON_LIBRARY_BACKEND_URL + "/post";
         let key = prompt("Enter your write-key");
         let name = prompt("name");
         let type = prompt("type");
@@ -22,7 +22,7 @@ export default class DataService{
           );
     }
     static async getIcons(page = 0, type="full"){
-        let url = glob_backend + "/get?" + DataService.encodeUrlData({"what":"icon","key":"null","page":page, "type":type});
+        let url = process.env.ICON_LIBRARY_BACKEND_URL + "/get?" + DataService.encodeUrlData({"what":"icon","key":"null","page":page, "type":type});
         return fetch(url, {
             method: "GET"
         }).then(

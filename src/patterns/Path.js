@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
-import UniversalOps from "../functionCollections/UniversalOps";
-import PointOperations from "../functionCollections/PointOperations.js";
+import UniversalOps from "../shared/UniversalOps";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Path extends Pattern{
 
@@ -742,7 +742,7 @@ export default class Path extends Pattern{
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         let pointsString = this.getPointsString(limitPrecision);
         let cleanHTML = ''
-        +'<path '+ ((this.hasMask())?this.maskLink():'')
+        +'<path '+ (this.maskReference())
         +' d="M '+pointsString+'Z"'
         +' fill="'+this.color
         +'" '+(paintBorder?`stroke="${this.borderColor}" `:'')

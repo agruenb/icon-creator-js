@@ -9,7 +9,8 @@ export default class IconCreatorGlobal{
         this.id = IconCreatorGlobal.id();
     }
     static id(){
-        return String((new Date()).getTime()+Math.floor(Math.random()*1000000));
+        //@ts-expect-error
+        return String(window.icon_creator_global_index_counter++);
     }
     static el(type:string,text:string,className:string){
         let el = document.createElement(type);

@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
-import UniversalOps from "../functionCollections/UniversalOps";
-import PointOperations from "../functionCollections/PointOperations.js";
+import UniversalOps from "../shared/UniversalOps";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Rect extends Pattern{
     
@@ -247,7 +247,7 @@ export default class Rect extends Pattern{
         let defaultPattern = new Rect(0,0);
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         let cleanHTML = ''
-        +'<rect '+ ((this.hasMask())?this.maskLink():'')
+        +'<rect '+ (this.maskReference())
         +' x="'+this.xOrigin
         +'" y="'+this.yOrigin
         +'" width="'+this.width

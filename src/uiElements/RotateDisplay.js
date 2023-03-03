@@ -1,4 +1,4 @@
-import PointOperations from "../functionCollections/PointOperations";
+import PointOperations from "../shared/PointOperations";
 
 export default class RotateDisplay{
 

@@ -1,12 +1,13 @@
 import Pattern from "./Pattern";
-import UniversalOps from "../functionCollections/UniversalOps";
-import PointOperations from "../functionCollections/PointOperations.js";
+import Rect from "./Rect";
+import UniversalOps from "../shared/UniversalOps";
+import PointOperations from "../shared/PointOperations.js";
 
 export default class Text extends Pattern{
     /*
     The Text class shares lots of code with the Rect class, but its is only similiar since the origin point differs
     */
-    allowMask = true;
+    allowMask = false;
     repaintOnKeyUp = true;
     isFocussed = false;
     isEditing = false;
@@ -200,7 +201,7 @@ export default class Text extends Pattern{
         return r;
     }
     //unique to Text class
-    getOutlinePattern(){
+    getOutline(){
         let outline = new Rect(this.xOrigin, this.yOrigin - this.height, this.width, this.height);
         outline.rotation = this.rotation;
         outline.center = this.center;
@@ -277,7 +278,7 @@ export default class Text extends Pattern{
         let paintBorder = (this.borderWidth != defaultPattern.borderWidth) || (this.borderColor != defaultPattern.borderColor);
         //TODO better marker background
         let cleanHTML = `
-        <text ${((this.hasMask())?this.maskLink():'')}
+        <text ${this.maskReference()}
         x="${this.xOrigin}"
         y="${this.yOrigin/scale - parseInt(textSize/textCenteringRatio)}"
         textLength="${this.width}"
