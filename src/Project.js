@@ -61,7 +61,7 @@ export default class Project extends IconCreatorGlobal{
         this.drawBg();
         
         //setup css inside head
-        let css = `svg[role=main] *{pointer-events:all;}svg[role=reference] *{pointer-events:all;} #${this.container.id} > div{grid-column: 1;grid-row: 1;}`;
+        let css = `#${this.container.id} > div{grid-column: 1;grid-row: 1;}`;
         let head = document.head || document.getElementsByTagName('head')[0];
         let style = document.createElement('style');
         head.appendChild(style);

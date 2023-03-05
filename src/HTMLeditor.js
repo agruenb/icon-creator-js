@@ -71,7 +71,20 @@ export default class HTMLeditor{
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
+                item.startPaintButton.addEventListener("touchstart",(e) => {
+                    e.preventDefault();
+                    this.setDrawingType("dragOut");
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    this.state.paintPatternClass = item.class;
+                });
+                item.startPaintButton.addEventListener("touchmove",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 item.startPaintButton.addEventListener("mouseup",() => {
+                    this.setDrawingType("clickedPaintPattern");
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    this.state.paintPatternClass = item.class;
+                });
+                item.startPaintButton.addEventListener("touchstop",() => {
+                    e.preventDefault();
                     this.setDrawingType("clickedPaintPattern");
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
@@ -119,7 +132,7 @@ export default class HTMLeditor{
         },false);
         this.environment.layout.viewport.addEventListener("mousemove",event => {this.mouseMoved(event);});
         this.environment.layout.viewport.addEventListener("touchmove",event => {
-            console.log("Touch move");
+            console.log("touchmove");
             this.mouseMoved(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
@@ -127,15 +140,18 @@ export default class HTMLeditor{
         this.environment.layout.viewport.addEventListener("touchstart",event => {
             console.log("Touch start");
             this.mouseDown(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+            event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("mouseup",event => {this.mouseUp(event);});
         this.environment.layout.viewport.addEventListener("touchend",event => {
             console.log("Touch end");
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+            event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("touchcancel",event => {
             console.log("Touch cancel");
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
+            event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("dblclick",event => {this.doubleclick(event);});
         //resize listeners
@@ -152,7 +168,7 @@ export default class HTMLeditor{
             if(["edit","activePaintPattern"].indexOf(this.state.currentAction) == -1){
                 this.clearViewportUI();
             }
-            let patternRole = event.target.parentElement.getAttribute("role");
+            let patternRole = this.clickedElement(event).parentElement.getAttribute("role");
             switch (this.state.currentAction) {
                 case "clickedPaintPattern":
                     this.state.currentAction = "mousedownPaintPattern";
@@ -161,8 +177,8 @@ export default class HTMLeditor{
                     //if pattern is on mouse -> start editing
                     if(patternRole === "main" || patternRole === "reference"){
                         //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != event.target.parentElement.id){
-                            this.startEdit(this.patternById(event.target.parentElement.id));
+                        if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+                            this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                             this.setDraggingInfo(this.focusedPattern(), event);
                             this.state.currentAction = "dragPattern";
                         }else{
@@ -177,13 +193,13 @@ export default class HTMLeditor{
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
                         this.state.editedObject = closestMarker.marker;
                         this.state.currentAction = "dragMarker";
-                    }else if(event.target.parentElement.id == this.focusedPattern().id){//start dragging pattern
-                        this.setDraggingInfo(this.patternById(event.target.parentElement.id), event);
+                    }else if(this.clickedElement(event).parentElement.id == this.focusedPattern().id){//start dragging pattern
+                        this.setDraggingInfo(this.patternById(this.clickedElement(event).parentElement.id), event);
                         this.state.currentAction = "dragPattern";
-                    }else if(patternRole === "main" || patternRole === "reference"){//not focused pattern is clicked but pattern
+                    }else if(patternRole === "main" || patternRole === "reference"){//not the focused pattern is clicked but another pattern
                         //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != event.target.parentElement.id){
-                            this.startEdit(this.patternById(event.target.parentElement.id));
+                        if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+                            this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                             this.setDraggingInfo(this.focusedPattern(), event);
                             this.state.currentAction = "dragPattern";
                         }
@@ -255,11 +271,11 @@ export default class HTMLeditor{
             }
         }else{
             this.clearViewportUI();
-            let role = event.target.parentElement.getAttribute("role");
+            let role = this.clickedElement(event).parentElement.getAttribute("role");
             if(role === "main" || role === "reference"){
                 //dont focus main pattern on mask frame
-                if(this.currProj().frame().boundId != event.target.parentElement.id){
-                    this.addHelperOutline(this.patternById(event.target.parentElement.id));
+                if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+                    this.addHelperOutline(this.patternById(this.clickedElement(event).parentElement.id));
                 }
             }
         }
@@ -273,7 +289,7 @@ export default class HTMLeditor{
             let yPrecise = this.relY(event.clientY,0,undefined,1);
             let x = this.relX(event.clientX);
             let y = this.relY(event.clientY);
-            let patternRole = event.target.parentElement.getAttribute("role");
+            let patternRole = this.clickedElement(event).parentElement.getAttribute("role");
             switch (this.state.currentAction) {
                 case "mousedownPaintPattern":
                     pattern = new this.state.paintPatternClass();
@@ -348,11 +364,11 @@ export default class HTMLeditor{
             //stop edit on active element
             this.stopEdit();
             //if pattern is clicked -> start editing
-            if(event.target.parentElement.getAttribute("role") === "main"){
+            if(this.clickedElement(event).parentElement.getAttribute("role") === "main"){
                 //dont focus main pattern on mask frame
-                if(this.currProj().frame().boundId != event.target.parentElement.id){
+                if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
                     this.state.currentAction = "edit";
-                    this.focus(this.patternById(event.target.parentElement.id));
+                    this.focus(this.patternById(this.clickedElement(event).parentElement.id));
                     this.focusedPattern().doubleclicked();
                     this.repaint(this.focusedPattern());
                     this.addHelperOutline(this.focusedPattern());
@@ -508,11 +524,11 @@ export default class HTMLeditor{
         this.closeContextMenu();
         let options = [];
         //if clicked on pattern
-        if(event.target.parentElement.getAttribute("role") === "main"){
+        if(this.clickedElement(event).parentElement.getAttribute("role") === "main"){
             //dont focus main pattern on mask frame
-            if(this.currProj().frame().boundId != event.target.parentElement.id){
+            if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
                 this.stopEdit();
-                this.startEdit(this.patternById(event.target.parentElement.id));
+                this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                 options.push(...this.defaultOptions(this.focusedPattern()));
             }
         }
@@ -803,6 +819,14 @@ export default class HTMLeditor{
         }else{
             return a - overhang + steps;
         }
+    }
+    clickedElement(event){
+        let elementStack = document.elementsFromPoint(event.clientX, event.clientY);
+        let index = 0;
+        while(elementStack[index].tagName === "svg" || elementStack[index].tagName === "SVG"){
+            index++;
+        }
+        return elementStack[index];
     }
     saveToHistory(){
         if(this.keepHistory){

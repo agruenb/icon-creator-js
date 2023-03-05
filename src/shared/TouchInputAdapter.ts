@@ -20,4 +20,20 @@ export default class TouchInputAdapter{
         };
         return mouseEvent;
     }
+    static duplicateTouchEvent(event:TouchEvent){
+        const touch = new Touch({
+            identifier: Date.now(),
+            target: event.changedTouches[0].target,
+            clientX: event.changedTouches[0].clientX,
+            clientY: event.changedTouches[0].clientY,
+        });
+        let customEvent = new TouchEvent(event.type,{
+            cancelable: true,
+            bubbles: true,
+            touches: [touch],
+            targetTouches: [],
+            changedTouches: [touch],
+        });
+        return customEvent;
+    }
 }

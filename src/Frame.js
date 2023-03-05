@@ -2,6 +2,7 @@ import IconCreatorGlobal from "./IconCreatorGlobal";
 import ActionHistory from "./actionHistory";
 import InfoBoxManager from "./infoBoxes/InfoBoxManager";
 import PatternClassLoader from "./shared/PatternClassLoader";
+import TouchInputAdapter from "./shared/TouchInputAdapter";
 
 export default class Frame extends IconCreatorGlobal{
 
@@ -210,7 +211,7 @@ export default class Frame extends IconCreatorGlobal{
             if(this.boundId == pattern.id){//dont rotate on ausschneide ansicht
                 pattern.rotation = 0;
             }
-            let domString = "<svg role="+this.role+" id='"+id+"' viewBox='-"+parseInt(paintPortRect.x)+" -"+parseInt(paintPortRect.y)+" "+parseInt(bodyRect.width) + " " + parseInt(bodyRect.height) + "' style='z-index:"+(this.renderOrder.indexOf(id)+3)+";pointer-events:none;position:absolute;top:0;left:0;height:100%;width:100%;'>"+pattern.fullHTML(true)+"</svg>";
+            let domString = "<svg role="+this.role+" id='"+id+"' viewBox='-"+parseInt(paintPortRect.x)+" -"+parseInt(paintPortRect.y)+" "+parseInt(bodyRect.width) + " " + parseInt(bodyRect.height) + "' style='z-index:"+(this.renderOrder.indexOf(id)+3)+";position:absolute;top:0;left:0;height:100%;width:100%;'>"+pattern.fullHTML(true)+"</svg>";
             pattern.rotation = rotation;
             let template = document.createElement('template');
             domString = domString.trim();
@@ -218,7 +219,30 @@ export default class Frame extends IconCreatorGlobal{
             //opacity
             template.content.firstChild.style.opacity = this.opacity;
             this.paintPanel.append(template.content.firstChild);
+            this._fixEventBubbling(id);
         }
+    }
+    /**
+     * By default the touchevent is not bubbled out of the svg, so it has to be done manually.
+     * This function attaches event listeners to svg with 'id' and passes touchevents up the
+     * tree. 
+     */
+    _fixEventBubbling(id){
+        this.paintPanel.querySelector(`svg[id='${id}']`).addEventListener("touchmove",(e)=>{
+            e.stopPropagation();
+            e.preventDefault();
+            this.paintPanel.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e));
+        });
+        this.paintPanel.querySelector(`svg[id='${id}']`).addEventListener("touchstart",(e)=>{
+            e.stopPropagation();
+            e.preventDefault();
+            this.paintPanel.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e));
+        });
+        this.paintPanel.querySelector(`svg[id='${id}']`).addEventListener("touchend",(e)=>{
+            e.stopPropagation();
+            e.preventDefault();
+            this.paintPanel.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e));
+        });
     }
     /**
      * Removes patterns from this Frame. Does not remove Frame.

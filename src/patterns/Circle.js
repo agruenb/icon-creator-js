@@ -1,6 +1,7 @@
 import Pattern from "./Pattern";
 
 import PointOperations from "../shared/PointOperations.js";
+import UniversalOps from "../shared/UniversalOps";
 
 export default class Circle extends Pattern{
 
