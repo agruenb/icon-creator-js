@@ -1,3 +1,3 @@
-# simpleVectorIcons
+# icon-creator-js
 
-open editor.html got get a simple to use svg editor
+A easy-to-use SVG editor that runs in the browser. Can be used without any server-side processing.
