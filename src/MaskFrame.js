@@ -33,6 +33,12 @@ export default class MaskFrame extends Frame{
         this.patterns[id] = pattern;
         this.renderOrder.push(String(id));     
     }
+    remove(pattern, repaint = true){
+        //remove from maskLayer of patter
+        let indexToBeRemoved = this.patterns[this.boundId].maskLayer.patterns.indexOf(pattern);
+        this.patterns[this.boundId].maskLayer.patterns.splice(indexToBeRemoved,1);
+        super.remove(pattern, repaint);
+    }
     //@Override
     saveToHistory(){
         //mask frame does not keep history

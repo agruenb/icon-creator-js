@@ -56,6 +56,18 @@ export default class Ellipse extends Pattern{
         this.yOrigin = PointOperations.mirrorPoint(yPos,"x",[this.xOrigin, this.yOrigin])[1];
         this.updateProperties();
     }
+    allowSizeDecrease(){
+        return this.xRadius > 1 && this.yRadius > 1;
+    }
+    resize(scale, anchorPoint = this.center){
+        //min width and heigh of 1
+        if(scale > 1 || this.allowSizeDecrease()){
+            this.xRadius = this.xRadius*scale;
+            this.yRadius = this.yRadius*scale;
+        }else{
+            console.warn("Cannot resize Ellipse further");
+        }
+    }
     updateProperties(){
         this.center = [this.xOrigin, this.yOrigin];
     }
@@ -75,6 +87,15 @@ export default class Ellipse extends Pattern{
             changes = {
                 yRadius: this.pt(Math.max(limit, PointOperations.lineDistance(marker.x,marker.y,...this.left(),...this.right())))
             }
+        }else if(marker.memorize === "resize"){
+            let oldDistance = PointOperations.distance(...this.center, ...this.scaleMarkerPosition);
+            let newDistance = PointOperations.distance(...this.center, xPrecise, yPrecise);
+            this.resize(newDistance/oldDistance);
+            changes = {
+                xOrigin:this.xOrigin,
+                yOrigin:this.yOrigin,
+                radius:this.radius
+            };
         }
         return changes;
     }

@@ -90,7 +90,7 @@ export default class Pattern extends IconCreatorGlobal {
      * @param {Number} xPos the x position of the yAxis that should be mirrored around
      */
     mirrorVertically(xPos: number) {
-        if (!this.isMask) {
+        if (this.hasMask()) {
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
                 if (maskItem.isMask) {

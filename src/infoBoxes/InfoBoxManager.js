@@ -1,5 +1,7 @@
 import PatternInfoBox from "./PatternInfoBox";
 
+import Animator from "../animation/Animator";
+
 export default class InfoBoxManager{
 
     boxes = new Array();

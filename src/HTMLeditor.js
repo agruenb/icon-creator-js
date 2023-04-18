@@ -66,6 +66,8 @@ export default class HTMLeditor{
         for(let i in this.environment.config.patterns){
             let item = this.environment.config.patterns[i];
             if(item.startPaintButton){
+                //touch events are handled differently from mouse events, so they have to be propagated to the viewport
+                //mousedown/touchstart
                 item.startPaintButton.addEventListener("mousedown",() => {
                     this.setDrawingType("dragOut");
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
@@ -77,7 +79,10 @@ export default class HTMLeditor{
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
+                item.startPaintButton.addEventListener("touchstart",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                //touchmove
                 item.startPaintButton.addEventListener("touchmove",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                //mouseup/touchend
                 item.startPaintButton.addEventListener("mouseup",() => {
                     this.setDrawingType("clickedPaintPattern");
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
@@ -89,6 +94,7 @@ export default class HTMLeditor{
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
+                item.startPaintButton.addEventListener("touchend",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
             }
         }
         //meta edits
@@ -132,24 +138,20 @@ export default class HTMLeditor{
         },false);
         this.environment.layout.viewport.addEventListener("mousemove",event => {this.mouseMoved(event);});
         this.environment.layout.viewport.addEventListener("touchmove",event => {
-            console.log("touchmove");
             this.mouseMoved(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("mousedown",event => {this.mouseDown(event);});
         this.environment.layout.viewport.addEventListener("touchstart",event => {
-            console.log("Touch start");
             this.mouseDown(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("mouseup",event => {this.mouseUp(event);});
         this.environment.layout.viewport.addEventListener("touchend",event => {
-            console.log("Touch end");
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
         this.environment.layout.viewport.addEventListener("touchcancel",event => {
-            console.log("Touch cancel");
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
@@ -236,7 +238,6 @@ export default class HTMLeditor{
                     if(this.focusedPattern() == undefined){
                         //create new pattern
                         pattern = new this.state.paintPatternClass();
-                        console.log(pattern);
                         pattern.color = this.currProj().getColor();
                         this.currProj().frame().processAndAppend(pattern);
                         this.currProj().frame().newBox(pattern);
