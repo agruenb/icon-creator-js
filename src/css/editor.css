@@ -105,17 +105,11 @@ button.compact {
     pointer-events: none;
 }
 
-.anno-button .pseudo-input {
-    width: 50px;
-    display: block;
-    height: 50px;
-}
-
-.anno-button .tool-icon {
+.anno-button .tool-icon, .anno-button.color-picker {
     transition: 0.2s;
 }
 
-.anno-button:hover .tool-icon {
+.anno-button:hover .tool-icon:hover, .anno-button.color-picker:hover {
     transform: scale(1.2);
 }
 
@@ -124,9 +118,15 @@ button.compact {
     border-left: 8px solid var(--highlight);
 }
 
-.anno-button.color-picker>label {
+.anno-button .pseudo-input {
+    display: block;
+}
+
+.anno-button.color-picker > label {
     border-radius: 10px;
-    transform: scale(0.8);
+    height:80%;
+    width:80%;
+    margin:10%;
 }
 
 .editor-container .toolbar .tool-icon {

@@ -7,7 +7,7 @@ import PointOperations from "./shared/PointOperations";
 import PatternManipulator from "./shared/patternManipulator";
 
 import Outline from "./helperPatterns/Outline";
-import Marker from "./helperPatterns/marker";
+import Marker from "./helperPatterns/Marker";
 import UILine from "./helperPatterns/UILine";
 import ContextMenu from "./uiElements/ContextMenu";
 import MenuButton from "./uiElements/MenuButton";
