@@ -2,7 +2,7 @@ import IconCreatorGlobal from "../IconCreatorGlobal";
 
 import PatternManipulator from "../shared/patternManipulator";
 import PointOperations from "../shared/PointOperations.js";
-import Marker from "../helperPatterns/marker";
+import Marker from "../helperPatterns/Marker";
 import PatternClassLoader from "../shared/PatternClassLoader";
 
 type Coordinate2d = Array<number>;
