@@ -261,6 +261,12 @@ export default class HTMLeditor{
                         for(let i in markers){
                             this.addHelperMarker(...markers[i]);
                         }
+                        //adjust marker size when mouse is close
+                        let markerData = this.closestMarkerToMouse(event);
+                        if(markerData.distance < this.detectMouseOnMarkerDistance){
+                            markerData.marker.scale = this.markerScaleOnMouseHover;
+                            markerData.marker.updateContainer();
+                        }
                     }
                     this.currProj().repaint(pattern);
                     break;
@@ -340,6 +346,12 @@ export default class HTMLeditor{
                         let markers = pattern.activeDrawMarkers();
                         for(let i in markers){
                             this.addHelperMarker(...markers[i]);
+                        }
+                        //adjust marker size when mouse is close
+                        let markerData = this.closestMarkerToMouse(event);
+                        if(markerData.distance < this.detectMouseOnMarkerDistance){
+                            markerData.marker.scale = this.markerScaleOnMouseHover;
+                            markerData.marker.updateContainer();
                         }
                     }
                     break;
