@@ -180,6 +180,10 @@ export default class Frame extends IconCreatorGlobal{
     repaint(){
         this.paint();
     }
+    /**
+     * Repaints the frame. This means that present HTML elements are deleted and the patterns inside this frame are rerendered.
+     * @param {*} pattern 
+     */
     paint(pattern){
         if(pattern === undefined){//render all
             console.warn("Full re-render");
@@ -200,6 +204,10 @@ export default class Frame extends IconCreatorGlobal{
             this.render(pattern.id);
         }
     }
+    /**
+     * Renders a pattern to a frame. This means that the svg code is created and appended to the HTML element "paintPanel".
+     * @param {*} id ID of the pattern that should be rendered
+     */
     render(id = ""){
         //get positioning
         let paintPortRect = this.parentElement.getBoundingClientRect();

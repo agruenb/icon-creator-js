@@ -24,6 +24,7 @@ export default class HTMLeditor{
     toolBanner;
 
     detectMouseOnMarkerDistance = 8;
+    markerScaleOnMouseHover = 1.2;
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
@@ -190,7 +191,7 @@ export default class HTMLeditor{
                     break;
                 //edit
                 case "edit":
-                    let closestMarker = this.closestMarker(this.relX(event.clientX,0,undefined,1),this.relY(event.clientY,0,undefined,1));
+                    let closestMarker = this.closestMarkerToMouse(event);
                     //start dragging marker
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
                         this.state.editedObject = closestMarker.marker;
@@ -234,6 +235,7 @@ export default class HTMLeditor{
                 case "mousedownPaintPattern"://if mousedown after pattern selection and move -> active paint mode
                     this.state.currentAction = "activePaintPattern";
                     break;
+                //a new pattern is painted in the editor
                 case "activePaintPattern":
                     if(this.focusedPattern() == undefined){
                         //create new pattern
@@ -258,14 +260,27 @@ export default class HTMLeditor{
                     this.currProj().repaint(pattern);
                     break;
                 case "dragPattern":
+                    //mouse is on a pattern that is being dragged
                     this.currProj().frame().setOpacity(this.editOpacity);
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
                     this.currProj().repaint(pattern);
                     break;
                 case "dragMarker":
+                    //a marker is being dragged
                     this.currProj().frame().setOpacity(this.editOpacity);
                     this.adjustPatternToOther(pattern, this.state.editedObject, event);
                     this.currProj().repaint(pattern);
+                    break;
+                case "edit":
+                    //adjust marker size when mouse is close
+                    //this.clearViewportUI();
+                    //this.addEditUI();//this creates the ui and directly adds it to the ui layer HTML element
+                    let markerData = this.closestMarkerToMouse(event);
+                    if(markerData.distance < this.detectMouseOnMarkerDistance){
+                        markerData.marker.scale = this.markerScaleOnMouseHover;
+                        //markerData.marker.updateContainer();
+                    }
+                    //this.currProj().repaint(pattern);
                     break;
                 default:
                     break;
@@ -276,8 +291,10 @@ export default class HTMLeditor{
             if(role === "main" || role === "reference"){
                 //dont focus main pattern on mask frame
                 if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
-                    this.addHelperOutline(this.patternById(this.clickedElement(event).parentElement.id));
+                    return;
                 }
+                console.log("Paint outline");
+                this.addHelperOutline(this.patternById(this.clickedElement(event).parentElement.id));
             }
         }
     }
@@ -378,14 +395,21 @@ export default class HTMLeditor{
             break;
         }
     }
+    /**
+     * Adjust UI to reflect edited pattern. UI elements get fetched from the pattern and added to the frame UI layer.
+     * @param {*} pattern 
+     */
     addEditUI(pattern = this.focusedPattern()){
         if(["edit","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
+            //adjust info boxes state
             let infoBox = this.infoBoxManager().boxById(pattern.id);
             if(infoBox != undefined){
                 infoBox.highlight();
             }
+            //fetch UI elements from pattern
             let markers = pattern.getMarkers();
             let lines = pattern.getLines();
+            //add all UI elements to the frame ui layer
             for(let i in lines){
                 let lineParams = lines[i];
                 this.addHelperLine(...lineParams);
@@ -875,6 +899,15 @@ export default class HTMLeditor{
             }
         }
         return min;
+    }
+    
+    /**
+     * Returns the closest marker to a mouse pointer from a mouse event. 
+     * @param {MouseEvent} mouseEvent
+     * @returns 
+     */
+    closestMarkerToMouse(mouseEvent){
+        return this.closestMarker(this.relX(mouseEvent.clientX,0,undefined,1),this.relY(mouseEvent.clientY,0,undefined,1))
     }
     mouseOnCanvas(event){
         let canvasBox = this.drawingViewport.getBoundingClientRect();

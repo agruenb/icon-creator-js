@@ -1,12 +1,16 @@
 import HelperPattern from "./HelperPattern";
 
+/**
+ * A marker is a UI element used for indicating interaction locations for the user. After creation the HTML element can be accessed on marker.container
+ */
 export default class Marker extends HelperPattern{
-    constructor(viewportElement, x,y,memorize,icon="empty",rotation = 0){
+    constructor(viewportElement, x,y,memorize,icon="empty", rotation = 0, scale = 1){
         super(viewportElement);
         this.x = x;
         this.y = y;
         this.rotation = rotation;
         this.memorize = memorize;
+        this.scale = scale;
         let iconElement = document.createElement("img");
         let elementString = "";
         switch (icon) {
@@ -46,10 +50,10 @@ export default class Marker extends HelperPattern{
         }
         this.container.innerHTML = elementString;
         this.container.append(iconElement);
-        let rect = this.drawingViewport.getBoundingClientRect();
-        this.container.style.cssText = `position:absolute;top:${this.y+rect.y-8}px;left:${this.x+rect.x-8}px;height:16px;width:16px;transform:rotate(${this.rotation}deg)`;
+        this.updateContainer();
     }
-    repaint(){
-        this.element.style.cssText = `position:absolute;top:${this.y-8}px;left:${this.x-8}px;height:16px;width:16px;transform:rotate(${this.rotation}deg)`;
+    updateContainer(){
+        let rect = this.drawingViewport.getBoundingClientRect();
+        this.container.style.cssText = `position:absolute;top:${this.y+rect.y-8}px;left:${this.x+rect.x-8}px;height:16px;width:16px;transform:rotate(${this.rotation}deg) scale(${String(this.scale)})`;
     }
 }
