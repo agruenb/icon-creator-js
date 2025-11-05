@@ -25,6 +25,7 @@ export default class HTMLeditor{
 
     detectMouseOnMarkerDistance = 8;
     markerScaleOnMouseHover = 1.2;
+    markerScaleOnMouseDown = 0.8;
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
@@ -194,18 +195,22 @@ export default class HTMLeditor{
                     let closestMarker = this.closestMarkerToMouse(event);
                     //start dragging marker
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
+                        
                         this.state.editedObject = closestMarker.marker;
                         this.state.currentAction = "dragMarker";
-                    }else if(this.clickedElement(event).parentElement.id == this.focusedPattern().id){//start dragging pattern
+                    }else if(this.clickedElement(event).parentElement.id == this.focusedPattern().id){
+                        //start dragging pattern
                         this.setDraggingInfo(this.patternById(this.clickedElement(event).parentElement.id), event);
                         this.state.currentAction = "dragPattern";
-                    }else if(patternRole === "main" || patternRole === "reference"){//not the focused pattern is clicked but another pattern
+                    }else if(patternRole === "main" || patternRole === "reference"){
+                        //not the focused pattern is clicked but another pattern
                         //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
-                            this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
-                            this.setDraggingInfo(this.focusedPattern(), event);
-                            this.state.currentAction = "dragPattern";
+                        if(this.currProj().frame().boundId === this.clickedElement(event).parentElement.id){
+                            return;
                         }
+                        this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
+                        this.setDraggingInfo(this.focusedPattern(), event);
+                        this.state.currentAction = "dragPattern";
                     }else{//do nothing
                         this.state.currentAction = "edit";
                     }
@@ -273,27 +278,27 @@ export default class HTMLeditor{
                     break;
                 case "edit":
                     //adjust marker size when mouse is close
-                    //this.clearViewportUI();
-                    //this.addEditUI();//this creates the ui and directly adds it to the ui layer HTML element
+                    this.clearViewportUI();
+                    this.addEditUI();//this creates the ui and directly adds it to the ui layer HTML element
                     let markerData = this.closestMarkerToMouse(event);
                     if(markerData.distance < this.detectMouseOnMarkerDistance){
                         markerData.marker.scale = this.markerScaleOnMouseHover;
-                        //markerData.marker.updateContainer();
+                        markerData.marker.updateContainer();
                     }
-                    //this.currProj().repaint(pattern);
+                    this.currProj().repaint(pattern);
                     break;
                 default:
                     break;
             }
         }else{
+            //no active action (state.currentActio == "none")
             this.clearViewportUI();
             let role = this.clickedElement(event).parentElement.getAttribute("role");
             if(role === "main" || role === "reference"){
                 //dont focus main pattern on mask frame
-                if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+                if(this.currProj().frame().boundId === this.clickedElement(event).parentElement.id){
                     return;
                 }
-                console.log("Paint outline");
                 this.addHelperOutline(this.patternById(this.clickedElement(event).parentElement.id));
             }
         }
