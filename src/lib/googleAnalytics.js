@@ -1,6 +1,7 @@
 // Simple wrapper for Google Analytics (GA4)
 
-const GA_MEASUREMENT_ID = "G-0Y05JQHV10"; // <-- Replace this ✅
+const GA_MEASUREMENT_ID = process.env.GOOGLE_ANALYTICS_ID;
+console.log(GA_MEASUREMENT_ID);
 
 /**
  * Initialize GA (call once on app startup)
