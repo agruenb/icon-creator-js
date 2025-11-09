@@ -1,6 +1,7 @@
 import Exporter from "../external/Exporter";
 import UniversalOps from "../shared/UniversalOps";
-import DataService from "../shared/dataService";
+import DataService from "../shared/DataService";
+import { gAnalyticsTrackEvent } from "../lib/googleAnalytics";
 
 export default class ExportWindow{
 
@@ -179,14 +180,23 @@ export default class ExportWindow{
         switch (this.exportType) {
             case "svg":
                 Exporter.downloadSVG(filename, svgString);
+                gAnalyticsTrackEvent("export_icon",{
+                    file_type:"svg"
+                });
                 break;
             case "png":
                 //firefox needs fixed size
                 let svgStringFix = Exporter.createSVGFileContent(this.project, this.pngResolution, this.pngResolution);
                 Exporter.downloadPNG(filename, svgStringFix, parseInt(this.pngResolution));
+                gAnalyticsTrackEvent("export_icon",{
+                    file_type:"png"
+                });
                 break;
             case "inline":
                 Exporter.downloadHTML(filename, svgString);
+                gAnalyticsTrackEvent("export_icon",{
+                    file_type:"html"
+                });
                 break;
             case "json":
                 console.log(JSON.stringify(Exporter.extractSavefileJSON(this.project)));

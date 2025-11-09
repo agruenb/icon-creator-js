@@ -12,6 +12,7 @@ import "./css/rotateDisplay.css";
 import "./css/vars.css";
 
 import EditorManager from "./EditorManager";
+import { initAnalytics, trackPageView } from "./lib/googleAnalytics";
 import Circle from "./patterns/Circle";
 import Ellipse from "./patterns/Ellipse";
 import Line from "./patterns/Line";
@@ -91,5 +92,9 @@ let itemLoaderEnvironment = {
     openIconsButton:document.getElementById("openIconMenu")
 }
 window.icon_creator_global_index_counter = 0;
+
+initAnalytics();
+trackPageView("editor.")
+
 const manager = new EditorManager();
-manager.init(editorEnvironment, itemLoaderEnvironment);;
+manager.init(editorEnvironment, itemLoaderEnvironment);

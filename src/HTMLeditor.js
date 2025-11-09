@@ -17,20 +17,21 @@ import RotateDisplay from "./uiElements/RotateDisplay";
 import ExportWindow from "./uiElements/ExportWindow";
 import ConfirmWindow from "./uiElements/ConfirmWindow";
 import TouchInputAdapter from "./shared/TouchInputAdapter";
+import { gAnalyticsTrackEvent } from "./lib/googleAnalytics";
 
-export default class HTMLeditor{
+export default class HTMLeditor {
 
     activeProjects = new Array();
     toolBanner;
 
     detectMouseOnMarkerDistance = 8;
-    markerScaleOnMouseHover = 1.2;
-    markerScaleOnMouseDown = 0.8;
+    markerScaleOnMouseHover = 1.4;
+    markerScaleOnMouseDown = 0.8;//unused
     rotationMarkerDistanceFromPattern = 20;//TODO remove after relocation
 
     minCoordinate = -2048;
     editOpacity = 0.8;
-    
+
     keepHistory = true;
     exclusivView = false;
 
@@ -38,98 +39,99 @@ export default class HTMLeditor{
     preventBrowsershortcuts = true;
 
     state = {
-        currentAction:"none",
-        editedObject:undefined,
-        mouseDownInfo:undefined,
-        view:"arange",
+        currentAction: "none",
+        editedObject: undefined,
+        mouseDownInfo: undefined,
+        view: "arange",
         currentProject: 0,
         gridsize: 1,
-        draggingInfo: undefined
+        draggingInfo: undefined,
+        paintPatternClass: undefined //class type
     }
 
-    constructor(environment){
+    constructor(environment) {
         this.environment = environment;
         //setup viewport
         this.environment.layout.viewport.style.cssText = "position:relative;overflow:hidden";
         this.drawingViewport = this.environment.layout.resultViewport;
         this.drawingViewport.style.cssText = "height:512px;width:512px;";
         //init control
-        this.environment.control.editSVG.cursor.addEventListener("click",() => {
+        this.environment.control.editSVG.cursor.addEventListener("click", () => {
             this.focus();
             this.setDrawingType("none");
         });
-        this.environment.control.editSVG.clearAll.addEventListener("click",()=>{
-            let onAccept = ()=>this.clearProject();
-            let onReject = ()=>{return;}
+        this.environment.control.editSVG.clearAll.addEventListener("click", () => {
+            let onAccept = () => this.clearProject();
+            let onReject = () => { return; }
             let message = "Everything will be cleared. A recovery will not be possible.";
-            new ConfirmWindow(this.environment.layout.overlay, "New Project",message,onAccept, onReject);
+            new ConfirmWindow(this.environment.layout.overlay, "New Project", message, onAccept, onReject);
         });
         //pattern creation
-        for(let i in this.environment.config.patterns){
+        for (let i in this.environment.config.patterns) {
             let item = this.environment.config.patterns[i];
-            if(item.startPaintButton){
+            if (item.startPaintButton) {
                 //touch events are handled differently from mouse events, so they have to be propagated to the viewport
                 //mousedown/touchstart
-                item.startPaintButton.addEventListener("mousedown",() => {
+                item.startPaintButton.addEventListener("mousedown", () => {
                     this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchstart",(e) => {
+                item.startPaintButton.addEventListener("touchstart", (e) => {
                     e.preventDefault();
                     this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchstart",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchstart", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //touchmove
-                item.startPaintButton.addEventListener("touchmove",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchmove", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //mouseup/touchend
-                item.startPaintButton.addEventListener("mouseup",() => {
+                item.startPaintButton.addEventListener("mouseup", () => {
                     this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchstop",() => {
+                item.startPaintButton.addEventListener("touchstop", () => {
                     e.preventDefault();
                     this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item=>{return item.startPaintButton}),this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchend",(e)=>this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchend", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
             }
         }
         //meta edits
-        for(let key in this.environment.control.meta.gridsize){
-            this.environment.control.meta.gridsize[key].addEventListener("click",() => {this.changeGrid(this.environment.control.meta.gridsize[key].value)});
+        for (let key in this.environment.control.meta.gridsize) {
+            this.environment.control.meta.gridsize[key].addEventListener("click", () => { this.changeGrid(this.environment.control.meta.gridsize[key].value) });
         }
-        for(let key in this.environment.control.meta.bgColor){
-            this.environment.control.meta.bgColor[key].addEventListener("click",()=>{this.changeBackground(this.environment.control.meta.bgColor[key].value)});
+        for (let key in this.environment.control.meta.bgColor) {
+            this.environment.control.meta.bgColor[key].addEventListener("click", () => { this.changeBackground(this.environment.control.meta.bgColor[key].value) });
         }
-        
+
         let colorInput = new CustomColorInput("pseudo-input", "#660033");
         this.environment.control.meta.paintColor.append(colorInput);
-        this.environment.control.meta.paintColor.addEventListener("click",()=>{this.setDrawingType("none")});
-        colorInput.addEventListener("change",(e) => {this.setPaintColor(e.target.value)});
+        this.environment.control.meta.paintColor.addEventListener("click", () => { this.setDrawingType("none") });
+        colorInput.addEventListener("change", (e) => { this.setPaintColor(e.target.value) });
 
-        this.environment.control.meta.exclusiveView.addEventListener("change", (e)=>{
+        this.environment.control.meta.exclusiveView.addEventListener("change", (e) => {
             this.setExclusiveView(e.target.checked);
         });
-        this.environment.control.export.file.addEventListener("click",() => {this.exportFile()});
+        this.environment.control.export.file.addEventListener("click", () => { this.exportFile() });
 
-        this.environment.control.history.back.addEventListener("click",()=>{this.reverseLastAction()});
-        this.environment.control.history.forwards.addEventListener("click",()=>{this.reInitLastReverse()});
+        this.environment.control.history.back.addEventListener("click", () => { this.reverseLastAction() });
+        this.environment.control.history.forwards.addEventListener("click", () => { this.reInitLastReverse() });
         this.environment.control.history.back.classList.add("disabled");
         this.environment.control.history.forwards.classList.add("disabled");
 
-        this.environment.control.meta.moreOptions.addEventListener("click",()=>{
+        this.environment.control.meta.moreOptions.addEventListener("click", () => {
             this.addReferenceImage();
         });
         //setup for keyboard shortcuts
-        this.environment.document.addEventListener('keydown', event=>{
+        this.environment.document.addEventListener('keydown', event => {
             this.blockKeys(event);
         });
-        this.environment.document.addEventListener('keyup', event=>{
+        this.environment.document.addEventListener('keyup', event => {
             this.keyup(event);
         });
         //init mouse & touch events
@@ -137,39 +139,39 @@ export default class HTMLeditor{
             event.preventDefault();
             this.openContextMenu(event);
             return false;
-        },false);
-        this.environment.layout.viewport.addEventListener("mousemove",event => {this.mouseMoved(event);});
-        this.environment.layout.viewport.addEventListener("touchmove",event => {
+        }, false);
+        this.environment.layout.viewport.addEventListener("mousemove", event => { this.mouseMoved(event); });
+        this.environment.layout.viewport.addEventListener("touchmove", event => {
             this.mouseMoved(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
-        this.environment.layout.viewport.addEventListener("mousedown",event => {this.mouseDown(event);});
-        this.environment.layout.viewport.addEventListener("touchstart",event => {
+        this.environment.layout.viewport.addEventListener("mousedown", event => { this.mouseDown(event); });
+        this.environment.layout.viewport.addEventListener("touchstart", event => {
             this.mouseDown(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
-        this.environment.layout.viewport.addEventListener("mouseup",event => {this.mouseUp(event);});
-        this.environment.layout.viewport.addEventListener("touchend",event => {
+        this.environment.layout.viewport.addEventListener("mouseup", event => { this.mouseUp(event); });
+        this.environment.layout.viewport.addEventListener("touchend", event => {
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
-        this.environment.layout.viewport.addEventListener("touchcancel",event => {
+        this.environment.layout.viewport.addEventListener("touchcancel", event => {
             this.mouseUp(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event));
             event.preventDefault();
         });
-        this.environment.layout.viewport.addEventListener("dblclick",event => {this.doubleclick(event);});
+        this.environment.layout.viewport.addEventListener("dblclick", event => { this.doubleclick(event); });
         //resize listeners
-        this.environment.window.addEventListener("resize",()=>{
+        this.environment.window.addEventListener("resize", () => {
             this.currProj().drawBg();
         }
         );
     }
-    mouseDown(event){
+    mouseDown(event) {
         this.closeContextMenu();
         this.setMouseInfo(event);
-        if(event.which === 1){
+        if (event.which === 1) {
             //if new drawing type is selected
-            if(["edit","activePaintPattern"].indexOf(this.state.currentAction) == -1){
+            if (["edit", "activePaintPattern"].indexOf(this.state.currentAction) == -1) {
                 this.clearViewportUI();
             }
             let patternRole = this.clickedElement(event).parentElement.getAttribute("role");
@@ -179,13 +181,13 @@ export default class HTMLeditor{
                     break;
                 case "none":
                     //if pattern is on mouse -> start editing
-                    if(patternRole === "main" || patternRole === "reference"){
+                    if (patternRole === "main" || patternRole === "reference") {
                         //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+                        if (this.currProj().frame().boundId != this.clickedElement(event).parentElement.id) {
                             this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                             this.setDraggingInfo(this.focusedPattern(), event);
                             this.state.currentAction = "dragPattern";
-                        }else{
+                        } else {
                             console.warn("You cannot edit the main pattern in carve out mode!");
                         }
                     }
@@ -195,31 +197,31 @@ export default class HTMLeditor{
                     let closestMarker = this.closestMarkerToMouse(event);
                     //start dragging marker
                     if (closestMarker.distance < this.detectMouseOnMarkerDistance) {
-                        
+
                         this.state.editedObject = closestMarker.marker;
                         this.state.currentAction = "dragMarker";
-                    }else if(this.clickedElement(event).parentElement.id == this.focusedPattern().id){
+                    } else if (this.clickedElement(event).parentElement.id == this.focusedPattern().id) {
                         //start dragging pattern
                         this.setDraggingInfo(this.patternById(this.clickedElement(event).parentElement.id), event);
                         this.state.currentAction = "dragPattern";
-                    }else if(patternRole === "main" || patternRole === "reference"){
+                    } else if (patternRole === "main" || patternRole === "reference") {
                         //not the focused pattern is clicked but another pattern
                         //dont focus main pattern on mask frame
-                        if(this.currProj().frame().boundId === this.clickedElement(event).parentElement.id){
+                        if (this.currProj().frame().boundId === this.clickedElement(event).parentElement.id) {
                             return;
                         }
                         this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                         this.setDraggingInfo(this.focusedPattern(), event);
                         this.state.currentAction = "dragPattern";
-                    }else{//do nothing
+                    } else {//do nothing
                         this.state.currentAction = "edit";
                     }
                     break;
             }
         }
     }
-    mouseMoved(event){
-        if(this.state.currentAction !== "none"){
+    mouseMoved(event) {
+        if (this.state.currentAction !== "none") {
             let pattern = this.focusedPattern();
             switch (this.state.currentAction) {
                 //dragged from new pattern
@@ -228,8 +230,12 @@ export default class HTMLeditor{
                     pattern.color = this.currProj().getColor();
                     this.currProj().frame().processAndAppend(pattern);
                     this.currProj().frame().newBox(pattern);
+                    gAnalyticsTrackEvent("create_pattern", {
+                        method:"drag_out",
+                        type:this.state.paintPatternClass.name
+                    });
                     //center pattern on mouse
-                    pattern.translateTo(this.relX(event.clientX),this.relY(event.clientY));
+                    pattern.translateTo(this.relX(event.clientX), this.relY(event.clientY));
                     pattern.initialDefaultTranslation();
                     this.focus(pattern);
                     this.startEdit(pattern);
@@ -242,28 +248,33 @@ export default class HTMLeditor{
                     break;
                 //a new pattern is painted in the editor
                 case "activePaintPattern":
-                    if(this.focusedPattern() == undefined){
+                    if (this.focusedPattern() == undefined) {
                         //create new pattern
                         pattern = new this.state.paintPatternClass();
                         pattern.color = this.currProj().getColor();
                         this.currProj().frame().processAndAppend(pattern);
                         this.currProj().frame().newBox(pattern);
-                        let changes = pattern.startActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));
+                        console.log(this.state.paintPatternClass);
+                        gAnalyticsTrackEvent("create_pattern", {
+                            method:"paint_active",
+                            type:this.state.paintPatternClass.name
+                        });
+                        let changes = pattern.startActiveDraw(this.relX(event.clientX), this.relY(event.clientY), this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1));
                         this.currProj().alterPattern(pattern, changes);
                         this.focus(pattern);
-                    }else{
+                    } else {
                         this.clearViewportUI();
-                        let changes = pattern.movedActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));
+                        let changes = pattern.movedActiveDraw(this.relX(event.clientX), this.relY(event.clientY), this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1));
                         this.currProj().alterPattern(pattern, changes);
                         this.addHelperOutline(pattern);
                         //add markers
                         let markers = pattern.activeDrawMarkers();
-                        for(let i in markers){
+                        for (let i in markers) {
                             this.addHelperMarker(...markers[i]);
                         }
                         //adjust marker size when mouse is close
                         let markerData = this.closestMarkerToMouse(event);
-                        if(markerData.distance < this.detectMouseOnMarkerDistance){
+                        if (markerData.distance < this.detectMouseOnMarkerDistance) {
                             markerData.marker.scale = this.markerScaleOnMouseHover;
                             markerData.marker.updateContainer();
                         }
@@ -287,7 +298,7 @@ export default class HTMLeditor{
                     this.clearViewportUI();
                     this.addEditUI();//this creates the ui and directly adds it to the ui layer HTML element
                     let markerData = this.closestMarkerToMouse(event);
-                    if(markerData.distance < this.detectMouseOnMarkerDistance){
+                    if (markerData.distance < this.detectMouseOnMarkerDistance) {
                         markerData.marker.scale = this.markerScaleOnMouseHover;
                         markerData.marker.updateContainer();
                     }
@@ -296,26 +307,26 @@ export default class HTMLeditor{
                 default:
                     break;
             }
-        }else{
+        } else {
             //no active action (state.currentActio == "none")
             this.clearViewportUI();
             let role = this.clickedElement(event).parentElement.getAttribute("role");
-            if(role === "main" || role === "reference"){
+            if (role === "main" || role === "reference") {
                 //dont focus main pattern on mask frame
-                if(this.currProj().frame().boundId === this.clickedElement(event).parentElement.id){
+                if (this.currProj().frame().boundId === this.clickedElement(event).parentElement.id) {
                     return;
                 }
                 this.addHelperOutline(this.patternById(this.clickedElement(event).parentElement.id));
             }
         }
     }
-    mouseUp(event){
+    mouseUp(event) {
         this.closeContextMenu();
         this.clearViewportUI("rotationDisplay");
-        if(event.which === 1){
+        if (event.which === 1) {
             let pattern = this.focusedPattern();
-            let xPrecise = this.relX(event.clientX,0,undefined,1);
-            let yPrecise = this.relY(event.clientY,0,undefined,1);
+            let xPrecise = this.relX(event.clientX, 0, undefined, 1);
+            let yPrecise = this.relY(event.clientY, 0, undefined, 1);
             let x = this.relX(event.clientX);
             let y = this.relY(event.clientY);
             let patternRole = this.clickedElement(event).parentElement.getAttribute("role");
@@ -325,8 +336,12 @@ export default class HTMLeditor{
                     pattern.color = this.currProj().getColor();
                     this.currProj().frame().processAndAppend(pattern);
                     this.currProj().frame().newBox(pattern);
+                    gAnalyticsTrackEvent("create_pattern", {
+                            method:"click_canvas",
+                            type:this.state.paintPatternClass.name
+                        });
                     //center pattern on mouse
-                    pattern.translateTo(this.relX(event.clientX),this.relY(event.clientY));
+                    pattern.translateTo(this.relX(event.clientX), this.relY(event.clientY));
                     pattern.initialDefaultTranslation();
                     this.focus(pattern);
                     this.startEdit(pattern);
@@ -334,22 +349,22 @@ export default class HTMLeditor{
                     this.state.currentAction = "edit";
                     break;
                 case "activePaintPattern":
-                    let changes = pattern.releaseActiveDraw(this.relX(event.clientX),this.relY(event.clientY),this.relX(event.clientX, 0, undefined,1),this.relY(event.clientY, 0, undefined,1));//returns undefined if pattern is finished
-                    if(changes == undefined){
+                    let changes = pattern.releaseActiveDraw(this.relX(event.clientX), this.relY(event.clientY), this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1));//returns undefined if pattern is finished
+                    if (changes == undefined) {
                         this.clearViewportUI();
                         this.startEdit(pattern);
-                    }else{
+                    } else {
                         this.currProj().alterPattern(pattern, changes, true);
                         this.clearViewportUI();
                         this.addHelperOutline(pattern);
                         //add markers
                         let markers = pattern.activeDrawMarkers();
-                        for(let i in markers){
+                        for (let i in markers) {
                             this.addHelperMarker(...markers[i]);
                         }
                         //adjust marker size when mouse is close
                         let markerData = this.closestMarkerToMouse(event);
-                        if(markerData.distance < this.detectMouseOnMarkerDistance){
+                        if (markerData.distance < this.detectMouseOnMarkerDistance) {
                             markerData.marker.scale = this.markerScaleOnMouseHover;
                             markerData.marker.updateContainer();
                         }
@@ -357,15 +372,15 @@ export default class HTMLeditor{
                     break;
                 //edit
                 case "edit":
-                    if(patternRole !== "main" && patternRole !== "reference"){
+                    if (patternRole !== "main" && patternRole !== "reference") {
                         //stop edit on active element
                         this.stopEdit();
                     }
                     break;
                 case "dragMarker"://also click marker
-                    let closestMarker = this.closestMarker(x,y);
+                    let closestMarker = this.closestMarker(x, y);
                     //if mouse up position == mouse down position => marker is clicked
-                    if(closestMarker.distance < this.detectMouseOnMarkerDistance && this.state.mouseDownInfo.x == xPrecise && this.state.mouseDownInfo.y == yPrecise){
+                    if (closestMarker.distance < this.detectMouseOnMarkerDistance && this.state.mouseDownInfo.x == xPrecise && this.state.mouseDownInfo.y == yPrecise) {
                         //dont focus main pattern on mask frame
                         this.focusedPattern().markerClicked(closestMarker.marker);
                         this.clearViewportUI();
@@ -383,7 +398,7 @@ export default class HTMLeditor{
                     this.saveToHistory();
                     this.currProj().frame().setOpacity(1);
                     //only repaint if moved -> repaint stops doubleclick from working
-                    if(this.relX(event.clientX,0,undefined,1) != this.state.draggingInfo.x || this.relY(event.clientY,0,undefined,1) != this.state.draggingInfo.y){
+                    if (this.relX(event.clientX, 0, undefined, 1) != this.state.draggingInfo.x || this.relY(event.clientY, 0, undefined, 1) != this.state.draggingInfo.y) {
                         this.currProj().repaint(pattern);
                     }
                     break;
@@ -392,55 +407,55 @@ export default class HTMLeditor{
             }
         }
     }
-    doubleclick(event){
-        switch(this.state.currentAction){
+    doubleclick(event) {
+        switch (this.state.currentAction) {
             case "edit":
             case "none":
-            //stop edit on active element
-            this.stopEdit();
-            //if pattern is clicked -> start editing
-            if(this.clickedElement(event).parentElement.getAttribute("role") === "main"){
-                //dont focus main pattern on mask frame
-                if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
-                    this.state.currentAction = "edit";
-                    this.focus(this.patternById(this.clickedElement(event).parentElement.id));
-                    this.focusedPattern().doubleclicked();
-                    this.repaint(this.focusedPattern());
-                    this.addHelperOutline(this.focusedPattern());
+                //stop edit on active element
+                this.stopEdit();
+                //if pattern is clicked -> start editing
+                if (this.clickedElement(event).parentElement.getAttribute("role") === "main") {
+                    //dont focus main pattern on mask frame
+                    if (this.currProj().frame().boundId != this.clickedElement(event).parentElement.id) {
+                        this.state.currentAction = "edit";
+                        this.focus(this.patternById(this.clickedElement(event).parentElement.id));
+                        this.focusedPattern().doubleclicked();
+                        this.repaint(this.focusedPattern());
+                        this.addHelperOutline(this.focusedPattern());
+                    }
                 }
-            }
-            break;
+                break;
         }
     }
     /**
      * Adjust UI to reflect edited pattern. UI elements get fetched from the pattern and added to the frame UI layer.
      * @param {*} pattern 
      */
-    addEditUI(pattern = this.focusedPattern()){
-        if(["edit","dragPattern","dragMarker"].indexOf(this.state.currentAction) != -1){
+    addEditUI(pattern = this.focusedPattern()) {
+        if (["edit", "dragPattern", "dragMarker"].indexOf(this.state.currentAction) != -1) {
             //adjust info boxes state
             let infoBox = this.infoBoxManager().boxById(pattern.id);
-            if(infoBox != undefined){
+            if (infoBox != undefined) {
                 infoBox.highlight();
             }
             //fetch UI elements from pattern
             let markers = pattern.getMarkers();
             let lines = pattern.getLines();
             //add all UI elements to the frame ui layer
-            for(let i in lines){
+            for (let i in lines) {
                 let lineParams = lines[i];
                 this.addHelperLine(...lineParams);
             }
             this.addHelperOutline(pattern);
-            for(let i in markers){
+            for (let i in markers) {
                 let markerParams = markers[i];
                 this.addHelperMarker(...markerParams);
             }
-        }else{
+        } else {
             console.warn(`Cannot prepare pattern for edit in ${this.state.currentAction} mode`);
         }
     }
-    adjustPatternToOther(pattern, editedObject, event){
+    adjustPatternToOther(pattern, editedObject, event) {
         switch (this.state.currentAction) {
             case "dragMarker":
                 //change marker position
@@ -448,18 +463,18 @@ export default class HTMLeditor{
                 editedObject.y = this.relY(event.clientY);
                 this.clearViewportUI();
                 //get changes that should be done to the pattern accordingly
-                let changes = pattern.markerEdited(editedObject,this.state.gridsize, this.relX(event.clientX,0,undefined,1), this.relY(event.clientY,0,undefined,1));
+                let changes = pattern.markerEdited(editedObject, this.state.gridsize, this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1));
                 this.currProj().alterPattern(pattern, changes);
                 this.addEditUI(pattern);
                 //repaint point and marker and outline
-                if(changes.rotation != undefined){
+                if (changes.rotation != undefined) {
                     this.addHelperRotation(pattern);
                 }
                 this.currProj().frame().updateInfoBox(pattern);
                 break;
             case "dragPattern":
-                let newOriginX = this.relX(event.clientX,(this.state.draggingInfo.relToPatternOriginX));
-                let newOriginY = this.relY(event.clientY,(this.state.draggingInfo.relToPatternOriginY));
+                let newOriginX = this.relX(event.clientX, (this.state.draggingInfo.relToPatternOriginX));
+                let newOriginY = this.relY(event.clientY, (this.state.draggingInfo.relToPatternOriginY));
                 if (newOriginX !== pattern.xOrigin || newOriginY !== pattern.yOrigin) {
                     this.clearViewportUI();
                     pattern.translateTo(newOriginX, newOriginY);
@@ -473,23 +488,23 @@ export default class HTMLeditor{
                 break;
         }
     }
-    setDraggingInfo(editedObject, event){
+    setDraggingInfo(editedObject, event) {
         this.state.editedObject = editedObject;
         let draggingInfo = {
-            x:this.relX(event.clientX,0,undefined,1),
-            y:this.relY(event.clientY,0,undefined,1),
-            relToPatternOriginX:this.relX(event.clientX,0,undefined,1) - this.state.editedObject.xOrigin,
-            relToPatternOriginY:this.relY(event.clientY,0,undefined,1) - this.state.editedObject.yOrigin
+            x: this.relX(event.clientX, 0, undefined, 1),
+            y: this.relY(event.clientY, 0, undefined, 1),
+            relToPatternOriginX: this.relX(event.clientX, 0, undefined, 1) - this.state.editedObject.xOrigin,
+            relToPatternOriginY: this.relY(event.clientY, 0, undefined, 1) - this.state.editedObject.yOrigin
         };
         this.state.draggingInfo = draggingInfo;
     }
-    setMouseInfo(event){
+    setMouseInfo(event) {
         this.state.mouseDownInfo = {
-            x:this.relX(event.clientX,0,undefined,1),
-            y:this.relY(event.clientY,0,undefined,1)
+            x: this.relX(event.clientX, 0, undefined, 1),
+            y: this.relY(event.clientY, 0, undefined, 1)
         }
     }
-    newProject(){
+    newProject() {
         let newProject = new Project(this.environment.layout.elementOverview, this);
         newProject.init(this.environment.layout.viewport);
         this.drawingViewport.append(newProject.container);
@@ -497,87 +512,87 @@ export default class HTMLeditor{
         //TEMP: does not work with multiple projects
         this.saveToHistory();
     }
-    setExclusiveView(status){
-        if(status){
+    setExclusiveView(status) {
+        if (status) {
             this.exclusivView = true;
-            if(this.focusedPattern() != undefined){
+            if (this.focusedPattern() != undefined) {
                 this.startEdit(this.focusedPattern());
             }
             this.repaint();
-        }else{
+        } else {
             this.exclusivView = false;
             //show all patterns
-            for(let id in this.currProj().frame().patterns){
+            for (let id in this.currProj().frame().patterns) {
                 this.currProj().frame().patterns[id].display = true;
             }
             this.currProj().frame().updateInfoBox();
             this.repaint();
         }
     }
-    closeContextMenu(){
-        if(this.contextMenu != undefined){
+    closeContextMenu() {
+        if (this.contextMenu != undefined) {
             this.contextMenu.close();
             delete this.contextMenu;
         }
     }
-    defaultOptions(pattern){
-        if(pattern.isReference){
+    defaultOptions(pattern) {
+        if (pattern.isReference) {
             return [{
-                label:"delete",
-                clickHandler:()=>{this.removeCurrentPattern();this.closeContextMenu();},
-                icon:"img/sys_trash_icon.svg",
-                type:"general"
+                label: "delete",
+                clickHandler: () => { this.removeCurrentPattern(); this.closeContextMenu(); },
+                icon: "img/sys_trash_icon.svg",
+                type: "general"
             }];
         }
         let options = [];
-        if(!pattern.isMask && pattern.allowMask){
+        if (!pattern.isMask && pattern.allowMask) {
             options.push({
-                label:"carve out",
-                clickHandler:()=>{this.changeView("mask");this.closeContextMenu();},
-                icon:"img/sys_carve_out_icon.svg",
-                type:"general"
+                label: "carve out",
+                clickHandler: () => { this.changeView("mask"); this.closeContextMenu(); },
+                icon: "img/sys_carve_out_icon.svg",
+                type: "general"
             });
         }
         options.push({
-            label:"duplicate",
-            clickHandler:()=>{this.duplicateCurrentPattern();this.closeContextMenu();},
-            icon:"img/sys_duplicate_icon.svg",
-            type:"general"
-        },{
-            label:"flip",
-            clickHandler:()=>{this.mirrorCurrentPatternVertical();this.closeContextMenu();},
-            icon:"img/sys_flip_icon.svg",
-            type:"general"
-        },{
-            label:"flip",
-            clickHandler:()=>{this.mirrorCurrentPatternHorizontal();this.closeContextMenu();},
-            icon:"img/sys_flip_icon.svg",
-            type:"general",
-            transform:"rotate(90deg)"
-        },{
-            label:"delete",
-            clickHandler:()=>{this.removeCurrentPattern();this.closeContextMenu();},
-            icon:"img/sys_trash_icon.svg",
-            type:"general"
+            label: "duplicate",
+            clickHandler: () => { this.duplicateCurrentPattern(); this.closeContextMenu(); },
+            icon: "img/sys_duplicate_icon.svg",
+            type: "general"
+        }, {
+            label: "flip",
+            clickHandler: () => { this.mirrorCurrentPatternVertical(); this.closeContextMenu(); },
+            icon: "img/sys_flip_icon.svg",
+            type: "general"
+        }, {
+            label: "flip",
+            clickHandler: () => { this.mirrorCurrentPatternHorizontal(); this.closeContextMenu(); },
+            icon: "img/sys_flip_icon.svg",
+            type: "general",
+            transform: "rotate(90deg)"
+        }, {
+            label: "delete",
+            clickHandler: () => { this.removeCurrentPattern(); this.closeContextMenu(); },
+            icon: "img/sys_trash_icon.svg",
+            type: "general"
         });
         return options;
     }
-    openContextMenu(event){
+    openContextMenu(event) {
         this.closeContextMenu();
         let options = [];
         //if clicked on pattern
-        if(this.clickedElement(event).parentElement.getAttribute("role") === "main"){
+        if (this.clickedElement(event).parentElement.getAttribute("role") === "main") {
             //dont focus main pattern on mask frame
-            if(this.currProj().frame().boundId != this.clickedElement(event).parentElement.id){
+            if (this.currProj().frame().boundId != this.clickedElement(event).parentElement.id) {
                 this.stopEdit();
                 this.startEdit(this.patternById(this.clickedElement(event).parentElement.id));
                 options.push(...this.defaultOptions(this.focusedPattern()));
             }
         }
         //if a pattern is focussed
-        if(this.focusedPattern() != undefined){
+        if (this.focusedPattern() != undefined) {
             options = [
-                ...this.focusedPattern().additionalOptions(this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1), ()=>{
+                ...this.focusedPattern().additionalOptions(this.relX(event.clientX, 0, undefined, 1), this.relY(event.clientY, 0, undefined, 1), () => {
                     this.closeContextMenu();
                     this.currProj().frame().repaint();
                     this.clearViewportUI();
@@ -588,15 +603,15 @@ export default class HTMLeditor{
             ];
         }
         //no options possible
-        if(options.length == 0){
+        if (options.length == 0) {
             console.warn("No context menu in this area");
             return;
         }
         this.contextMenu = new ContextMenu(event.clientX, event.clientY, this.environment.layout.viewport);
         this.contextMenu.deploy(options);
     }
-    mirrorCurrentPatternVertical(){
-        if(this.focusedPattern() != undefined){
+    mirrorCurrentPatternVertical() {
+        if (this.focusedPattern() != undefined) {
             this.focusedPattern().mirrorVertically();
             this.currProj().repaint(this.focusedPattern());
             this.saveToHistory();
@@ -604,8 +619,8 @@ export default class HTMLeditor{
             this.addEditUI();
         }
     }
-    mirrorCurrentPatternHorizontal(){
-        if(this.focusedPattern() != undefined){
+    mirrorCurrentPatternHorizontal() {
+        if (this.focusedPattern() != undefined) {
             this.focusedPattern().mirrorHorizontally();
             this.currProj().repaint(this.focusedPattern());
             this.saveToHistory();
@@ -613,36 +628,36 @@ export default class HTMLeditor{
             this.addEditUI();
         }
     }
-    duplicateCurrentPattern(){
-        if(this.focusedPattern() != undefined){
+    duplicateCurrentPattern() {
+        if (this.focusedPattern() != undefined) {
             this.duplicate(this.focusedPattern());
             this.saveToHistory();
         }
     }
-    removeCurrentPattern(){
-        if(this.focusedPattern() != undefined){
+    removeCurrentPattern() {
+        if (this.focusedPattern() != undefined) {
             this.removePattern(this.focusedPattern());
             this.saveToHistory();
         }
     }
-    addPattern(type,x,y){
-        let pattern = this.currProj().newPattern(type,this.relX(x),this.relY(y));
+    addPattern(type, x, y) {
+        let pattern = this.currProj().newPattern(type, this.relX(x), this.relY(y));
         return pattern;
     }
-    addHelperMarker(...params){
-        let marker = new Marker(this.drawingViewport,...params);
+    addHelperMarker(...params) {
+        let marker = new Marker(this.drawingViewport, ...params);
         this.uiLayer().append(marker.container);
         this.markers().push(marker);
     }
-    addHelperOutline(pattern){
+    addHelperOutline(pattern) {
         let outline = new Outline(this.drawingViewport, pattern);
         this.uiLayer().append(outline.container);
     }
-    addHelperLine(x,y,endX,endY,dashArray){
-        let uiline = new UILine(this.drawingViewport, x,y,endX,endY,dashArray);
+    addHelperLine(x, y, endX, endY, dashArray) {
+        let uiline = new UILine(this.drawingViewport, x, y, endX, endY, dashArray);
         this.uiLayer().append(uiline.container);
     }
-    addHelperRotation(pattern){
+    addHelperRotation(pattern) {
         let rot = new RotateDisplay(this.drawingViewport, pattern.center[0], pattern.center[1], pattern.rotation);
         this.rotateDisplay = rot;
         rot.addTo(this.uiLayer());
@@ -651,111 +666,117 @@ export default class HTMLeditor{
      * DOES NOT SAVE TO HISTORY
      * @param {Number} id 
      */
-    removePattern(pattern){
+    removePattern(pattern) {
         this.stopEdit();
         this.currProj().remove(pattern);
     }
-    reverseLastAction(){
-        let focusedId = (this.focusedPattern() != undefined)?this.focusedPattern().id:undefined;
+    reverseLastAction() {
+        let focusedId = (this.focusedPattern() != undefined) ? this.focusedPattern().id : undefined;
         this.focus();
         this.setDrawingType("none");
         this.currProj().frame().history.reverseLast();
         //refocus pattern
-        if(focusedId && this.currProj().frame().patterns[focusedId] != undefined){
+        if (focusedId && this.currProj().frame().patterns[focusedId] != undefined) {
             this.startEdit(this.currProj().frame().patterns[focusedId]);
         }
         //update ui
         this.updateHistoryButtons();
+        gAnalyticsTrackEvent("reverse_action");
     }
-    reInitLastReverse(){
-        let focusedId = (this.focusedPattern() != undefined)?this.focusedPattern().id:undefined;
+    reInitLastReverse() {
+        let focusedId = (this.focusedPattern() != undefined) ? this.focusedPattern().id : undefined;
         this.focus();
         this.setDrawingType("none");
         this.currProj().frame().history.reInitLast();
         //refocus pattern
-        if(focusedId && this.currProj().frame().patterns[focusedId] != undefined){
+        if (focusedId && this.currProj().frame().patterns[focusedId] != undefined) {
             this.startEdit(this.currProj().frame().patterns[focusedId]);
         }
         //update ui
         this.updateHistoryButtons();
+        gAnalyticsTrackEvent("redo_action");
     }
-    updateHistoryButtons(){
-        if(this.currProj().frame().isMaskFrame){
+    updateHistoryButtons() {
+        if (this.currProj().frame().isMaskFrame) {
             this.environment.control.history.back.classList.add("disabled");
             this.environment.control.history.forwards.classList.add("disabled");
-        }else{
-            if(this.currProj().frame().history.currentState != this.currProj().frame().history.firstPreserved){
+        } else {
+            if (this.currProj().frame().history.currentState != this.currProj().frame().history.firstPreserved) {
                 this.environment.control.history.back.classList.remove("disabled");
             }
-            if(this.currProj().frame().history.currentState != this.currProj().frame().history.history.length - 1){
+            if (this.currProj().frame().history.currentState != this.currProj().frame().history.history.length - 1) {
                 this.environment.control.history.forwards.classList.remove("disabled");
             }
-            if(this.currProj().frame().history.currentState == this.currProj().frame().history.firstPreserved){
+            if (this.currProj().frame().history.currentState == this.currProj().frame().history.firstPreserved) {
                 this.environment.control.history.back.classList.add("disabled");
             }
-            if(this.currProj().frame().history.currentState == this.currProj().frame().history.history.length - 1){
+            if (this.currProj().frame().history.currentState == this.currProj().frame().history.history.length - 1) {
                 this.environment.control.history.forwards.classList.add("disabled");
             }
         }
     }
-    changeView(view = "arange"){
-        if(this.state.view != view){
-            let focusedPattern = this.focusedPattern();
-            //need to know if certain views are possible in current state
-            let editPossible = (this.state.currentAction == "edit")?true:false;
-            this.stopEdit();
-            this.setDrawingType("none");
-            switch (view) {
-                case "arange":
-                    this.state.view = view;
-                    this.currProj().setFrame(this.currProj().keyframes[0]);
-                    this.saveToHistory();
-                    break;
-                case "mask":
-                    if(editPossible){
-                        if(focusedPattern.allowMask){
-                            this.state.view = view;
-                            this.currProj().switchToMask(focusedPattern);
-                            //ui
-                            let callback = ()=>{this.changeView("arange")};
-                            let headline = IconCreatorGlobal.el("div","<img src='img/sys_carve_out_icon.svg'>Carve out mode","title");
-                            let banner = new Banner(headline, "Quit", callback);
-                            banner.addTo(this.environment.layout.container);
-                        }else{
-                            alert("Cannot mask this pattern");
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            this.updateHistoryButtons();
+    changeView(view = "arange") {
+        if (this.state.view == view) {
+            return;
         }
+        let focusedPattern = this.focusedPattern();
+        //need to know if certain views are possible in current state
+        let editPossible = (this.state.currentAction == "edit") ? true : false;
+        this.stopEdit();
+        this.setDrawingType("none");
+        switch (view) {
+            case "arange":
+                this.state.view = view;
+                this.currProj().setFrame(this.currProj().keyframes[0]);
+                this.saveToHistory();
+                break;
+            case "mask":
+                if (editPossible) {
+                    if (focusedPattern.allowMask) {
+                        this.state.view = view;
+                        this.currProj().switchToMask(focusedPattern);
+                        //ui
+                        let callback = () => { this.changeView("arange") };
+                        let headline = IconCreatorGlobal.el("div", "<img src='img/sys_carve_out_icon.svg'>Carve out mode", "title");
+                        let banner = new Banner(headline, "Quit", callback);
+                        banner.addTo(this.environment.layout.container);
+                    } else {
+                        alert("Cannot mask this pattern");
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+        this.updateHistoryButtons();
+        gAnalyticsTrackEvent("change_view",{
+            type: view
+        });
     }
-    startEdit(pattern){
-        if(this.focusedPattern()){
+    startEdit(pattern) {
+        if (this.focusedPattern()) {
             this.stopEdit();
         }
         this.setDrawingType("none");
         this.state.currentAction = "edit";
         this.focus(pattern);
         this.addEditUI(pattern);
-        if(this.exclusivView && !pattern.isReference){
+        if (this.exclusivView && !pattern.isReference) {
             //hide all patterns that are not selected
-            for(let id in this.currProj().frame().patterns){
-                if(id != this.focusedPattern().id){
+            for (let id in this.currProj().frame().patterns) {
+                if (id != this.focusedPattern().id) {
                     this.currProj().frame().patterns[id].display = false;
                 }
             }
             this.currProj().frame().updateInfoBox();
         }
         //edit banner
-        if(this.toolBanner == undefined){
-            let buttonWrapper = IconCreatorGlobal.el("div","","tool-buttons");
+        if (this.toolBanner == undefined) {
+            let buttonWrapper = IconCreatorGlobal.el("div", "", "tool-buttons");
             let options = this.defaultOptions(pattern);
-            for(let i = 0;i < options.length; i++){
+            for (let i = 0; i < options.length; i++) {
                 let button = new MenuButton(options[i].label, options[i].icon, options[i].transform, options[i].clickHandler);
-                if(options[i].type == "general"){
+                if (options[i].type == "general") {
                     button.addTo(buttonWrapper);
                 }
             }
@@ -765,15 +786,15 @@ export default class HTMLeditor{
         }
         this.repaint();
     }
-    stopEdit(){
-        if(this.exclusivView){
+    stopEdit() {
+        if (this.exclusivView) {
             //show all patterns
-            for(let id in this.currProj().frame().patterns){
+            for (let id in this.currProj().frame().patterns) {
                 this.currProj().frame().patterns[id].display = true;
             }
             this.currProj().frame().updateInfoBox();
         }
-        if(this.toolBanner){
+        if (this.toolBanner) {
             this.toolBanner.close();
             delete this.toolBanner;
         }
@@ -782,10 +803,10 @@ export default class HTMLeditor{
         this.state.currentAction = "none";
         this.repaint();
     }
-    patternById(id){
+    patternById(id) {
         return this.currProj().patternById(id);
     }
-    focusedPattern(){
+    focusedPattern() {
         return this.currProj().frame().focusedPattern;
     }
     /**
@@ -793,43 +814,43 @@ export default class HTMLeditor{
      * If pattern is undefined the focus on all patterns is removed.
      * @param {Pattern} pattern pattern that should be focused
      */
-    focus(pattern){
-        if(this.focusedPattern()){
+    focus(pattern) {
+        if (this.focusedPattern()) {
             this.focusedPattern().lostFocus();
         }
         this.currProj().frame().focus(pattern);
-        if(pattern){
+        if (pattern) {
             pattern.gotFocus();
         }
     }
-    clearViewportUI(specificElement){
-        if(specificElement == "rotationDisplay"){
-            if(this.rotateDisplay != undefined){
+    clearViewportUI(specificElement) {
+        if (specificElement == "rotationDisplay") {
+            if (this.rotateDisplay != undefined) {
                 this.rotateDisplay.element.remove();
             }
-        }else{
+        } else {
             this.currProj().frame().clearUI();
         }
     }
-    duplicate(pattern){
+    duplicate(pattern) {
         let dup = PatternManipulator.createWithSameClass(pattern);
         this.currProj().frame().append(dup);
         dup.load(pattern.get(), false);
-        dup.translateTo(dup.xOrigin+20, dup.yOrigin+20);
+        dup.translateTo(dup.xOrigin + 20, dup.yOrigin + 20);
         this.currProj().frame().newBox(dup);
         this.stopEdit();
         this.startEdit(dup);
     }
-    currProj(){
+    currProj() {
         return this.activeProjects[this.state.currentProject];
     }
-    markers(){
+    markers() {
         return this.currProj().frame().markers;
     }
-    uiLayer(){
+    uiLayer() {
         return this.currProj().frame().uiLayer;
     }
-    changeBackground(value){
+    changeBackground(value) {
         let targetColor;
         switch (value) {
             case "light":
@@ -844,54 +865,54 @@ export default class HTMLeditor{
         document.querySelector(':root').style.setProperty('--viewport-background', targetColor);
         this.currProj().drawBg();
     }
-    relX(x, remove = 0, min = -2048,steps = this.state.gridsize, max = 2048){
-        let a = parseInt(Math.min(Math.max(x - (this.drawingViewport.getBoundingClientRect().x + remove), min), max) );
-        let overhang = a%steps;
-        if(overhang < steps/2){
+    relX(x, remove = 0, min = -2048, steps = this.state.gridsize, max = 2048) {
+        let a = parseInt(Math.min(Math.max(x - (this.drawingViewport.getBoundingClientRect().x + remove), min), max));
+        let overhang = a % steps;
+        if (overhang < steps / 2) {
             return a - overhang;
-        }else{
+        } else {
             return a - overhang + steps;
         }
     }
-    relY(y, remove = 0, min = -2048, steps = this.state.gridsize, max = 2048){
-        const a = parseInt(Math.min(Math.max(y - (this.drawingViewport.getBoundingClientRect().y + remove), min), max) );
-        let overhang = a%steps;
-        if(overhang < steps/2){
+    relY(y, remove = 0, min = -2048, steps = this.state.gridsize, max = 2048) {
+        const a = parseInt(Math.min(Math.max(y - (this.drawingViewport.getBoundingClientRect().y + remove), min), max));
+        let overhang = a % steps;
+        if (overhang < steps / 2) {
             return a - overhang;
-        }else{
+        } else {
             return a - overhang + steps;
         }
     }
-    clickedElement(event){
+    clickedElement(event) {
         let elementStack = document.elementsFromPoint(event.clientX, event.clientY);
         let index = 0;
-        while(elementStack[index].tagName === "svg" || elementStack[index].tagName === "SVG"){
+        while (elementStack[index].tagName === "svg" || elementStack[index].tagName === "SVG") {
             index++;
         }
         return elementStack[index];
     }
-    saveToHistory(){
-        if(this.keepHistory){
+    saveToHistory() {
+        if (this.keepHistory) {
             this.currProj().frame().saveToHistory();
             this.updateHistoryButtons();
         }
     }
-    loadProject(projectJSON = {}){
+    loadProject(projectJSON = {}) {
         //TEMP
         this.currProj().load(projectJSON);
     }
-    setDrawingType(type){
+    setDrawingType(type) {
         this.closeContextMenu();
-        if(["rect0","circle0","ellipse0","line0","path0"].indexOf(type) !== -1){
-            this.setCursor(this.drawingViewport,"crosshair");
-        }else{
+        if (["rect0", "circle0", "ellipse0", "line0", "path0"].indexOf(type) !== -1) {
+            this.setCursor(this.drawingViewport, "crosshair");
+        } else {
             this.setCursor(this.drawingViewport, "default");
         }
-        if(this.state.currentAction == "edit"){
+        if (this.state.currentAction == "edit") {
             this.stopEdit();
         }
-        if(type == "none"){
-            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map(item=>{return item.startPaintButton})]);
+        if (type == "none") {
+            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map(item => { return item.startPaintButton })]);
         }
         this.state.currentAction = type;
     }
@@ -901,51 +922,51 @@ export default class HTMLeditor{
      * @param {*} y 
      * @returns 
      */
-    closestMarker(x,y){
+    closestMarker(x, y) {
         let min = {
-            distance:Infinity,
-            marker:{},
+            distance: Infinity,
+            marker: {},
         }
         for (let i = 0; i < this.markers().length; i++) {
-            let distToPoint = PointOperations.distance(x,y,this.markers()[i].x,this.markers()[i].y);
-            if(distToPoint <= min.distance){
+            let distToPoint = PointOperations.distance(x, y, this.markers()[i].x, this.markers()[i].y);
+            if (distToPoint <= min.distance) {
                 min = {
-                    distance:distToPoint,
-                    marker:this.markers()[i]
+                    distance: distToPoint,
+                    marker: this.markers()[i]
                 }
             }
         }
         return min;
     }
-    
+
     /**
      * Returns the closest marker to a mouse pointer from a mouse event. 
      * @param {MouseEvent} mouseEvent
      * @returns 
      */
-    closestMarkerToMouse(mouseEvent){
-        return this.closestMarker(this.relX(mouseEvent.clientX,0,undefined,1),this.relY(mouseEvent.clientY,0,undefined,1))
+    closestMarkerToMouse(mouseEvent) {
+        return this.closestMarker(this.relX(mouseEvent.clientX, 0, undefined, 1), this.relY(mouseEvent.clientY, 0, undefined, 1))
     }
-    mouseOnCanvas(event){
+    mouseOnCanvas(event) {
         let canvasBox = this.drawingViewport.getBoundingClientRect();
-        return PointOperations.withinBounds(event.clientX,event.clientY,canvasBox.x,canvasBox.y,canvasBox.x + parseInt(this.currProj().dimensions.width),canvasBox.y+parseInt(this.currProj().dimensions.height));
+        return PointOperations.withinBounds(event.clientX, event.clientY, canvasBox.x, canvasBox.y, canvasBox.x + parseInt(this.currProj().dimensions.width), canvasBox.y + parseInt(this.currProj().dimensions.height));
     }
-    changeGrid(size){
-        if(size < 4){
+    changeGrid(size) {
+        if (size < 4) {
             this.state.gridsize = 1;
-        }else{
-            this.state.gridsize = Math.pow(2,size);
+        } else {
+            this.state.gridsize = Math.pow(2, size);
         }
         this.currProj().bgGridsize = parseInt(this.state.gridsize);
         this.currProj().drawBg();
     }
-    setPaintColor(color = "#000000"){
+    setPaintColor(color = "#000000") {
         this.currProj().setColor(color);
     }
-    setCursor(element,style = "cursor"){
+    setCursor(element, style = "cursor") {
         element.style.cursor = style;
     }
-    repaint(pattern){
+    repaint(pattern) {
         this.currProj().repaint(pattern);
         this.updateHistoryButtons();
     }
@@ -953,28 +974,28 @@ export default class HTMLeditor{
      * Getter for infoBoxManager of current frame
      * @returns infoBoxManager of current frame
      */
-    infoBoxManager(){
+    infoBoxManager() {
         return this.currProj().frame().infoBoxManager;
     }
-    toTop(pattern){
+    toTop(pattern) {
         this.currProj().toTop(pattern);
         this.infoBoxManager().toTop(pattern);
     }
-    toBottom(pattern){
+    toBottom(pattern) {
         this.currProj().toBottom(pattern);
         this.infoBoxManager().toBottom(pattern);
     }
-    oneUp(pattern){
+    oneUp(pattern) {
         this.currProj().oneUp(pattern);
         this.infoBoxManager().oneUp(pattern);
     }
-    oneDown(pattern){
+    oneDown(pattern) {
         this.currProj().oneDown(pattern);
         this.infoBoxManager().oneDown(pattern);
     }
-    translateFocussedPattern(x = 0, y = 0){
+    translateFocussedPattern(x = 0, y = 0) {
         let pattern = this.focusedPattern();
-        if(pattern){
+        if (pattern) {
             pattern.translateTo(pattern.xOrigin + x, pattern.yOrigin + y);
             //repaint point and marker
             this.currProj().frame().updateInfoBox(pattern);
@@ -983,32 +1004,33 @@ export default class HTMLeditor{
             this.currProj().repaint(pattern);
         }
     }
-    addReferenceImage(){
-        let callback = image =>{
-            if(image){
+    addReferenceImage() {
+        let callback = image => {
+            if (image) {
                 this.currProj().addReferenceImage(image);
-            }else{
+            } else {
                 console.warn("No image given");
             }
         }
         ImageProcessor.requestImage(callback);
     }
-    clearProject(){
+    clearProject() {
         this.clearViewportUI();
         this.currProj().reset();
         this.repaint();
+        gAnalyticsTrackEvent("clear_project");
     }
-    exportFile(){
+    exportFile() {
         this.stopEdit();
         this.preventBrowsershortcuts = false;
-        let callback = ()=>{
+        let callback = () => {
             this.preventBrowsershortcuts = true;
         }
-        let exportWindow = new ExportWindow(this.environment.layout.overlay, this.currProj(), undefined , callback);
+        let exportWindow = new ExportWindow(this.environment.layout.overlay, this.currProj(), undefined, callback);
     }
-    blockKeys(event){
-        if(this.preventBrowsershortcuts){
-            if([68, 90].indexOf(event.keyCode) !== -1){
+    blockKeys(event) {
+        if (this.preventBrowsershortcuts) {
+            if ([68, 90].indexOf(event.keyCode) !== -1) {
                 event.preventDefault();
             }
         }
@@ -1017,50 +1039,50 @@ export default class HTMLeditor{
      * Is triggered on key up events. If the patterns keypress function returns a truthy value, the input is not passed to the hotkey function.
      * @param {Keyboard Event} event 
      */
-    keyup(event){
+    keyup(event) {
         let blockHotkeys = false;
-        if(this.focusedPattern()){
+        if (this.focusedPattern()) {
             blockHotkeys = this.focusedPattern().keypress(event);
-            if(this.focusedPattern().repaintOnKeyUp){
+            if (this.focusedPattern().repaintOnKeyUp) {
                 this.repaint(this.focusedPattern());
             }
         }
-        if(!blockHotkeys){
-            this.hotkey(event); 
+        if (!blockHotkeys) {
+            this.hotkey(event);
         }
     }
-    hotkey(event){
+    hotkey(event) {
         this.closeContextMenu();
-        if(event.keyCode == 8){
+        if (event.keyCode == 8) {
             event.preventDefault();
             this.removeCurrentPattern();
-        }else if(event.keyCode == 39){//arror right
+        } else if (event.keyCode == 39) {//arror right
             this.translateFocussedPattern(this.state.gridsize);
             this.saveToHistory();
-        }else if(event.keyCode == 37){//arror left
+        } else if (event.keyCode == 37) {//arror left
             this.translateFocussedPattern(-this.state.gridsize);
             this.saveToHistory();
-        }else if(event.keyCode == 38){//arrow up
+        } else if (event.keyCode == 38) {//arrow up
             this.translateFocussedPattern(0, -this.state.gridsize);
             this.saveToHistory();
-        }else if(event.keyCode == 40){//arrow down
+        } else if (event.keyCode == 40) {//arrow down
             this.translateFocussedPattern(0, this.state.gridsize);
             this.saveToHistory();
         }
-        if(event.ctrlKey){//conrolKey pressed -> action
-            if(event.keyCode === 68){//d
+        if (event.ctrlKey) {//conrolKey pressed -> action
+            if (event.keyCode === 68) {//d
                 event.preventDefault();
                 this.duplicateCurrentPattern();
-            }else
-            if(event.keyCode === 90){//z
-                event.preventDefault();
-                if(event.shiftKey){
-                    //ctrl+shift+z
-                    this.reInitLastReverse();
-                }else{
-                    this.reverseLastAction();
+            } else
+                if (event.keyCode === 90) {//z
+                    event.preventDefault();
+                    if (event.shiftKey) {
+                        //ctrl+shift+z
+                        this.reInitLastReverse();
+                    } else {
+                        this.reverseLastAction();
+                    }
                 }
-            }
         }
     }
 }

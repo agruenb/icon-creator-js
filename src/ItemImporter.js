@@ -1,4 +1,4 @@
-import DataService from "./shared/dataService";
+import DataService from "./shared/DataService";
 
 export default class ItemImporter {
 
