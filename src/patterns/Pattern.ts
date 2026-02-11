@@ -1,14 +1,14 @@
 import IconCreatorGlobal from "../IconCreatorGlobal";
 
 import PatternManipulator from "../shared/patternManipulator";
-import PointOperations from "../shared/PointOperations.js";
+import PointOperations from "../shared/PointOperations";
 import Marker from "../helperPatterns/Marker";
 import PatternClassLoader from "../shared/PatternClassLoader";
 
-type Coordinate2d = Array<number>;
-type Translation2d = Array<number>;
+export type Coordinate2d = [number, number];
+export type Translation2d = [number, number];
 
-type MaskLayer = {
+export type MaskLayer = {
     patterns: Array<Pattern>
 }
 
@@ -20,12 +20,13 @@ export default class Pattern extends IconCreatorGlobal {
     isFiller: boolean;
     repaintOnKeyUp: boolean;
     isReference: boolean;
-    maskLayer: MaskLayer;
-    boundId: boolean;
+    maskLayer: MaskLayer | undefined;
+    //@ts-ignore
+    boundId: string | undefined;
     rotationSnap: Array<number>;
     snapTolerance: number;
-    defaultTranslation: Coordinate2d;
-    scaleMarkerPosition: Translation2d;
+    defaultTranslation: Translation2d;
+    scaleMarkerPosition: Coordinate2d;
 
     xOrigin: number;
     yOrigin: number;
@@ -51,10 +52,15 @@ export default class Pattern extends IconCreatorGlobal {
         this.rotationSnap = [0, 45, 90, 135, 180, 225, 270, 315];
         this.snapTolerance = 3;
         this.defaultTranslation = [-50, -50];
-        this.scaleMarkerPosition = [];
+        this.scaleMarkerPosition = [0, 0];
 
         this.xOrigin = xOrigin;
         this.yOrigin = yOrigin;
+
+        this.color = "#000000";
+        this.borderColor = "#000000";
+        this.rotation = 0;
+        this.center = [0, 0];
     }
     translateMaskTo(newMainOriginX: number, newMainOriginY: number) {
         if (!this.isMask && this.maskLayer) {
@@ -79,18 +85,18 @@ export default class Pattern extends IconCreatorGlobal {
     initialDefaultTranslation() {
         this.translateTo(this.xOrigin + this.defaultTranslation[0], this.yOrigin + this.defaultTranslation[1]);
     }
-    hasMask() {
-        return this.maskLayer != undefined && !this.isMask && this.maskLayer.patterns && this.maskLayer.patterns.length > 0;
+    hasMask(): boolean {
+        return this.maskLayer != undefined && !this.isMask && (this.maskLayer.patterns !== undefined) && this.maskLayer.patterns.length > 0;
     }
-    maskReference() {
+    maskReference(): string {
         return (this.hasMask()) ? ('mask="url(#' + this.id + 'mask)"') : "";
     }
     /**
      * 
-     * @param {Number} xPos the x position of the yAxis that should be mirrored around
+     * @param {number} xPos the x position of the yAxis that should be mirrored around
      */
     mirrorVertically(xPos: number) {
-        if (this.hasMask()) {
+        if (this.hasMask() && this.maskLayer) {
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
                 if (maskItem.isMask) {
@@ -101,10 +107,10 @@ export default class Pattern extends IconCreatorGlobal {
     }
     /**
      * 
-     * @param {Number} yPos the y position of the yAxis that should be mirrored around
+     * @param {number} yPos the y position of the yAxis that should be mirrored around
      */
     mirrorHorizontally(yPos: number) {
-        if (!this.isMask) {
+        if (this.hasMask() && this.maskLayer) {
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
                 if (maskItem.isMask) {
@@ -118,8 +124,8 @@ export default class Pattern extends IconCreatorGlobal {
      * @param limitPrecision 
      * @returns html string of mask
      */
-    mask(limitPrecision: boolean) {
-        if (!this.isMask) {
+    mask(limitPrecision: boolean): string {
+        if (!this.isMask && this.maskLayer) {
             let maskPatterns = "";
             //add mask filler
             let fillerPattern = PatternManipulator.duplicate(this);
@@ -128,7 +134,7 @@ export default class Pattern extends IconCreatorGlobal {
             fillerPattern.color = "#ffffff";
             fillerPattern.borderColor = "#ffffff";
             fillerPattern.rotation = 0;
-            maskPatterns += fillerPattern.cleanHTML();
+            maskPatterns += fillerPattern.cleanHTML(limitPrecision);
             for (let pos in this.maskLayer.patterns) {
                 let maskItem = this.maskLayer.patterns[pos];
                 if (maskItem.isMask) {
@@ -155,19 +161,19 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Should be overwritten by sub classes
      */
-    getMarkers(): Array<Marker> {
+    getMarkers(): Array<any> {
         return [];
     }
     /**
      * Should be overwritten by sub classes
      */
-    startActiveDraw(x: number, y: number) {
+    startActiveDraw(x: number, y: number): any {
 
     }
     /**
      * Should be overwritten by sub classes
      */
-    movedActiveDraw(x: number, y: number) {
+    movedActiveDraw(x: number, y: number): any {
 
     }
     /**
@@ -179,7 +185,7 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Should be overwritten by sub classes
      */
-    activeDrawMarkers(): Array<Marker> {
+    activeDrawMarkers(): Array<any> {
         return [];
     }
     /**
@@ -197,7 +203,7 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Should be overwritten by sub classes
      */
-    markerClicked(marker: Marker) {
+    markerClicked(marker: any) {
 
     }
     /**
@@ -209,7 +215,7 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Should be overwritten by sub classes
      */
-    keypress(event: KeyboardEvent) {
+    keypress(event: KeyboardEvent): boolean {
         return false;//whether further hotkey should be blocked
     }
     /**
@@ -234,33 +240,34 @@ export default class Pattern extends IconCreatorGlobal {
      * Optional. If not overwritten the pattern itself is used for outline.
      * @returns 
      */
-    getOutline():undefined{
+    getOutline(): any {
         return PatternManipulator.duplicate(this);
     }
     /**
      * Should be overwritten by sub classes
      */
-    cleanHTML(limitPrecision: boolean): (string | void) {
+    cleanHTML(limitPrecision: boolean): string {
         console.warn("Unimplemented function used");
+        return "";
     }
     /**
      * This method is required and needs overriding
      */
-    getClass() {
+    getClass(): any {
         throw "getClass() not implemented in " + this.constructor.name
     }
     /**
      * Return a svg icon that fits in a square viewBox with size 0-8. Should be able to get very small.
      */
-    icon() {
-
+    icon(): string {
+        return "";
     }
     /**
      * Gets called when a marker of a pattern that is edited is changed.
      * @param marker the marker that has been changed. Contains new x,y and memorize
      * @returns the changes that should be done to the pattern
      */
-    markerEdited(marker: Marker) {
+    markerEdited(marker: any, limit?: any, xPrecise?: number, yPrecise?: number): any {
         return {};
     }
     /**
@@ -279,7 +286,7 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Returns the JSON representation of this pattern.
      */
-    get() {
+    get(allowMask?: boolean): any {
         let obj = super.get();
         let additionalAttributes = {
             type: "pattern",
@@ -288,7 +295,7 @@ export default class Pattern extends IconCreatorGlobal {
                 id: this.id,
                 display: this.display,
                 isMask: this.isMask,
-                maskLayer: (this.hasMask()) ? {
+                maskLayer: (this.hasMask() && this.maskLayer) ? {
                     patterns: this.maskLayer.patterns.map(pattern => pattern.get()),
                 } : undefined,
                 boundId: this.boundId,
@@ -310,10 +317,10 @@ export default class Pattern extends IconCreatorGlobal {
         //if this pattern has been given a mask layer, add it
         if (patternJSON.attributes.maskLayer) {
             this.maskLayer = {
-                patterns:[]
+                patterns: []
             };
-            //@ts-expect-error
-            this.maskLayer.patterns = patternJSON.attributes.maskLayer.patterns.map(pattern => {
+
+            this.maskLayer.patterns = patternJSON.attributes.maskLayer.patterns.map((pattern: any) => {
                 let MaskPatternClass = PatternClassLoader.patternClassFromString(pattern.subtype);
                 let maskPattern = new MaskPatternClass()
                 maskPattern.load(pattern);

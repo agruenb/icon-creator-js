@@ -3,6 +3,8 @@
         "dev": "webpack serve --config webpack_config/webpack.dev.js --open",
         "build": "webpack --config webpack_config/webpack.prod.js",
         "test": "jest --watch",
+        "test:once": "jest",
+        "type-check": "tsc --noEmit",
         "lint": "eslint src tests --fix",
         "compress": "node ./deploy/bundle_all.js"
     },
@@ -19,7 +21,11 @@
         "webpack-merge": "^5.8.0"
     },
     "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^25.2.3",
         "dotenv-webpack": "^7.1.1",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.6",
         "ts-loader": "^9.4.2",
         "typescript": "^4.9.4",
         "webpack-cli": "^4.9.2"
