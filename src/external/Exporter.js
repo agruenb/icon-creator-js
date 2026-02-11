@@ -42,9 +42,11 @@ export default class Exporter {
                 downloadElement.remove();
             },10000);
         });
+        
         img.addEventListener("error",(e)=>{
-            console.log(e);
+            throw e;
         });
+        
         img.src = url;
     }
     static downloadHTML(filename, SVGfilecontent){
