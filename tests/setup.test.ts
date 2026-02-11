@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 describe('Infrastructure Setup', () => {
     it('should run a basic test', () => {
         expect(true).toBe(true);

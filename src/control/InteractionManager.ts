@@ -3,11 +3,9 @@ import { gAnalyticsTrackEvent } from "../lib/googleAnalytics";
 
 export class InteractionManager {
     editor: any;
-    state: EditorState;
 
     constructor(editor: any) {
         this.editor = editor;
-        this.state = editor.state;
     }
 
     handleMouseDown(event: MouseEvent) {
@@ -15,16 +13,16 @@ export class InteractionManager {
         this.setMouseInfo(event);
         if (event.which === 1) {
             //if new drawing type is selected
-            if (["edit", "activePaintPattern"].indexOf(this.state.currentAction) == -1) {
+            if (["edit", "activePaintPattern"].indexOf(this.editor.state.currentAction) == -1) {
                 this.editor.clearViewportUI();
             }
             let clickedElement = this.editor.clickedElement(event);
             if (!clickedElement) return; // Guard against null
 
             let patternRole = clickedElement.parentElement.getAttribute("role");
-            switch (this.state.currentAction) {
+            switch (this.editor.state.currentAction) {
                 case "clickedPaintPattern":
-                    this.state.setAction("mousedownPaintPattern");
+                    this.editor.state.setAction("mousedownPaintPattern");
                     break;
                 case "none":
                     //if pattern is on mouse -> start editing
@@ -33,7 +31,7 @@ export class InteractionManager {
                         if (this.editor.currProj().frame().boundId != clickedElement.parentElement.id) {
                             this.editor.startEdit(this.editor.patternById(clickedElement.parentElement.id));
                             this.setDraggingInfo(this.editor.focusedPattern(), event);
-                            this.state.setAction("dragPattern");
+                            this.editor.state.setAction("dragPattern");
                         } else {
                             console.warn("You cannot edit the main pattern in carve out mode!");
                         }
@@ -45,12 +43,12 @@ export class InteractionManager {
                     //start dragging marker
                     if (closestMarker.distance < this.editor.detectMouseOnMarkerDistance) {
 
-                        this.state.editedObject = closestMarker.marker;
-                        this.state.setAction("dragMarker");
+                        this.editor.state.editedObject = closestMarker.marker;
+                        this.editor.state.setAction("dragMarker");
                     } else if (clickedElement.parentElement.id == this.editor.focusedPattern().id) {
                         //start dragging pattern
                         this.setDraggingInfo(this.editor.patternById(clickedElement.parentElement.id), event);
-                        this.state.setAction("dragPattern");
+                        this.editor.state.setAction("dragPattern");
                     } else if (patternRole === "main" || patternRole === "reference") {
                         //not the focused pattern is clicked but another pattern
                         //dont focus main pattern on mask frame
@@ -59,9 +57,9 @@ export class InteractionManager {
                         }
                         this.editor.startEdit(this.editor.patternById(clickedElement.parentElement.id));
                         this.setDraggingInfo(this.editor.focusedPattern(), event);
-                        this.state.setAction("dragPattern");
+                        this.editor.state.setAction("dragPattern");
                     } else {//do nothing
-                        this.state.setAction("edit");
+                        this.editor.state.setAction("edit");
                     }
                     break;
             }
@@ -69,18 +67,18 @@ export class InteractionManager {
     }
 
     handleMouseMove(event: MouseEvent) {
-        if (this.state.currentAction !== "none") {
+        if (this.editor.state.currentAction !== "none") {
             let pattern = this.editor.focusedPattern();
-            switch (this.state.currentAction) {
+            switch (this.editor.state.currentAction) {
                 //dragged from new pattern
                 case "dragOut":
-                    pattern = new this.state.paintPatternClass();
+                    pattern = new this.editor.state.paintPatternClass();
                     pattern.color = this.editor.currProj().getColor();
                     this.editor.currProj().frame().processAndAppend(pattern);
                     this.editor.currProj().frame().newBox(pattern);
                     gAnalyticsTrackEvent("create_pattern", {
                         method: "drag_out",
-                        type: this.state.paintPatternClass.name
+                        type: this.editor.state.paintPatternClass.name
                     });
                     //center pattern on mouse
                     pattern.translateTo(this.editor.relX(event.clientX), this.editor.relY(event.clientY));
@@ -88,24 +86,24 @@ export class InteractionManager {
                     this.editor.focus(pattern);
                     this.editor.startEdit(pattern);
                     this.setDraggingInfo(pattern, event);
-                    this.state.setAction("dragPattern");
+                    this.editor.state.setAction("dragPattern");
                     this.editor.currProj().repaint(pattern);
                     break;
                 case "mousedownPaintPattern"://if mousedown after pattern selection and move -> active paint mode
-                    this.state.setAction("activePaintPattern");
+                    this.editor.state.setAction("activePaintPattern");
                     break;
                 //a new pattern is painted in the editor
                 case "activePaintPattern":
                     if (this.editor.focusedPattern() == undefined) {
                         //create new pattern
-                        pattern = new this.state.paintPatternClass();
+                        pattern = new this.editor.state.paintPatternClass();
                         pattern.color = this.editor.currProj().getColor();
                         this.editor.currProj().frame().processAndAppend(pattern);
                         this.editor.currProj().frame().newBox(pattern);
-                        console.log(this.state.paintPatternClass);
+                        console.log(this.editor.state.paintPatternClass);
                         gAnalyticsTrackEvent("create_pattern", {
                             method: "paint_active",
-                            type: this.state.paintPatternClass.name
+                            type: this.editor.state.paintPatternClass.name
                         });
                         let changes = pattern.startActiveDraw(this.editor.relX(event.clientX), this.editor.relY(event.clientY), this.editor.relX(event.clientX, 0, undefined, 1), this.editor.relY(event.clientY, 0, undefined, 1));
                         this.editor.currProj().alterPattern(pattern, changes);
@@ -132,13 +130,13 @@ export class InteractionManager {
                 case "dragPattern":
                     //mouse is on a pattern that is being dragged
                     this.editor.currProj().frame().setOpacity(this.editor.editOpacity);
-                    this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    this.adjustPatternToOther(pattern, this.editor.state.editedObject, event);
                     this.editor.currProj().repaint(pattern);
                     break;
                 case "dragMarker":
                     //a marker is being dragged
                     this.editor.currProj().frame().setOpacity(this.editor.editOpacity);
-                    this.adjustPatternToOther(pattern, this.state.editedObject, event);
+                    this.adjustPatternToOther(pattern, this.editor.state.editedObject, event);
                     this.editor.currProj().repaint(pattern);
                     break;
                 case "edit":
@@ -185,15 +183,15 @@ export class InteractionManager {
 
             let patternRole = clickedElement ? clickedElement.parentElement.getAttribute("role") : null;
 
-            switch (this.state.currentAction) {
+            switch (this.editor.state.currentAction) {
                 case "mousedownPaintPattern":
-                    pattern = new this.state.paintPatternClass();
+                    pattern = new this.editor.state.paintPatternClass();
                     pattern.color = this.editor.currProj().getColor();
                     this.editor.currProj().frame().processAndAppend(pattern);
                     this.editor.currProj().frame().newBox(pattern);
                     gAnalyticsTrackEvent("create_pattern", {
                         method: "click_canvas",
-                        type: this.state.paintPatternClass.name
+                        type: this.editor.state.paintPatternClass.name
                     });
                     //center pattern on mouse
                     pattern.translateTo(this.editor.relX(event.clientX), this.editor.relY(event.clientY));
@@ -201,27 +199,46 @@ export class InteractionManager {
                     this.editor.focus(pattern);
                     this.editor.startEdit(pattern);
                     this.setDraggingInfo(pattern, event);
-                    this.state.setAction("edit");
+                    this.editor.state.setAction("edit");
                     break;
                 case "activePaintPattern":
-                    let changes = pattern.releaseActiveDraw(this.editor.relX(event.clientX), this.editor.relY(event.clientY), this.editor.relX(event.clientX, 0, undefined, 1), this.editor.relY(event.clientY, 0, undefined, 1));//returns undefined if pattern is finished
-                    if (changes == undefined) {
-                        this.editor.clearViewportUI();
+                    //this used to be a bug. If there is no pattern, there was no click on the canvas to initiate activePaintPattern
+                    if (pattern === undefined) {
+                        pattern = new this.editor.state.paintPatternClass();
+                        pattern.color = this.editor.currProj().getColor();
+                        this.editor.currProj().frame().processAndAppend(pattern);
+                        this.editor.currProj().frame().newBox(pattern);
+                        gAnalyticsTrackEvent("create_pattern", {
+                            method: "click_canvas",
+                            type: this.editor.state.paintPatternClass.name
+                        });
+                        //center pattern on mouse
+                        pattern.translateTo(this.editor.relX(event.clientX), this.editor.relY(event.clientY));
+                        pattern.initialDefaultTranslation();
+                        this.editor.focus(pattern);
                         this.editor.startEdit(pattern);
+                        this.setDraggingInfo(pattern, event);
+                        this.editor.state.setAction("edit");
                     } else {
-                        this.editor.currProj().alterPattern(pattern, changes, true);
-                        this.editor.clearViewportUI();
-                        this.editor.addHelperOutline(pattern);
-                        //add markers
-                        let markers = pattern.activeDrawMarkers();
-                        for (let i in markers) {
-                            this.editor.addHelperMarker(...markers[i]);
-                        }
-                        //adjust marker size when mouse is close
-                        let markerData = this.editor.closestMarkerToMouse(event);
-                        if (markerData.distance < this.editor.detectMouseOnMarkerDistance) {
-                            markerData.marker.scale = this.editor.markerScaleOnMouseHover;
-                            markerData.marker.updateContainer();
+                        let changes = pattern.releaseActiveDraw(this.editor.relX(event.clientX), this.editor.relY(event.clientY), this.editor.relX(event.clientX, 0, undefined, 1), this.editor.relY(event.clientY, 0, undefined, 1));//returns undefined if pattern is finished
+                        if (changes == undefined) {
+                            this.editor.clearViewportUI();
+                            this.editor.startEdit(pattern);
+                        } else {
+                            this.editor.currProj().alterPattern(pattern, changes, true);
+                            this.editor.clearViewportUI();
+                            this.editor.addHelperOutline(pattern);
+                            //add markers
+                            let markers = pattern.activeDrawMarkers();
+                            for (let i in markers) {
+                                this.editor.addHelperMarker(...markers[i]);
+                            }
+                            //adjust marker size when mouse is close
+                            let markerData = this.editor.closestMarkerToMouse(event);
+                            if (markerData.distance < this.editor.detectMouseOnMarkerDistance) {
+                                markerData.marker.scale = this.editor.markerScaleOnMouseHover;
+                                markerData.marker.updateContainer();
+                            }
                         }
                     }
                     break;
@@ -235,26 +252,26 @@ export class InteractionManager {
                 case "dragMarker"://also click marker
                     let closestMarker = this.editor.closestMarker(x, y);
                     //if mouse up position == mouse down position => marker is clicked
-                    if (closestMarker.distance < this.editor.detectMouseOnMarkerDistance && this.state.mouseDownInfo!.x == xPrecise && this.state.mouseDownInfo!.y == yPrecise) {
+                    if (closestMarker.distance < this.editor.detectMouseOnMarkerDistance && this.editor.state.mouseDownInfo!.x == xPrecise && this.editor.state.mouseDownInfo!.y == yPrecise) {
                         //dont focus main pattern on mask frame
                         this.editor.focusedPattern().markerClicked(closestMarker.marker);
                         this.editor.clearViewportUI();
                         this.editor.startEdit(this.editor.focusedPattern());
                     }
-                    this.state.setAction("edit");
+                    this.editor.state.setAction("edit");
                     this.editor.currProj().frame().updateInfoBox(pattern);
                     this.editor.saveToHistory();
                     this.editor.currProj().frame().setOpacity(1);
                     this.editor.currProj().repaint(pattern);
                     break;
                 case "dragPattern":
-                    this.state.setAction("edit");
+                    this.editor.state.setAction("edit");
                     this.editor.currProj().frame().updateInfoBox(pattern);
                     this.editor.saveToHistory();
                     this.editor.currProj().frame().setOpacity(1);
                     //only repaint if moved -> repaint stops doubleclick from working
-                    if (this.state.draggingInfo) {
-                        if (this.editor.relX(event.clientX, 0, undefined, 1) != this.state.draggingInfo.x || this.editor.relY(event.clientY, 0, undefined, 1) != this.state.draggingInfo.y) {
+                    if (this.editor.state.draggingInfo) {
+                        if (this.editor.relX(event.clientX, 0, undefined, 1) != this.editor.state.draggingInfo.x || this.editor.relY(event.clientY, 0, undefined, 1) != this.editor.state.draggingInfo.y) {
                             this.editor.currProj().repaint(pattern);
                         }
                     }
@@ -270,7 +287,7 @@ export class InteractionManager {
         let clickedElement = this.editor.clickedElement(event);
         if (!clickedElement) return;
 
-        switch (this.state.currentAction) {
+        switch (this.editor.state.currentAction) {
             case "edit":
             case "none":
                 //stop edit on active element
@@ -279,7 +296,7 @@ export class InteractionManager {
                 if (clickedElement.parentElement.getAttribute("role") === "main") {
                     //dont focus main pattern on mask frame
                     if (this.editor.currProj().frame().boundId != clickedElement.parentElement.id) {
-                        this.state.setAction("edit");
+                        this.editor.state.setAction("edit");
                         this.editor.focus(this.editor.patternById(clickedElement.parentElement.id));
                         this.editor.focusedPattern().doubleclicked();
                         this.editor.repaint(this.editor.focusedPattern());
@@ -292,32 +309,32 @@ export class InteractionManager {
 
     // Helpers
     private setDraggingInfo(editedObject: any, event: MouseEvent) {
-        this.state.editedObject = editedObject;
+        this.editor.state.editedObject = editedObject;
         let draggingInfo = {
             x: this.editor.relX(event.clientX, 0, undefined, 1),
             y: this.editor.relY(event.clientY, 0, undefined, 1),
-            relToPatternOriginX: this.editor.relX(event.clientX, 0, undefined, 1) - this.state.editedObject.xOrigin,
-            relToPatternOriginY: this.editor.relY(event.clientY, 0, undefined, 1) - this.state.editedObject.yOrigin
+            relToPatternOriginX: this.editor.relX(event.clientX, 0, undefined, 1) - this.editor.state.editedObject.xOrigin,
+            relToPatternOriginY: this.editor.relY(event.clientY, 0, undefined, 1) - this.editor.state.editedObject.yOrigin
         };
-        this.state.setDraggingInfo(draggingInfo);
+        this.editor.state.setDraggingInfo(draggingInfo);
     }
 
     private setMouseInfo(event: MouseEvent) {
-        this.state.mouseDownInfo = {
+        this.editor.state.mouseDownInfo = {
             x: this.editor.relX(event.clientX, 0, undefined, 1),
             y: this.editor.relY(event.clientY, 0, undefined, 1)
         }
     }
 
     private adjustPatternToOther(pattern: any, editedObject: any, event: MouseEvent) {
-        switch (this.state.currentAction) {
+        switch (this.editor.state.currentAction) {
             case "dragMarker":
                 //change marker position
                 editedObject.x = this.editor.relX(event.clientX);
                 editedObject.y = this.editor.relY(event.clientY);
                 this.editor.clearViewportUI();
                 //get changes that should be done to the pattern accordingly
-                let changes = pattern.markerEdited(editedObject, this.state.gridsize, this.editor.relX(event.clientX, 0, undefined, 1), this.editor.relY(event.clientY, 0, undefined, 1));
+                let changes = pattern.markerEdited(editedObject, this.editor.state.gridsize, this.editor.relX(event.clientX, 0, undefined, 1), this.editor.relY(event.clientY, 0, undefined, 1));
                 this.editor.currProj().alterPattern(pattern, changes);
                 this.editor.addEditUI(pattern);
                 //repaint point and marker and outline
@@ -327,9 +344,9 @@ export class InteractionManager {
                 this.editor.currProj().frame().updateInfoBox(pattern);
                 break;
             case "dragPattern":
-                if (!this.state.draggingInfo) return;
-                let newOriginX = this.editor.relX(event.clientX, (this.state.draggingInfo.relToPatternOriginX));
-                let newOriginY = this.editor.relY(event.clientY, (this.state.draggingInfo.relToPatternOriginY));
+                if (!this.editor.state.draggingInfo) return;
+                let newOriginX = this.editor.relX(event.clientX, (this.editor.state.draggingInfo.relToPatternOriginX));
+                let newOriginY = this.editor.relY(event.clientY, (this.editor.state.draggingInfo.relToPatternOriginY));
                 if (newOriginX !== pattern.xOrigin || newOriginY !== pattern.yOrigin) {
                     this.editor.clearViewportUI();
                     pattern.translateTo(newOriginX, newOriginY);

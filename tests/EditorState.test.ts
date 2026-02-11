@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { EditorState } from '../src/model/EditorState';
 
 describe('EditorState', () => {
