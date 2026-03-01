@@ -6,13 +6,7 @@ import UniversalOps from "./shared/UniversalOps";
 import PointOperations from "./shared/PointOperations";
 import PatternManipulator from "./shared/patternManipulator";
 
-import Outline from "./helperPatterns/Outline";
-import Marker from "./helperPatterns/Marker";
-import UILine from "./helperPatterns/UILine";
-import ContextMenu from "./uiElements/ContextMenu";
-import MenuButton from "./uiElements/MenuButton";
 import Banner from "./components/Banner";
-import RotateDisplay from "./uiElements/RotateDisplay";
 
 import ExportWindow from "./uiElements/ExportWindow";
 import ConfirmWindow from "./uiElements/ConfirmWindow";
