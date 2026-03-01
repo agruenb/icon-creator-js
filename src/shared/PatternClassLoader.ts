@@ -4,9 +4,10 @@ import Ellipse from "../patterns/Ellipse"
 import Line from "../patterns/Line"
 import Path from "../patterns/Path"
 import Text from "../patterns/Text"
+import Pattern from "../patterns/Pattern"
 
-export default class PatternClassLoader{
-    static patternClassFromString(s:string){
+export default class PatternClassLoader {
+    static patternClassFromString(s: string): any {
         switch (s) {
             case "Rect":
                 return Rect;
@@ -21,7 +22,7 @@ export default class PatternClassLoader{
             case "Text":
                 return Text;
             default:
-                console.warn("Invalid subpattern: "+s);
+                console.warn("Invalid subpattern: " + s);
                 break;
         }
     }

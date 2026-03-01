@@ -1,6 +1,6 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
 import ActionHistory from "./actionHistory";
-import InfoBoxManager from "./infoBoxes/InfoBoxManager";
+import InfoBoxManager from "./ui/InfoBoxManager";
 import PatternClassLoader from "./shared/PatternClassLoader";
 import TouchInputAdapter from "./shared/TouchInputAdapter";
 

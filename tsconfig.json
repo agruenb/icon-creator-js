@@ -2,7 +2,9 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "sourceMap": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
     "module": "es6",
     "target": "es6",
     "allowJs": true,

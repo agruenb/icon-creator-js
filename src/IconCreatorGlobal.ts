@@ -8,9 +8,12 @@ export default class IconCreatorGlobal {
     constructor() {
         this.id = IconCreatorGlobal.id();
     }
-    static id() {
-        //@ts-expect-error
-        return String(window.icon_creator_global_index_counter++);
+    static id(): string {
+        const win = (typeof window !== 'undefined' ? window : global) as any;
+        if (win.icon_creator_global_index_counter === undefined) {
+            win.icon_creator_global_index_counter = 0;
+        }
+        return String(win.icon_creator_global_index_counter++);
     }
     static el(type: string, text: string, className: string) {
         let el = document.createElement(type);

@@ -1,17 +1,37 @@
 # Agent Guide for icon-creator-js
 
-This codebase is transitioning from a legacy JS architecture to a modern TypeScript-based system. Follow these guidelines to ensure efficient and safe changes.
+This codebase is a TypeScript-based SVG icon editor. Follow these guidelines to ensure efficient and safe changes.
 
 ## 1. Architecture Overview
 
 ### Core Components
-- **`src/HTMLeditor.js`**: The central controller. ONE DAY this will be decomposed. For now, it holds the `EditorState`.
-- **`src/model/EditorState.ts`**: The source of truth for editor state. ALWAYS use `this.state` in `HTMLeditor` to access it. **Do not add loose properties to `HTMLeditor` if they belong in state.**
-- **`src/patterns/`**: Contains logic for different SVG patterns.
+- **`src/HTMLeditor.ts`**: Central controller / coordinator. Delegates to specialized managers. **Do not add domain logic here** — use the appropriate manager instead.
+- **`src/model/EditorState.ts`**: Source of truth for editor state. Use `this.state` in `HTMLeditor` to access it. **Do not add loose properties to `HTMLeditor` if they belong in state.**
+- **`src/control/InteractionManager.ts`**: Handles all mouse/touch interactions (mousedown, mousemove, mouseup, doubleclick).
+- **`src/control/HistoryManager.ts`**: Manages undo/redo history (save, reverse, re-init).
+- **`src/control/PatternManager.ts`**: Pattern-level operations (create, duplicate, remove, mirror).
+- **`src/view/UIManager.ts`**: Manages viewport UI elements (markers, outlines, context menus, tool banners). **All DOM/UI calls for viewport elements belong here.**
+- **`src/patterns/`**: Contains logic for different SVG patterns (Circle, Rect, Ellipse, Line, Path, etc.). Each pattern extends `Pattern.ts`.
+- **`src/Project.ts`**: Manages the project and its keyframes.
+- **`src/Frame.ts`**: A single frame/layer containing patterns.
 
-### Development Pattern
-- **Gradual Typing**: New files MUST be `.ts`. Existing files can remain `.js` but try to add JSDoc or convert if easy.
-- **Strictness**: `tsconfig.json` is currently loose (`noImplicitAny: false`). **Do not abuse this.** Aim for type safety where possible.
+### Structural Rules
+| Concern                          | Belongs In                         |
+|----------------------------------|------------------------------------|
+| Mouse/touch event handling       | `InteractionManager.ts`            |
+| Undo/redo, history buttons       | `HistoryManager.ts`                |
+| Pattern CRUD, mirror, duplicate  | `PatternManager.ts`                |
+| Viewport helpers (markers, outlines) | `UIManager.ts`                 |
+| Editor state (action, gridsize)  | `EditorState.ts`                   |
+| Pattern-specific behavior        | `src/patterns/<PatternName>.ts`    |
+| New UI components                | `src/uiElements/` or `src/components/` |
+| Shared utilities                 | `src/shared/`                      |
+
+### Development Rules
+- **All files must be `.ts`**. No new `.js` files.
+- **`tsconfig.json`** has `noImplicitAny: true` and `strictNullChecks: true`. All code must pass `npx tsc --noEmit`.
+- Use explicit type annotations on all function parameters and return types.
+- Add JSDoc comments to public methods with `@param` and `@returns` tags.
 
 ## 2. Testing Strategy
 
@@ -23,14 +43,21 @@ This codebase is transitioning from a legacy JS architecture to a modern TypeScr
 ## 3. Common Tasks
 
 ### Adding a new State Property
-1.  Modify `src/model/EditorState.ts`.
-2.  Add the property to the `EditorState` class and interface.
-3.  Update `tests/EditorState.test.ts` if it has complex logic.
+1. Modify `src/model/EditorState.ts`.
+2. Add the property to the `EditorState` class and interface.
+3. Update `tests/EditorState.test.ts` if it has complex logic.
 
-### Modifying `HTMLeditor.js`
-- Avoid adding more logic to this file if possible.
-- If you must, try to extract it to a helper class in `src/shared/` or `src/components/`.
+### Modifying the Editor
+- **Do not add more logic to `HTMLeditor.ts`** if it can live in a manager.
+- Identify which manager owns the concern using the table above.
+- If it doesn't fit any existing manager, create a new one in `src/control/` or `src/view/`.
+
+### Adding a new Pattern
+1. Create `src/patterns/<Name>.ts` extending `Pattern`.
+2. Register it in `src/shared/PatternClassLoader.ts`.
+3. Add it to the `config.patterns` array in `src/index.js`.
 
 ## 4. Troubleshooting
+- **Type Errors**: Run `npx tsc --noEmit` to check.
 - **Build Failures**: Run `npm run build` to check for TS errors that `webpack` catches.
 - **Lint Errors**: Run `npm run lint`.

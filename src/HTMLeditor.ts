@@ -1,20 +1,21 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
-import CustomColorInput from "./components/CustomColorInput";
+import CustomColorInput from "./ui/CustomColorInput";
 import Project from "./Project";
 
 import UniversalOps from "./shared/UniversalOps";
 import PointOperations from "./shared/PointOperations";
-import PatternManipulator from "./shared/patternManipulator";
 
-import Banner from "./components/Banner";
+import Banner from "./ui/Banner";
 
-import ExportWindow from "./uiElements/ExportWindow";
-import ConfirmWindow from "./uiElements/ConfirmWindow";
+import ExportWindow from "./ui/ExportWindow";
+import ConfirmWindow from "./ui/ConfirmWindow";
 import TouchInputAdapter from "./shared/TouchInputAdapter";
 import { gAnalyticsTrackEvent } from "./lib/googleAnalytics";
 import { EditorState } from "./model/EditorState";
 import { InteractionManager } from "./control/InteractionManager";
-import { UIManager } from "./view/UIManager";
+import { HistoryManager } from "./control/HistoryManager";
+import { PatternManager } from "./control/PatternManager";
+import { UIManager } from "./control/UIManager";
 import ImageProcessor from "./shared/imageProcessor"; // Added import
 
 // Define Environment interface based on index.js structure
@@ -65,6 +66,8 @@ export default class HTMLeditor {
     drawingViewport: HTMLElement;
     interactionManager: InteractionManager;
     uiManager: UIManager;
+    historyManager: HistoryManager;
+    patternManager: PatternManager;
 
     detectMouseOnMarkerDistance = 8;
     markerScaleOnMouseHover = 1.4;
@@ -107,31 +110,31 @@ export default class HTMLeditor {
                 //mousedown/touchstart
                 item.startPaintButton.addEventListener("mousedown", () => {
                     this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchstart", (e) => {
+                item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => {
                     e.preventDefault();
                     this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchstart", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //touchmove
-                item.startPaintButton.addEventListener("touchmove", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchmove", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //mouseup/touchend
                 item.startPaintButton.addEventListener("mouseup", () => {
                     this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
                 item.startPaintButton.addEventListener("touchstop", (e: Event) => {
                     e.preventDefault();
                     this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map(item => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
                 });
-                item.startPaintButton.addEventListener("touchend", (e) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
+                item.startPaintButton.addEventListener("touchend", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
             }
         }
         //meta edits
@@ -147,8 +150,8 @@ export default class HTMLeditor {
         this.environment.control.meta.paintColor.addEventListener("click", () => { this.setDrawingType("none") });
         (colorInput as unknown as HTMLElement).addEventListener("change", (e: any) => { this.setPaintColor(e.target.value) });
 
-        this.environment.control.meta.exclusiveView.addEventListener("change", (e) => {
-            this.setExclusiveView(e.target.checked);
+        this.environment.control.meta.exclusiveView.addEventListener("change", (e: Event) => {
+            this.setExclusiveView((e.target as HTMLInputElement).checked);
         });
         this.environment.control.export.file.addEventListener("click", () => { this.exportFile() });
 
@@ -161,22 +164,24 @@ export default class HTMLeditor {
             this.addReferenceImage();
         });
         //setup for keyboard shortcuts
-        this.environment.document.addEventListener('keydown', event => {
+        this.environment.document.addEventListener('keydown', (event: KeyboardEvent) => {
             this.blockKeys(event);
         });
-        this.environment.document.addEventListener('keyup', event => {
+        this.environment.document.addEventListener('keyup', (event: KeyboardEvent) => {
             this.keyup(event);
         });
         //init mouse & touch events
         this.interactionManager = new InteractionManager(this);
         this.uiManager = new UIManager(this);
+        this.historyManager = new HistoryManager(this);
+        this.patternManager = new PatternManager(this);
 
-        this.environment.layout.viewport.addEventListener("contextmenu", event => {
+        this.environment.layout.viewport.addEventListener("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
             this.uiManager.openContextMenu(event);
             return false;
         }, false);
-        this.environment.layout.viewport.addEventListener("mousemove", event => { this.interactionManager.handleMouseMove(event); });
+        this.environment.layout.viewport.addEventListener("mousemove", (event: MouseEvent) => { this.interactionManager.handleMouseMove(event); });
         this.environment.layout.viewport.addEventListener("touchmove", (event: TouchEvent) => {
             this.interactionManager.handleMouseMove(TouchInputAdapter.convertTouchInputIntoSimpleMouseEvent(event) as unknown as MouseEvent);
             event.preventDefault();
@@ -219,6 +224,7 @@ export default class HTMLeditor {
 
 
 
+    /** Creates and initializes a new project, appending it to the active projects list. */
     newProject() {
         let newProject = new Project(this.environment.layout.elementOverview, this);
         newProject.init(this.environment.layout.viewport);
@@ -227,6 +233,10 @@ export default class HTMLeditor {
         //TEMP: does not work with multiple projects
         this.saveToHistory();
     }
+    /**
+     * Toggles exclusive view mode, which hides all patterns except the focused one.
+     * @param status - Whether exclusive view should be enabled
+     */
     setExclusiveView(status: boolean) {
         if (status) {
             this.exclusivView = true;
@@ -250,40 +260,21 @@ export default class HTMLeditor {
 
 
     mirrorCurrentPatternVertical() {
-        if (this.focusedPattern() != undefined) {
-            this.focusedPattern().mirrorVertically();
-            this.currProj().repaint(this.focusedPattern());
-            this.saveToHistory();
-            this.clearViewportUI();
-            this.addEditUI();
-        }
+        this.patternManager.mirrorCurrentPatternVertical();
     }
     mirrorCurrentPatternHorizontal() {
-        if (this.focusedPattern() != undefined) {
-            this.focusedPattern().mirrorHorizontally();
-            this.currProj().repaint(this.focusedPattern());
-            this.saveToHistory();
-            this.clearViewportUI();
-            this.addEditUI();
-        }
+        this.patternManager.mirrorCurrentPatternHorizontal();
     }
     duplicateCurrentPattern() {
-        if (this.focusedPattern() != undefined) {
-            this.duplicate(this.focusedPattern());
-            this.saveToHistory();
-        }
+        this.patternManager.duplicateCurrentPattern();
     }
     removeCurrentPattern() {
-        if (this.focusedPattern() != undefined) {
-            this.removePattern(this.focusedPattern());
-            this.saveToHistory();
-        }
+        this.patternManager.removeCurrentPattern();
     }
     addPattern(type: string, x: number, y: number) {
-        let pattern = this.currProj().newPattern(type, this.relX(x), this.relY(y));
-        return pattern;
+        return this.patternManager.addPattern(type, x, y);
     }
-    addHelperMarker(...params) {
+    addHelperMarker(...params: any[]) {
         this.uiManager.addHelperMarker(...params);
     }
     addHelperOutline(pattern: any) {
@@ -295,59 +286,22 @@ export default class HTMLeditor {
     addHelperRotation(pattern: any) {
         this.uiManager.addHelperRotation(pattern);
     }
-    /**
-     * DOES NOT SAVE TO HISTORY
-     * @param {Number} id 
-     */
     removePattern(pattern: any) {
-        this.stopEdit();
-        this.currProj().remove(pattern);
+        this.patternManager.removePattern(pattern);
     }
     reverseLastAction() {
-        let focusedId = (this.focusedPattern() != undefined) ? this.focusedPattern().id : undefined;
-        this.focus();
-        this.setDrawingType("none");
-        this.currProj().frame().history.reverseLast();
-        //refocus pattern
-        if (focusedId && this.currProj().frame().patterns[focusedId] != undefined) {
-            this.startEdit(this.currProj().frame().patterns[focusedId]);
-        }
-        //update ui
-        this.updateHistoryButtons();
-        gAnalyticsTrackEvent("reverse_action");
+        this.historyManager.reverseLastAction();
     }
     reInitLastReverse() {
-        let focusedId = (this.focusedPattern() != undefined) ? this.focusedPattern().id : undefined;
-        this.focus();
-        this.setDrawingType("none");
-        this.currProj().frame().history.reInitLast();
-        //refocus pattern
-        if (focusedId && this.currProj().frame().patterns[focusedId] != undefined) {
-            this.startEdit(this.currProj().frame().patterns[focusedId]);
-        }
-        //update ui
-        this.updateHistoryButtons();
-        gAnalyticsTrackEvent("redo_action");
+        this.historyManager.reInitLastReverse();
     }
     updateHistoryButtons() {
-        if (this.currProj().frame().isMaskFrame) {
-            this.environment.control.history.back.classList.add("disabled");
-            this.environment.control.history.forwards.classList.add("disabled");
-        } else {
-            if (this.currProj().frame().history.currentState != this.currProj().frame().history.firstPreserved) {
-                this.environment.control.history.back.classList.remove("disabled");
-            }
-            if (this.currProj().frame().history.currentState != this.currProj().frame().history.history.length - 1) {
-                this.environment.control.history.forwards.classList.remove("disabled");
-            }
-            if (this.currProj().frame().history.currentState == this.currProj().frame().history.firstPreserved) {
-                this.environment.control.history.back.classList.add("disabled");
-            }
-            if (this.currProj().frame().history.currentState == this.currProj().frame().history.history.length - 1) {
-                this.environment.control.history.forwards.classList.add("disabled");
-            }
-        }
+        this.historyManager.updateHistoryButtons();
     }
+    /**
+     * Switches between editor views (e.g. 'arange' for main view, 'mask' for carve-out mode).
+     * @param view - The view identifier to switch to
+     */
     changeView(view: string = "arange") {
         if (this.state.view == view) {
             return;
@@ -386,6 +340,10 @@ export default class HTMLeditor {
             type: view
         });
     }
+    /**
+     * Begins editing a pattern: sets focus, opens the tool banner, and enables exclusive view if active.
+     * @param pattern - The pattern to start editing
+     */
     startEdit(pattern: any) {
         if (this.focusedPattern()) {
             this.stopEdit();
@@ -407,6 +365,7 @@ export default class HTMLeditor {
         this.uiManager.openToolBanner(pattern);
         this.repaint();
     }
+    /** Stops editing the current pattern, resetting visibility and UI state. */
     stopEdit() {
         if (this.exclusivView) {
             //show all patterns
@@ -424,6 +383,7 @@ export default class HTMLeditor {
     patternById(id: string) {
         return this.currProj().patternById(id);
     }
+    /** Returns the currently focused pattern, or undefined if none. */
     focusedPattern() {
         return this.currProj().frame().focusedPattern;
     }
@@ -445,14 +405,9 @@ export default class HTMLeditor {
         this.uiManager.clearViewportUI(specificElement);
     }
     duplicate(pattern: any) {
-        let dup = PatternManipulator.createWithSameClass(pattern);
-        this.currProj().frame().append(dup);
-        dup.load(pattern.get(), false);
-        dup.translateTo(dup.xOrigin + 20, dup.yOrigin + 20);
-        this.currProj().frame().newBox(dup);
-        this.stopEdit();
-        this.startEdit(dup);
+        this.patternManager.duplicate(pattern);
     }
+    /** Returns the currently active project. */
     currProj() {
         return this.activeProjects[this.state.currentProject];
     }
@@ -463,7 +418,7 @@ export default class HTMLeditor {
         return this.currProj().frame().uiLayer;
     }
     changeBackground(value: string) {
-        let targetColor;
+        let targetColor: string = "#ffffff";
         switch (value) {
             case "light":
                 targetColor = "#ffffff";
@@ -495,7 +450,7 @@ export default class HTMLeditor {
             return a - overhang + steps;
         }
     }
-    clickedElement(event) {
+    clickedElement(event: MouseEvent) {
         let elementStack = document.elementsFromPoint(event.clientX, event.clientY);
         let index = 0;
         while (elementStack[index].tagName === "svg" || elementStack[index].tagName === "SVG") {
@@ -504,15 +459,16 @@ export default class HTMLeditor {
         return elementStack[index];
     }
     saveToHistory() {
-        if (this.keepHistory) {
-            this.currProj().frame().saveToHistory();
-            this.updateHistoryButtons();
-        }
+        this.historyManager.saveToHistory();
     }
     loadProject(projectJSON: any = {}) {
         //TEMP
         this.currProj().load(projectJSON);
     }
+    /**
+     * Sets the drawing/interaction type which determines how mouse events are interpreted.
+     * @param type - The drawing type string (e.g. 'none', 'dragOut', 'clickedPaintPattern')
+     */
     setDrawingType(type: string) {
         this.closeContextMenu();
         if (["rect0", "circle0", "ellipse0", "line0", "path0"].indexOf(type) !== -1) {
@@ -524,7 +480,7 @@ export default class HTMLeditor {
             this.stopEdit();
         }
         if (type == "none") {
-            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map(item => { return item.startPaintButton })]);
+            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton })]);
         }
         this.state.setAction(type as any);
     }

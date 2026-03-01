@@ -1,5 +1,5 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
-import ColorMachine from "./components/ColorMachine";
+import ColorMachine from "./ui/ColorMachine";
 import Frame from "./Frame";
 import MaskFrame from "./MaskFrame";
 import ImageProcessor from "./shared/imageProcessor";
@@ -78,8 +78,9 @@ export default class Project extends IconCreatorGlobal {
         style.appendChild(document.createTextNode(css));
         //paintColor
         let colorInput = this.editor.environment.control.meta.paintColor.querySelector("input");
-        if (colorInput) {
-            colorInput.value = this.colorMachine.pallet()[0];
+        const pallet = this.colorMachine.pallet();
+        if (colorInput && pallet) {
+            colorInput.value = pallet[0];
             colorInput.dispatchEvent(new Event('change'));
         }
         this.colorMachine.next();

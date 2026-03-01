@@ -5,8 +5,7 @@
         "test": "jest --watch",
         "test:once": "jest",
         "type-check": "tsc --noEmit",
-        "lint": "eslint src tests --fix",
-        "compress": "node ./deploy/bundle_all.js"
+        "lint": "eslint src tests --fix"
     },
     "dependencies": {
         "compressing": "^1.6.2",

@@ -3,7 +3,6 @@ import IconCreatorGlobal from "../IconCreatorGlobal";
 import PatternManipulator from "../shared/patternManipulator";
 import PointOperations from "../shared/PointOperations";
 import Marker from "../helperPatterns/Marker";
-import PatternClassLoader from "../shared/PatternClassLoader";
 
 export type Coordinate2d = [number, number];
 export type Translation2d = [number, number];
@@ -26,7 +25,7 @@ export default class Pattern extends IconCreatorGlobal {
     rotationSnap: Array<number>;
     snapTolerance: number;
     defaultTranslation: Translation2d;
-    scaleMarkerPosition: Coordinate2d;
+    protected scaleMarkerPosition: Coordinate2d;
 
     xOrigin: number;
     yOrigin: number;
@@ -197,7 +196,7 @@ export default class Pattern extends IconCreatorGlobal {
     /**
      * Should be overwritten by sub classes
      */
-    additionalOptions(x: number, y: number): Array<string> {
+    additionalOptions(x: number, y: number, repaint: () => void): Array<any> {
         return [];
     }
     /**
@@ -321,11 +320,16 @@ export default class Pattern extends IconCreatorGlobal {
             };
 
             this.maskLayer.patterns = patternJSON.attributes.maskLayer.patterns.map((pattern: any) => {
+                const PatternClassLoader = require('../shared/PatternClassLoader').default;
                 let MaskPatternClass = PatternClassLoader.patternClassFromString(pattern.subtype);
-                let maskPattern = new MaskPatternClass()
+                if (!MaskPatternClass) {
+                    console.error(`Unknown pattern class: ${pattern.subtype}`);
+                    return null;
+                }
+                let maskPattern = new MaskPatternClass(0, 0)
                 maskPattern.load(pattern);
                 return maskPattern;
-            })
+            }).filter((p: any) => p !== null)
         }
         delete patternJSON.attributes.maskLayer;
         if (!trueCopy) delete patternJSON.attributes.id;

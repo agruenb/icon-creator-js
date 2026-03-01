@@ -57,4 +57,23 @@ export default class UniversalOps {
         }
         element.setAttribute("selected", "true");
     }
+
+    /**
+     * Escapes HTML special characters in a string.
+     * @param {string} str 
+     * @returns {string} escaped string
+     */
+    static escapeHTML(str: string): string {
+        if (!str) return "";
+        return str.replace(/[&<>"']/g, function (m) {
+            switch (m) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#039;';
+                default: return m;
+            }
+        });
+    }
 }
