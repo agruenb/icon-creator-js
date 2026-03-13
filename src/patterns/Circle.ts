@@ -1,6 +1,7 @@
 import Pattern, { Coordinate2d, Translation2d } from "./Pattern";
 import PointOperations from "../shared/PointOperations";
 import UniversalOps from "../shared/UniversalOps";
+import PatternRegistry from "../shared/PatternRegistry";
 
 /**
  * Circle pattern - a basic SVG circle shape with support for masking, rotation, and scaling.
@@ -171,3 +172,4 @@ export default class Circle extends Pattern {
         return Circle;
     }
 }
+PatternRegistry.register("Circle", Circle);

@@ -2,6 +2,7 @@ import Pattern from "./Pattern";
 import UniversalOps from "../shared/UniversalOps";
 import PointOperations from "../shared/PointOperations";
 import Marker from "../helperPatterns/Marker";
+import PatternRegistry from "../shared/PatternRegistry";
 
 export interface PathPoint {
     x: number;
@@ -743,3 +744,4 @@ export default class Path extends Pattern {
         return Path;
     }
 }
+PatternRegistry.register("Path", Path);

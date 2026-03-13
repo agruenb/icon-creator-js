@@ -2,6 +2,7 @@ import IconCreatorGlobal from "../IconCreatorGlobal";
 
 import PatternManipulator from "../shared/patternManipulator";
 import PointOperations from "../shared/PointOperations";
+import PatternRegistry from "../shared/PatternRegistry";
 import Marker from "../helperPatterns/Marker";
 
 export type Coordinate2d = [number, number];
@@ -320,8 +321,7 @@ export default class Pattern extends IconCreatorGlobal {
             };
 
             this.maskLayer.patterns = patternJSON.attributes.maskLayer.patterns.map((pattern: any) => {
-                const PatternClassLoader = require('../shared/PatternClassLoader').default;
-                let MaskPatternClass = PatternClassLoader.patternClassFromString(pattern.subtype);
+                let MaskPatternClass = PatternRegistry.getClass(pattern.subtype);
                 if (!MaskPatternClass) {
                     console.error(`Unknown pattern class: ${pattern.subtype}`);
                     return null;

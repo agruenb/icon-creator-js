@@ -3,6 +3,7 @@ import Rect from "./Rect";
 import UniversalOps from "../shared/UniversalOps";
 import PointOperations from "../shared/PointOperations";
 import Marker from "../helperPatterns/Marker";
+import PatternRegistry from "../shared/PatternRegistry";
 
 export default class Text extends Pattern {
     /*
@@ -321,3 +322,4 @@ export default class Text extends Pattern {
         return Text;
     }
 }
+PatternRegistry.register("Text", Text);

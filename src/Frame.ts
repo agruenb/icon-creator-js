@@ -1,7 +1,7 @@
 import IconCreatorGlobal from "./IconCreatorGlobal";
 import ActionHistory from "./actionHistory";
 import InfoBoxManager from "./ui/InfoBoxManager";
-import PatternClassLoader from "./shared/PatternClassLoader";
+import PatternRegistry from "./shared/PatternRegistry";
 import TouchInputAdapter from "./shared/TouchInputAdapter";
 
 export default class Frame extends IconCreatorGlobal {
@@ -93,7 +93,11 @@ export default class Frame extends IconCreatorGlobal {
         this.infoBoxManager.show();
     }
     basicPattern(type: string, xOrigin: number, yOrigin: number, color: string) {
-        let PatternClass = (PatternClassLoader as any).patternClassFromString(type);
+        let PatternClass = PatternRegistry.getClass(type);
+        if (!PatternClass) {
+            console.error("Pattern class not found for " + type);
+            return null;
+        }
         let pattern;
         switch (type) {
             case "Rect":
@@ -291,7 +295,8 @@ export default class Frame extends IconCreatorGlobal {
         if (trueCopy) this.id = frameJSON.attributes.id;
         for (let i in frameJSON.attributes.patterns) {
             let patternJSON = this.copy(frameJSON.attributes.patterns[i]);
-            let pattern = new ((PatternClassLoader as any).patternClassFromString(patternJSON.subtype))();
+            let PatternClass = PatternRegistry.getClass(patternJSON.subtype);
+            let pattern = new PatternClass();
             //directly inject id
             if (trueCopy) pattern.id = patternJSON.attributes.id;
             delete patternJSON.attributes.id;

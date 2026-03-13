@@ -1,6 +1,7 @@
 import Pattern from "./Pattern";
 import PointOperations from "../shared/PointOperations";
 import Marker from "../helperPatterns/Marker";
+import PatternRegistry from "../shared/PatternRegistry";
 
 /**
  * A simple line pattern with adjustable terminals and width.
@@ -212,3 +213,4 @@ export default class Line extends Pattern {
         return Line;
     }
 }
+PatternRegistry.register("Line", Line);

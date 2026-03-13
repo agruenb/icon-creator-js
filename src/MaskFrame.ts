@@ -1,5 +1,5 @@
 import Frame from "./Frame";
-import PatternClassLoader from "./shared/PatternClassLoader";
+import PatternRegistry from "./shared/PatternRegistry";
 
 export default class MaskFrame extends Frame {
 

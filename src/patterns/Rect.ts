@@ -1,6 +1,7 @@
 import Pattern, { Coordinate2d } from "./Pattern";
 import UniversalOps from "../shared/UniversalOps";
 import PointOperations from "../shared/PointOperations";
+import PatternRegistry from "../shared/PatternRegistry";
 
 export default class Rect extends Pattern {
 
@@ -303,3 +304,4 @@ export default class Rect extends Pattern {
         return Rect;
     }
 }
+PatternRegistry.register("Rect", Rect);
