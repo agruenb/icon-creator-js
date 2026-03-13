@@ -25,7 +25,8 @@ button {
     transition: 0.1s;
 }
 
-button svg, button img {
+button svg,
+button img {
     height: 0.9em;
     width: 0.9em;
     display: inline;
@@ -93,43 +94,70 @@ button.compact {
 }
 
 .anno-button {
-    transition: 0.2s;
     --size: 50px;
     height: var(--size);
     width: var(--size);
-    padding: 0 0 0 10px;
-    margin: 10px 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    border: 2px solid transparent;
+    box-sizing: border-box;
 }
 
 .anno-button img {
     pointer-events: none;
 }
 
-.anno-button .tool-icon, .anno-button.color-picker {
-    transition: 0.2s;
+.anno-button .tool-icon,
+.anno-button.color-picker {
+    transition: 0.15s;
 }
 
-.anno-button:hover .tool-icon:hover, .anno-button.color-picker:hover {
-    transform: scale(1.2);
+.anno-button:hover .tool-icon,
+.anno-button.color-picker:hover {
+    transform: scale(1.1);
+}
+
+.anno-button:hover:not([selected="true"]) {
+    background: var(--interactive-hover-background);
 }
 
 .anno-button[selected="true"] {
-    padding-left: 5px;
-    border-left: 8px solid var(--highlight);
+    background: rgba(48, 127, 253, 0.12);
+    border: 2px solid var(--highlight);
 }
 
 .anno-button .pseudo-input {
     display: block;
 }
 
-.anno-button.color-picker > label {
+.anno-button.color-picker>label {
     border-radius: 10px;
-    height:80%;
-    width:80%;
-    margin:10%;
+    height: 80%;
+    width: 80%;
+    margin: 10%;
+}
+
+.toolbar-separator {
+    height: 1px;
+    background: var(--contour-grey);
+    margin: 4px 4px;
 }
 
 .editor-container .toolbar .tool-icon {
+    height: 32px;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-container .toolbar .tool-icon img {
     height: 100%;
     width: 100%;
 }
@@ -155,21 +183,31 @@ button.compact {
 .topbar .topbar-tools {
     pointer-events: all;
     background: var(--panel-background);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
-    height: 60px;
-    margin: 5px;
+    height: 50px;
+    margin: 10px;
+    padding: 8px 6px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    gap: 2px;
+    align-items: center;
 }
 
 .topbar .topbar-action {
-    height: 40px;
-    width: 40px;
-    padding: 5px;
-    margin: 5px;
+    height: 36px;
+    width: 36px;
+    padding: 6px;
+    margin: 0;
     display: flex;
     justify-content: center;
     cursor: pointer;
     align-items: center;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+
+.topbar .topbar-action:hover {
+    background: var(--interactive-hover-background);
 }
 
 .topbar .topbar-action img {
@@ -178,7 +216,7 @@ button.compact {
 }
 
 .topbar .export-button {
-    border-left: 3px solid #fff;
+    margin-left: 4px;
 }
 
 .topbar .reset-button>img {
@@ -230,8 +268,15 @@ button.compact {
 .editor-container .toolbar {
     position: fixed;
     top: 100px;
-    left: 0;
+    left: 10px;
     z-index: 10001;
+    background: var(--panel-background);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .editor-container .sidebar {
@@ -250,24 +295,29 @@ button.compact {
 }
 
 .editor-container .bottom-bar {
-    --content-height: 35px;
+    --content-height: 40px;
     position: fixed;
     left: 0;
-    bottom: 0;
+    bottom: 10px;
     z-index: 10001;
     width: 100vw;
-    height: 45px;
+    height: auto;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     user-select: none;
+    gap: 10px;
+    pointer-events: none;
 }
 
 .editor-container .bottom-bar>div {
-    height: var(--content-height);
+    height: auto;
     background: var(--panel-background);
-    padding: 5px;
+    padding: 8px;
     display: flex;
-    border-radius: 5px;
+    gap: 4px;
+    border-radius: 12px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    pointer-events: all;
 }
 
 .editor-container .bottom-bar label {
@@ -275,11 +325,13 @@ button.compact {
     width: var(--content-height);
     cursor: pointer;
     box-sizing: border-box;
-    border-radius: 3px;
-    margin: 0 2px;
+    border-radius: 8px;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    border: 2px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .editor-container .bottom-bar .gridsize-wrapper .icon {
@@ -292,7 +344,12 @@ button.compact {
     width: 85%;
 }
 
+.editor-container .bottom-bar label:hover {
+    background: var(--interactive-hover-background);
+}
+
 .editor-container .bottom-bar input:checked+label {
+    background: rgba(48, 127, 253, 0.12);
     border: 2px solid var(--highlight);
 }
 
@@ -304,7 +361,7 @@ button.compact {
     left: 0;
     z-index: 10003;
     display: none;
-    background: rgb(255 255 255 / 0%);
+    background: rgb(0 0 0 / 30%);
     transition: var(--overlay-trans-time);
 }
 
@@ -320,7 +377,7 @@ button.compact {
 }
 
 .box-shadow {
-    box-shadow: 2px 2px 8px 0px rgb(0, 0, 0, 0.6);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .cursor-c {
