@@ -9,6 +9,7 @@ import "./css/fonts.css";
 import "./css/infoBox.css";
 import "./css/itemImporter.css";
 import "./css/rotateDisplay.css";
+import "./css/toolTutorial.css";
 import "./css/vars.css";
 
 import HTMLeditor from "./HTMLeditor";

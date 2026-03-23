@@ -17,6 +17,7 @@ import { HistoryManager } from "./control/HistoryManager";
 import { PatternManager } from "./control/PatternManager";
 import { UIManager } from "./control/UIManager";
 import ImageProcessor from "./shared/imageProcessor"; // Added import
+import ToolTutorial from "./ui/ToolTutorial";
 
 // Define Environment interface based on index.js structure
 interface Environment {
@@ -68,6 +69,7 @@ export default class HTMLeditor {
     uiManager: UIManager;
     historyManager: HistoryManager;
     patternManager: PatternManager;
+    toolTutorial: ToolTutorial;
 
     detectMouseOnMarkerDistance = 8;
     markerScaleOnMouseHover = 1.4;
@@ -109,30 +111,30 @@ export default class HTMLeditor {
                 //touch events are handled differently from mouse events, so they have to be propagated to the viewport
                 //mousedown/touchstart
                 item.startPaintButton.addEventListener("mousedown", () => {
-                    this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
+                    this.setDrawingType("dragOut", item.class.name);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => {
                     e.preventDefault();
-                    this.setDrawingType("dragOut");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
+                    this.setDrawingType("dragOut", item.class.name);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //touchmove
                 item.startPaintButton.addEventListener("touchmove", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //mouseup/touchend
                 item.startPaintButton.addEventListener("mouseup", () => {
-                    this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
+                    this.setDrawingType("clickedPaintPattern", item.class.name);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstop", (e: Event) => {
                     e.preventDefault();
-                    this.setDrawingType("clickedPaintPattern");
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                     this.state.paintPatternClass = item.class;
+                    this.setDrawingType("clickedPaintPattern", item.class.name);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchend", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
             }
@@ -175,6 +177,7 @@ export default class HTMLeditor {
         this.uiManager = new UIManager(this);
         this.historyManager = new HistoryManager(this);
         this.patternManager = new PatternManager(this);
+        this.toolTutorial = new ToolTutorial(this.environment.layout.container);
 
         this.environment.layout.viewport.addEventListener("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
@@ -468,8 +471,9 @@ export default class HTMLeditor {
     /**
      * Sets the drawing/interaction type which determines how mouse events are interpreted.
      * @param type - The drawing type string (e.g. 'none', 'dragOut', 'clickedPaintPattern')
+     * @param toolName - Optional name of the tool to show tutorial for
      */
-    setDrawingType(type: string) {
+    setDrawingType(type: string, toolName?: string) {
         this.closeContextMenu();
         if (["rect0", "circle0", "ellipse0", "line0", "path0"].indexOf(type) !== -1) {
             this.setCursor(this.drawingViewport, "crosshair");
@@ -483,6 +487,7 @@ export default class HTMLeditor {
             UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton })]);
         }
         this.state.setAction(type as any);
+        this.toolTutorial.show(toolName || type);
     }
     /**
      * Returns the closest marker in the viewport to x,y. 
