@@ -61,3 +61,20 @@ This codebase is a TypeScript-based SVG icon editor. Follow these guidelines to 
 - **Type Errors**: Run `npx tsc --noEmit` to check.
 - **Build Failures**: Run `npm run build` to check for TS errors that `webpack` catches.
 - **Lint Errors**: Run `npm run lint`.
+
+## 5. Editor Interaction & Screen Layout
+
+### Screen Layout
+- The **toolbar** is a vertical panel fixed on the left side (`position: fixed; top: 100px; left: 10px`). It contains `.anno-button` elements stacked in a column with `flex-direction: column`.
+- The **topbar** is at the top (`position: fixed; top: 0`) with save/icons buttons on the left, export/clear/history on the right.
+- The **canvas/viewport** fills the screen center (`100vw × 100vh`, centered with flexbox).
+- The **sidebar** (`#sidebar`) is fixed on the right for pattern info boxes.
+- The **bottom-bar** is centered at the bottom for grid-size and view toggles.
+- The **overlay** (`#overlayLayer`) covers everything at `z-index: 10003` for modals.
+
+### Tool Selection Events
+- Tool buttons use **`mousedown`** (not `click`) for selection. This is by design so drag-to-draw works immediately.
+- The event flow when clicking a tool button: `mousedown` → `setDrawingType("dragOut", className, buttonElement)` → `mouseup` → `setDrawingType("clickedPaintPattern", className, buttonElement)`.
+- The cursor/selection button (`#cursor`) uses a regular `click` event instead.
+- `setDrawingType()` is the central method that updates `EditorState.currentAction`, changes the cursor, and shows the tool tutorial.
+

@@ -96,7 +96,7 @@ export default class HTMLeditor {
         //init control
         this.environment.control.editSVG.cursor.addEventListener("click", () => {
             this.focus();
-            this.setDrawingType("none");
+            this.setDrawingType("none", undefined, this.environment.control.editSVG.cursor);
         });
         this.environment.control.editSVG.clearAll.addEventListener("click", () => {
             let onAccept = () => this.clearProject();
@@ -112,13 +112,13 @@ export default class HTMLeditor {
                 //mousedown/touchstart
                 item.startPaintButton.addEventListener("mousedown", () => {
                     this.state.paintPatternClass = item.class;
-                    this.setDrawingType("dragOut", item.class.name);
+                    this.setDrawingType("dragOut", item.class.name, item.startPaintButton);
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => {
                     e.preventDefault();
                     this.state.paintPatternClass = item.class;
-                    this.setDrawingType("dragOut", item.class.name);
+                    this.setDrawingType("dragOut", item.class.name, item.startPaintButton);
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
@@ -127,13 +127,13 @@ export default class HTMLeditor {
                 //mouseup/touchend
                 item.startPaintButton.addEventListener("mouseup", () => {
                     this.state.paintPatternClass = item.class;
-                    this.setDrawingType("clickedPaintPattern", item.class.name);
+                    this.setDrawingType("clickedPaintPattern", item.class.name, item.startPaintButton);
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchstop", (e: Event) => {
                     e.preventDefault();
                     this.state.paintPatternClass = item.class;
-                    this.setDrawingType("clickedPaintPattern", item.class.name);
+                    this.setDrawingType("clickedPaintPattern", item.class.name, item.startPaintButton);
                     UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
                 });
                 item.startPaintButton.addEventListener("touchend", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
@@ -177,7 +177,7 @@ export default class HTMLeditor {
         this.uiManager = new UIManager(this);
         this.historyManager = new HistoryManager(this);
         this.patternManager = new PatternManager(this);
-        this.toolTutorial = new ToolTutorial(this.environment.layout.container);
+        this.toolTutorial = new ToolTutorial(this.environment.layout.container, this.state);
 
         this.environment.layout.viewport.addEventListener("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
@@ -473,7 +473,7 @@ export default class HTMLeditor {
      * @param type - The drawing type string (e.g. 'none', 'dragOut', 'clickedPaintPattern')
      * @param toolName - Optional name of the tool to show tutorial for
      */
-    setDrawingType(type: string, toolName?: string) {
+    setDrawingType(type: string, toolName?: string, toolButtonElement?: HTMLElement) {
         this.closeContextMenu();
         if (["rect0", "circle0", "ellipse0", "line0", "path0"].indexOf(type) !== -1) {
             this.setCursor(this.drawingViewport, "crosshair");
@@ -485,9 +485,13 @@ export default class HTMLeditor {
         }
         if (type == "none") {
             UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton })]);
+            // Fall back to cursor button so the tutorial repositions correctly
+            if (!toolButtonElement) {
+                toolButtonElement = this.environment.control.editSVG.cursor;
+            }
         }
         this.state.setAction(type as any);
-        this.toolTutorial.show(toolName || type);
+        this.toolTutorial.show(toolName || type, toolButtonElement);
     }
     /**
      * Returns the closest marker in the viewport to x,y. 

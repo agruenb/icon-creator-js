@@ -38,33 +38,56 @@ describe('Tool Tutorial', () => {
         expect(await tutorial.isVisible()).toBe(false);
     });
 
-    test('should not show tutorial again if "Don\'t show again" is checked', async () => {
-        // Show it again by clicking a tool
-        await page.click('#newCircle');
+    test('should hide tutorial per-tool when "Don\'t show again" is checked', async () => {
         const tutorial = page.locator('.tool-tutorial');
-        expect(await tutorial.isVisible()).toBe(true);
 
-        // Check the checkbox
+        // Show tutorial for Circle
+        await page.click('#newCircle');
+        expect(await tutorial.isVisible()).toBe(true);
+        expect(await tutorial.locator('.tutorial-title').innerText()).toBe('Circle Tool');
+
+        // Check the "don't show again" checkbox for Circle
         await page.check('#dont-show-tutorial');
         
         // Hide it
         await page.click('.tutorial-close');
         
-        // Try selecting another tool
-        await page.click('#newEllipse');
+        // Clicking Circle again should NOT show the tutorial
+        await page.click('#newCircle');
         expect(await tutorial.isVisible()).toBe(false);
         
-        // Verify localStorage
-        const skip = await page.evaluate(() => localStorage.getItem('easyIcon_skipTutorials'));
-        expect(skip).toBe('true');
+        // But clicking a different tool (Ellipse) SHOULD still show tutorial
+        await page.click('#newEllipse');
+        expect(await tutorial.isVisible()).toBe(true);
+        expect(await tutorial.locator('.tutorial-title').innerText()).toBe('Ellipse Tool');
     });
 
-    test('should persist "Don\'t show again" after reload', async () => {
+    test('should persist per-tool hidden state after reload', async () => {
+        // Circle was hidden in the previous test
         await page.reload();
         await page.waitForSelector('#newRect');
         
-        await page.click('#newRect');
+        // Circle tutorial should still be hidden (localStorage persists)
+        await page.click('#newCircle');
         const tutorial = page.locator('.tool-tutorial');
         expect(await tutorial.isVisible()).toBe(false);
+        
+        // Rect tutorial should still show (was never hidden)
+        await page.click('#newRect');
+        expect(await tutorial.isVisible()).toBe(true);
+    });
+
+    test('should position tutorial at same height as selected tool', async () => {
+        await page.click('#newRect');
+        
+        const tutorial = page.locator('.tool-tutorial');
+        expect(await tutorial.isVisible()).toBe(true);
+        
+        const rectButton = page.locator('#newRect');
+        const buttonBox = await rectButton.boundingBox();
+        const tutorialBox = await tutorial.boundingBox();
+        
+        // Tutorial top should be approximately at the same vertical position as the button
+        expect(Math.abs(tutorialBox!.y - buttonBox!.y)).toBeLessThan(5);
     });
 });

@@ -1,36 +1,45 @@
 import IconCreatorGlobal from "../IconCreatorGlobal";
+import { EditorState } from "../model/EditorState";
 
 export default class ToolTutorial {
     private element: HTMLElement;
     private titleElement: HTMLElement;
     private contentElement: HTMLElement;
     private dontShowAgainCheckbox: HTMLInputElement;
-    private isHidden: boolean = false;
+    private videoElement: HTMLVideoElement;
+    private state: EditorState;
+    private currentToolName: string = "";
 
-    private tutorialData: { [key: string]: { title: string, content: string } } = {
+    private tutorialData: { [key: string]: { title: string, content: string, videoUrl?: string } } = {
         "Rect": {
             title: "Rectangle Tool",
-            content: "Click and drag on the canvas to draw a rectangle."
+            content: "Click and drag on the canvas to draw a rectangle.",
+            videoUrl: "video/tut_rectangle_tool.mp4"
         },
         "Circle": {
             title: "Circle Tool",
-            content: "Click and drag to draw a circle."
+            content: "Click and drag to draw a circle.",
+            videoUrl: "video/tut_circle_tool.mp4"
         },
         "Ellipse": {
             title: "Ellipse Tool",
-            content: "Click and drag to draw an ellipse."
+            content: "Click and drag to draw an ellipse.",
+            videoUrl: "video/tut_ellipse_tool.mp4"
         },
         "Line": {
             title: "Line Tool",
-            content: "Click and drag to draw a straight line."
+            content: "Click and drag to draw a straight line.",
+            videoUrl: "video/tut_line_tool.mp4"
         },
         "Path": {
-            title: "Path Tool",
-            content: "Click and drag your mouse to start drawing. Click to add points. Click the start point to close the shape."
+            title: "Custom Shape Tool",
+            content: "Press and hold the mouse button to start drawing. Click to add points. Click the start point to close the shape.",
+            videoUrl: "video/tut_path_tool.mp4"
         },
         "Text": {
             title: "Text Tool",
-            content: "Click on the canvas to place text. Double click to edit it."
+            content: "Click on the canvas to place text. Double click to edit it.",
+            videoUrl: "video/tut_text_tool.mp4"
         },
         "none": {
             title: "Selection Tool",
@@ -38,7 +47,9 @@ export default class ToolTutorial {
         }
     };
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, state: EditorState) {
+        this.state = state;
+
         this.element = IconCreatorGlobal.el("div", "", "tool-tutorial");
         this.element.classList.add("hidden");
 
@@ -50,46 +61,75 @@ export default class ToolTutorial {
 
         this.contentElement = IconCreatorGlobal.el("div", "", "tutorial-content");
 
+        const videoContainer = document.createElement("div");
+        videoContainer.className = "tutorial-video-container";
+
+        this.videoElement = document.createElement("video");
+        this.videoElement.className = "tutorial-video";
+        this.videoElement.autoplay = true;
+        this.videoElement.loop = true;
+        this.videoElement.muted = true;
+        this.videoElement.playsInline = true;
+        videoContainer.append(this.videoElement);
+
         const footer = IconCreatorGlobal.el("div", "", "tutorial-footer");
         this.dontShowAgainCheckbox = document.createElement("input");
         this.dontShowAgainCheckbox.type = "checkbox";
         this.dontShowAgainCheckbox.id = "dont-show-tutorial";
         const label = document.createElement("label");
         label.htmlFor = "dont-show-tutorial";
-        label.innerText = "Don't show for these tools again";
+        label.innerText = "Don't show for this tool again";
         footer.append(this.dontShowAgainCheckbox, label);
 
         this.dontShowAgainCheckbox.addEventListener("change", () => {
             if (this.dontShowAgainCheckbox.checked) {
-                localStorage.setItem("easyIcon_skipTutorials", "true");
+                this.state.hideTutorial(this.currentToolName);
             } else {
-                localStorage.removeItem("easyIcon_skipTutorials");
+                this.state.unhideTutorial(this.currentToolName);
             }
         });
 
-        // Check initial state
-        if (localStorage.getItem("easyIcon_skipTutorials") === "true") {
-            this.isHidden = true;
-            this.dontShowAgainCheckbox.checked = true;
-        }
-
-        this.element.append(header, this.contentElement, footer);
+        this.element.append(header, videoContainer, this.contentElement, footer);
         container.append(this.element);
     }
 
-    show(type: string): void {
-        if (localStorage.getItem("easyIcon_skipTutorials") === "true") {
+    show(type: string, toolButtonElement?: HTMLElement): void {
+        const resolvedType = this.tutorialData[type] ? type : "none";
+
+        if (this.state.isTutorialHidden(resolvedType)) {
+            this.hide();
             return;
         }
 
-        const data = this.tutorialData[type] || this.tutorialData["none"];
+        this.currentToolName = resolvedType;
+        const data = this.tutorialData[resolvedType];
         this.titleElement.innerText = data.title;
         this.contentElement.innerText = data.content;
+
+        // Sync checkbox state for this tool
+        this.dontShowAgainCheckbox.checked = this.state.isTutorialHidden(resolvedType);
+
+        // Position vertically to align with the tool button
+        if (toolButtonElement) {
+            const btnRect = toolButtonElement.getBoundingClientRect();
+            this.element.style.top = btnRect.top + "px";
+        }
+
+        // Handle video
+        if (data.videoUrl) {
+            this.videoElement.src = data.videoUrl;
+            this.videoElement.style.display = "block";
+            this.videoElement.play().catch(e => console.warn("Video playback failed", e));
+        } else {
+            this.videoElement.style.display = "none";
+            this.videoElement.pause();
+        }
 
         this.element.classList.remove("hidden");
     }
 
     hide(): void {
+        this.videoElement.pause();
         this.element.classList.add("hidden");
     }
 }
