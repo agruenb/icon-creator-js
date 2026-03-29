@@ -1,7 +1,7 @@
 .tool-tutorial {
     position: fixed;
     left: 80px;
-    z-index: 10005;
+    z-index: 10002;
     transition: top 0.2s ease-out;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);

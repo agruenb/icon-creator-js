@@ -51,7 +51,13 @@ export default class ToolTutorial {
     constructor(container: HTMLElement, state: EditorState) {
         this.state = state;
 
-        this.element = IconCreatorGlobal.el("div", "", "tool-tutorial");
+        const existingElement = document.querySelector("tool-tutorial");
+        if (existingElement) {
+            this.element = existingElement as HTMLElement;
+            this.element.classList.add("tool-tutorial");
+        } else {
+            this.element = IconCreatorGlobal.el("div", "", "tool-tutorial");
+        }
         this.element.classList.add("hidden");
 
         const header = IconCreatorGlobal.el("div", "", "tutorial-header");
@@ -91,7 +97,9 @@ export default class ToolTutorial {
         });
 
         this.element.append(header, videoContainer, this.contentElement, footer);
-        container.append(this.element);
+        if (!existingElement) {
+            container.append(this.element);
+        }
     }
 
     show(type: string, toolButtonElement?: HTMLElement): void {
