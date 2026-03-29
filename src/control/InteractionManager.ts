@@ -37,6 +37,24 @@ export class InteractionManager {
                         }
                     }
                     break;
+                case "paintBucket":
+                    if (patternRole === "main" || patternRole === "reference") {
+                        if (this.editor.currProj().frame().boundId != clickedElement.parentElement.id) {
+                            let pattern = this.editor.patternById(clickedElement.parentElement.id);
+                            if (pattern && !pattern.isReference) {
+                                let newColor = this.editor.currProj().getColor();
+                                if (pattern.color !== newColor) {
+                                    this.editor.currProj().alterPattern(pattern, {color: newColor});
+                                    this.editor.currProj().repaint(pattern);
+                                    this.editor.currProj().frame().updateInfoBox(pattern);
+                                    this.editor.saveToHistory();
+                                }
+                            }
+                        } else {
+                            console.warn("You cannot edit the main pattern in carve out mode!");
+                        }
+                    }
+                    break;
                 //edit
                 case "edit":
                     let closestMarker = this.editor.closestMarkerToMouse(event);

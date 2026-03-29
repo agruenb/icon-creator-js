@@ -113,13 +113,13 @@ export default class HTMLeditor {
                 item.startPaintButton.addEventListener("mousedown", () => {
                     this.state.paintPatternClass = item.class;
                     this.setDrawingType("dragOut", item.class.name, item.startPaintButton);
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor, this.environment.control.meta.paintColor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => {
                     e.preventDefault();
                     this.state.paintPatternClass = item.class;
                     this.setDrawingType("dragOut", item.class.name, item.startPaintButton);
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor, this.environment.control.meta.paintColor]);
                 });
                 item.startPaintButton.addEventListener("touchstart", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
                 //touchmove
@@ -128,13 +128,13 @@ export default class HTMLeditor {
                 item.startPaintButton.addEventListener("mouseup", () => {
                     this.state.paintPatternClass = item.class;
                     this.setDrawingType("clickedPaintPattern", item.class.name, item.startPaintButton);
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor, this.environment.control.meta.paintColor]);
                 });
                 item.startPaintButton.addEventListener("touchstop", (e: Event) => {
                     e.preventDefault();
                     this.state.paintPatternClass = item.class;
                     this.setDrawingType("clickedPaintPattern", item.class.name, item.startPaintButton);
-                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor]);
+                    UniversalOps.selectRadio(item.startPaintButton, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor, this.environment.control.meta.paintColor]);
                 });
                 item.startPaintButton.addEventListener("touchend", (e: TouchEvent) => this.environment.layout.viewport.dispatchEvent(TouchInputAdapter.duplicateTouchEvent(e)));
             }
@@ -147,9 +147,12 @@ export default class HTMLeditor {
             this.environment.control.meta.bgColor[key].addEventListener("click", () => { this.changeBackground(this.environment.control.meta.bgColor[key].value) });
         }
 
-        let colorInput = new CustomColorInput("pseudo-input", "#660033");
+        let colorInput = new CustomColorInput("pseudo-input", "#660033", true);
         this.environment.control.meta.paintColor.append(colorInput as unknown as Node);
-        this.environment.control.meta.paintColor.addEventListener("click", () => { this.setDrawingType("none") });
+        this.environment.control.meta.paintColor.addEventListener("mousedown", () => {
+            this.setDrawingType("paintBucket", "paintBucket", this.environment.control.meta.paintColor);
+            UniversalOps.selectRadio(this.environment.control.meta.paintColor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.editSVG.cursor, this.environment.control.meta.paintColor]);
+        });
         (colorInput as unknown as HTMLElement).addEventListener("change", (e: any) => { this.setPaintColor(e.target.value) });
 
         this.environment.control.meta.exclusiveView.addEventListener("change", (e: Event) => {
@@ -484,7 +487,7 @@ export default class HTMLeditor {
             this.stopEdit();
         }
         if (type == "none") {
-            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton })]);
+            UniversalOps.selectRadio(this.environment.control.editSVG.cursor, [...this.environment.config.patterns.map((item: any) => { return item.startPaintButton }), this.environment.control.meta.paintColor]);
             // Fall back to cursor button so the tutorial repositions correctly
             if (!toolButtonElement) {
                 toolButtonElement = this.environment.control.editSVG.cursor;

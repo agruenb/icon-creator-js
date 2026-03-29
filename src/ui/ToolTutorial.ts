@@ -41,9 +41,10 @@ export default class ToolTutorial {
             content: "Click on the canvas to place text. Double click to edit it.",
             videoUrl: "video/tut_text_tool.mp4"
         },
-        "none": {
-            title: "Selection Tool",
-            content: "Click on a pattern to select and edit it. Drag to move, or use the markers to scale and rotate."
+        "paintBucket": {
+            title: "Paint Tool",
+            content: "Click on a pattern to fill it with the selected color. Click the tool icon again to change the color.",
+            videoUrl: "video/tut_paintBucket_tool.mp4"
         }
     };
 
@@ -94,20 +95,19 @@ export default class ToolTutorial {
     }
 
     show(type: string, toolButtonElement?: HTMLElement): void {
-        const resolvedType = this.tutorialData[type] ? type : "none";
+        const data = this.tutorialData[type];
 
-        if (this.state.isTutorialHidden(resolvedType)) {
+        if (!data || this.state.isTutorialHidden(type)) {
             this.hide();
             return;
         }
 
-        this.currentToolName = resolvedType;
-        const data = this.tutorialData[resolvedType];
+        this.currentToolName = type;
         this.titleElement.innerText = data.title;
         this.contentElement.innerText = data.content;
 
         // Sync checkbox state for this tool
-        this.dontShowAgainCheckbox.checked = this.state.isTutorialHidden(resolvedType);
+        this.dontShowAgainCheckbox.checked = this.state.isTutorialHidden(type);
 
         // Position vertically to align with the tool button
         if (toolButtonElement) {

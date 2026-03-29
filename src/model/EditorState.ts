@@ -6,7 +6,8 @@ export type EditorAction =
     | "mousedownPaintPattern"
     | "activePaintPattern"
     | "dragPattern"
-    | "dragMarker";
+    | "dragMarker"
+    | "paintBucket";
 
 export type EditorView = "arange" | "mask";
 
