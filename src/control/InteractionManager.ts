@@ -85,7 +85,7 @@ export class InteractionManager {
     }
 
     handleMouseMove(event: MouseEvent) {
-        if (this.editor.state.currentAction !== "none") {
+        if (this.editor.state.currentAction !== "none" && this.editor.state.currentAction !== "paintBucket") {
             let pattern = this.editor.focusedPattern();
             switch (this.editor.state.currentAction) {
                 //dragged from new pattern
@@ -172,7 +172,7 @@ export class InteractionManager {
                     break;
             }
         } else {
-            //no active action (state.currentActio == "none")
+            //no active action (state.currentActio == "none") or paint bucket
             this.editor.clearViewportUI();
             let clickedElement = this.editor.clickedElement(event);
             if (!clickedElement) return;
