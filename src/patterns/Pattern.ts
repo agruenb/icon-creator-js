@@ -28,6 +28,8 @@ export default class Pattern extends IconCreatorGlobal {
     defaultTranslation: Translation2d;
     protected scaleMarkerPosition: Coordinate2d;
 
+    displayName: string;
+
     xOrigin: number;
     yOrigin: number;
 
@@ -53,6 +55,8 @@ export default class Pattern extends IconCreatorGlobal {
         this.snapTolerance = 3;
         this.defaultTranslation = [-50, -50];
         this.scaleMarkerPosition = [0, 0];
+
+        this.displayName = "Shape";
 
         this.xOrigin = xOrigin;
         this.yOrigin = yOrigin;

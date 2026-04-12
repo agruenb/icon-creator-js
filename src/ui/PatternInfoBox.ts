@@ -30,6 +30,7 @@ export default class PatternInfoBox {
 
     VISIBLE: string = "img/eye.svg";
     HIDDEN: string = "img/eye_crossed.svg";
+    handleDotsImg: string = "img/handle_dots.svg";
 
     pattern: any;
     keyFrame: Frame;
@@ -57,7 +58,7 @@ export default class PatternInfoBox {
     }
 
     updateIcon(): void {
-        this.iconWrapper.innerHTML = `<svg viewbox='0 0 8 8'>${this.pattern.icon()}</svg>`;
+        this.iconWrapper.innerHTML = `<svg viewBox='0 0 8 8' width='100%' height='100%'>${this.pattern.icon()}</svg>`;
     }
 
     updateFill(): void {
@@ -95,8 +96,10 @@ export default class PatternInfoBox {
     updateDisplayed(): void {
         if (this.pattern.display) {
             this.displayedIcon.src = this.VISIBLE;
+            this.displayedIcon.style.filter = "";
         } else {
             this.displayedIcon.src = this.HIDDEN;
+            this.displayedIcon.style.filter = "invert(24%) sepia(90%) saturate(6246%) hue-rotate(349deg) brightness(98%) contrast(96%)";
         }
     }
 
@@ -109,31 +112,91 @@ export default class PatternInfoBox {
         upperLine.classList.add("upper");
         let line = IconCreatorGlobal.el("div", "", "line");
         line.classList.add("lower");
-        //order
-        let orderWrapper = IconCreatorGlobal.el("div", "", "order-wrapper");
-        let toTop = IconCreatorGlobal.el("div", "", "toTop");
-        toTop.classList.add("clickable");
-        let toTopIcon = document.createElement("img");
-        toTopIcon.src = this.toTopImg;
-        toTop.append(toTopIcon);
-        let oneUp = IconCreatorGlobal.el("div", "", "oneUp");
-        oneUp.classList.add("clickable");
-        let oneUpIcon = document.createElement("img");
-        oneUpIcon.src = this.oneUpImg;
-        oneUp.append(oneUpIcon);
-        let toBottom = IconCreatorGlobal.el("div", "", "toBottom");
-        toBottom.classList.add("clickable");
-        let toBottomIcon = document.createElement("img");
-        toBottomIcon.src = this.toTopImg;
-        toBottomIcon.style.transform = "scale(-1, -1)";
-        toBottom.append(toBottomIcon);
-        let oneDown = IconCreatorGlobal.el("div", "", "oneDown");
-        oneDown.classList.add("clickable");
-        let oneDownIcon = document.createElement("img");
-        oneDownIcon.src = this.oneUpImg;
-        oneDownIcon.style.transform = "scale(-1, -1)";
-        oneDown.append(oneDownIcon);
-        orderWrapper.append(toTop, oneUp, oneDown, toBottom);
+        // drag handle
+        let dragHandle = IconCreatorGlobal.el("div", "", "drag-handle");
+        let handleImg = document.createElement("img");
+        handleImg.src = this.handleDotsImg;
+        handleImg.style.width = "16px";
+        handleImg.style.height = "auto";
+        dragHandle.append(handleImg);
+        dragHandle.style.cursor = "grab";
+        dragHandle.style.display = "flex";
+        dragHandle.style.alignItems = "center";
+        dragHandle.style.paddingRight = "8px";
+
+        let state = { startY: 0 };
+
+        const onMouseMove = (e: MouseEvent) => {
+            let deltaY = e.clientY - state.startY;
+
+            if (this.element.parentElement) {
+                const siblings = [...this.element.parentElement.children] as HTMLElement[];
+                const currentIndex = siblings.indexOf(this.element);
+
+                // Bounds checking
+                if (currentIndex === 0 && deltaY < 0) deltaY = 0;
+                if (currentIndex === siblings.length - 1 && deltaY > 0) deltaY = 0;
+
+                this.element.style.transform = `translateY(${deltaY}px)`;
+
+                if (deltaY < -this.element.offsetHeight / 2 && currentIndex > 0) {
+                    const prev = siblings[currentIndex - 1];
+                    this.element.parentElement.insertBefore(this.element, prev);
+                    state.startY -= prev.offsetHeight;
+                    this.element.style.transform = `translateY(${e.clientY - state.startY}px)`;
+                } else if (deltaY > this.element.offsetHeight / 2 && currentIndex < siblings.length - 1) {
+                    const next = siblings[currentIndex + 1];
+                    this.element.parentElement.insertBefore(next, this.element);
+                    state.startY += next.offsetHeight;
+                    this.element.style.transform = `translateY(${e.clientY - state.startY}px)`;
+                }
+            }
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            document.body.style.cursor = "";
+            dragHandle.style.cursor = "grab";
+            this.element.classList.remove("dragging");
+            this.element.style.transform = "";
+            this.element.style.zIndex = "";
+            this.element.style.position = "";
+
+            if (typeof this.keyFrame !== 'boolean' && this.keyFrame) {
+                const frame = this.keyFrame as Frame;
+                if (this.element.parentElement) {
+                    const newRenderOrder = [...this.element.parentElement.children]
+                        .map(child => child.id.replace("infoBox", ""))
+                        .reverse();
+
+                    let changed = false;
+                    for (let i = 0; i < newRenderOrder.length; i++) {
+                        if (newRenderOrder[i] !== frame.renderOrder[i]) {
+                            changed = true;
+                            break;
+                        }
+                    }
+                    if (changed) {
+                        frame.renderOrder = newRenderOrder;
+                        frame.editor.repaint();
+                        frame.editor.saveToHistory();
+                    }
+                }
+            }
+        };
+
+        dragHandle.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            this.element.classList.add("dragging");
+            this.element.style.zIndex = "100";
+            this.element.style.position = "relative";
+            state.startY = e.clientY;
+            document.body.style.cursor = "grabbing";
+            dragHandle.style.cursor = "grabbing";
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
         //hide
         let hideWrapper = IconCreatorGlobal.el("div", "", "hide-wrapper");
         let hideButton = IconCreatorGlobal.el("div", "", "hide-button");
@@ -151,7 +214,11 @@ export default class PatternInfoBox {
         });
         hideButton.append(hideButtonImg);
         hideWrapper.append(hideButton);
-        upperLine.append(orderWrapper, hideWrapper);
+        hideWrapper.style.marginLeft = "auto";
+        //name
+        let patternTag = IconCreatorGlobal.el("div", "", "pattern-tag");
+        patternTag.innerText = this.pattern.displayName;
+        upperLine.append(dragHandle, iconWrapper, patternTag, hideWrapper);
 
         //fill
         let colorWrapper = IconCreatorGlobal.el("div", "", "color-wrapper");
@@ -246,29 +313,10 @@ export default class PatternInfoBox {
         }
         borderWrapper.append(borderIcon, borderButtonGroup);
         line.append(colorWrapper, borderWrapper);
-        topWrapper.append(iconWrapper, upperLine, line);
+        topWrapper.append(upperLine, line);
 
         this.element.append(topWrapper);
-        toBottom.addEventListener("click", (e) => {
-            this.keyFrame.editor.toBottom(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-            e.stopPropagation();
-        });
-        toTop.addEventListener("click", (e) => {
-            this.keyFrame.editor.toTop(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-            e.stopPropagation();
-        });
-        oneUp.addEventListener("click", (e) => {
-            this.keyFrame.editor.oneUp(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-            e.stopPropagation();
-        });
-        oneDown.addEventListener("click", (e) => {
-            this.keyFrame.editor.oneDown(this.pattern);
-            this.keyFrame.editor.saveToHistory();
-            e.stopPropagation();
-        });
+        // Old button handlers removed
         this.element.addEventListener("click", () => {
             this.keyFrame.editor.stopEdit();
             this.keyFrame.editor.startEdit(this.pattern);

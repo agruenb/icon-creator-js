@@ -21,7 +21,8 @@ export default class Rect extends Pattern {
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
         this.stroke = stroke;
-        //static props
+        //static
+        this.displayName = "Rectangle";
         this.allowMask = true;
         this.rotation = 0;
         this.center = [0, 0];

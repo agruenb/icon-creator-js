@@ -1,8 +1,8 @@
 .editor-container .infobox {
     border-radius: 12px;
-    padding: 10px;
-    width: 280px;
-    height: 60px;
+    padding: 6px;
+    width: 240px;
+    height: 52px;
     box-sizing: border-box;
     position: relative;
     margin: 5px;
@@ -71,10 +71,6 @@
     left: 10px;
 }
 
-.infobox .order-wrapper {
-    margin-left: 15px;
-}
-
 .infobox .order-wrapper,
 .infobox .color-wrapper,
 .infobox .border-wrapper {
@@ -113,6 +109,15 @@
     width: 40px;
     border: none;
     cursor: pointer;
+}
+
+.infobox .pattern-tag {
+    display: flex;
+    align-items: center;
+    margin: 4px 8px;
+    font-size: 16px;
+    color: var(--dark-text);
+    font-size: 13px;
 }
 
 .infobox .hide-wrapper .hide-button {

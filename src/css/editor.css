@@ -157,7 +157,8 @@ button.compact {
     justify-content: center;
 }
 
-.editor-container .toolbar .tool-icon img {
+.editor-container .toolbar .tool-icon img,
+.editor-container .toolbar .tool-icon svg {
     height: 100%;
     width: 100%;
 }
@@ -285,7 +286,7 @@ button.compact {
     top: 64px;
     padding-top: 10px;
     z-index: 10001;
-    width: 290px;
+    width: 255px;
     pointer-events: none;
     height: calc(100vh - 54px);
 }

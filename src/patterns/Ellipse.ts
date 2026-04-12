@@ -29,6 +29,8 @@ export default class Ellipse extends Pattern {
         this.color = color;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
+        //static
+        this.displayName = "Ellipse";
         this.updateProperties();
     }
 

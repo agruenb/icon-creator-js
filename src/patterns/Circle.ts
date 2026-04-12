@@ -23,6 +23,7 @@ export default class Circle extends Pattern {
         this.borderColor = borderColor;
         //static
         this.scaleMarkerDistance = 0;
+        this.displayName = "Circle";
         this.updateProperties();
     }
 

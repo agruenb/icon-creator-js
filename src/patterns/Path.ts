@@ -59,6 +59,8 @@ export default class Path extends Pattern {
         this.color = color;
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
+        //static
+        this.displayName = "Custom Shape";
         this.updateProperties();
     }
 

@@ -28,6 +28,8 @@ export default class Line extends Pattern {
         this.color = color;
         this.width = width;
         this.stroke = stroke;
+        //static
+        this.displayName = "Line";
         this.updateProperties();
     }
 

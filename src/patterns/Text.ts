@@ -35,6 +35,8 @@ export default class Text extends Pattern {
         this.borderWidth = borderWidth;
         this.borderColor = borderColor;
         this.cursorPosition = content.length;
+        //static
+        this.displayName = "Text";
         this.updateProperties();
     }
     translateTo(newOriginX: number, newOriginY: number) {
