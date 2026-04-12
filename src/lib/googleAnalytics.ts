@@ -1,7 +1,7 @@
 // Simple wrapper for Google Analytics (GA4)
 
 const GA_MEASUREMENT_ID = (process.env as any).GOOGLE_ANALYTICS_ID;
-const isDev = (process.env as any).NODE_ENV === 'development';
+const isDev = (process.env as any).NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname.startsWith('dev.'));
 
 declare global {
     interface Window {
