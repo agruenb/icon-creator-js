@@ -4,7 +4,8 @@ describe('House Drawing Test', () => {
     beforeAll(async () => {
         await page.goto('http://localhost:3000');
         await page.setViewportSize({ width: 1280, height: 800 });
-        page.on('console', msg => console.log('BROWSER:', msg.text()));
+        // The following line is only used for debugging test
+        //page.on('console', msg => console.log('BROWSER:', msg.text()));
     });
 
     test('should draw a simple house and export it', async () => {
@@ -25,7 +26,7 @@ describe('House Drawing Test', () => {
             await page.waitForSelector('.confirm-wrapper .accept', { timeout: 2000 });
             await page.click('.confirm-wrapper .accept');
             await page.waitForSelector('.confirm-wrapper', { state: 'hidden', timeout: 2000 });
-        } catch (e) {}
+        } catch (e) { }
 
         const centerX = drawingBox.x + drawingBox.width / 2;
         const centerY = drawingBox.y + drawingBox.height / 2;
@@ -39,8 +40,8 @@ describe('House Drawing Test', () => {
         const baseWidth = 200;
         const baseHeight = 150;
         const baseStartX = centerX - baseWidth / 2;
-        const baseStartY = centerY; 
-        
+        const baseStartY = centerY;
+
         await page.mouse.move(baseStartX, baseStartY);
         await page.mouse.down();
         await page.mouse.move(baseStartX + baseWidth, baseStartY + baseHeight, { steps: 5 });
@@ -82,7 +83,7 @@ describe('House Drawing Test', () => {
         // We use .click({ force: true }) because the parent SVG sometimes intercepts pointer events.
         await page.click('#cursor');
         const houseBase = page.locator('#drawingViewport rect').last();
-        
+
         let isFocused = false;
         for (let i = 0; i < 3; i++) {
             await houseBase.click({ force: true });
@@ -94,7 +95,7 @@ describe('House Drawing Test', () => {
             if (isFocused) break;
             console.log(`Focus attempt ${i + 1} failed, retrying...`);
         }
-        
+
         if (!isFocused) {
             console.log("Failed to focus base pattern even with forced clicks. Taking screenshot.");
             await page.screenshot({ path: '/Users/adrian/Code/personal/icon-creator-js/house_fail_focus.png' });
@@ -147,11 +148,11 @@ describe('House Drawing Test', () => {
             page.waitForEvent('download'),
             page.click('.download-button')
         ]);
-        
+
         const filename = download.suggestedFilename();
         console.log(`Downloaded house icon: ${filename}`);
         expect(filename).toMatch(/\.png$/);
-        
+
         const [closeButton] = await page.$$('.export-wrapper .close-button');
         if (closeButton) await closeButton.click();
     }, 60000);

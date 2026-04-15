@@ -25,7 +25,9 @@ const prodConfig = {
         new Dotenv({
 			path: `./.env.production`
 		}),
-        new MiniCssExtractPlugin()
+        new MiniCssExtractPlugin({
+            filename: "[name].[contenthash].css"
+        })
     ]
 };
 module.exports = merge(commonConfig, prodConfig);

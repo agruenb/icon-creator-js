@@ -2,13 +2,18 @@ const path = require("path");
 
 const TerserPlugin = require("terser-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const BundleAnalyzerPlugin =
     require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
     output: {
+        filename: '[name].[contenthash].js',
+        path: path.resolve(__dirname, '../dist'),
         publicPath: "/",
+        clean: true,
     },
     module: {
         rules: [
@@ -43,6 +48,20 @@ module.exports = {
         ],
     },
     plugins: [
+        new HtmlWebpackPlugin({
+            template: './public/index.html',
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: "public",
+                    to: "./",
+                    globOptions: {
+                        ignore: ["**/index.html"],
+                    },
+                },
+            ],
+        }),
         //new MiniCssExtractPlugin(),
         //new BundleAnalyzerPlugin(),//the bundle analyzer tell the size of each js bundle
     ],

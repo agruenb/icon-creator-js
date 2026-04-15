@@ -25,10 +25,12 @@ export function initAnalytics(): void {
     document.head.appendChild(script);
 
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]): void { window.dataLayer.push(args); }
+    function gtag() { window.dataLayer.push(arguments); }
     window.gtag = gtag as any;
 
+    // @ts-ignore
     gtag("js", new Date());
+    // @ts-ignore
     gtag("config", GA_MEASUREMENT_ID);
 }
 

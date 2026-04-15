@@ -5,6 +5,9 @@ import IconCreatorGlobal from "../IconCreatorGlobal";
  * NOTE: This class returns an HTMLElement (HTMLLabelElement) directly from its constructor.
  */
 export default class CustomNumberInput extends IconCreatorGlobal {
+    arrowGrey: string = "img/simple_arrow_grey.svg";
+    arrowBlue: string = "img/simple_arrow_blue.svg";
+
     /**
      * @param className - CSS class for the label container
      * @param pValue - Initial numerical value
@@ -37,6 +40,18 @@ export default class CustomNumberInput extends IconCreatorGlobal {
         // hover buttons
         let up = document.createElement("div");
         up.classList.add("adjust-up", "adjust");
+        let upImg = document.createElement("img");
+        upImg.src = this.arrowGrey;
+        upImg.style.transform = "rotate(180deg)";
+        up.append(upImg);
+
+        up.addEventListener("mouseenter", () => {
+            upImg.src = this.arrowBlue;
+        });
+        up.addEventListener("mouseleave", () => {
+            upImg.src = this.arrowGrey;
+        });
+
         up.addEventListener("click", (event: MouseEvent) => {
             input.value = String(parseInt(input.value) + 1);
             input.dispatchEvent(new Event('change'));
@@ -44,6 +59,17 @@ export default class CustomNumberInput extends IconCreatorGlobal {
 
         let down = document.createElement("div");
         down.classList.add("adjust-down", "adjust");
+        let downImg = document.createElement("img");
+        downImg.src = this.arrowGrey;
+        down.append(downImg);
+
+        down.addEventListener("mouseenter", () => {
+            downImg.src = this.arrowBlue;
+        });
+        down.addEventListener("mouseleave", () => {
+            downImg.src = this.arrowGrey;
+        });
+
         down.addEventListener("click", (event: MouseEvent) => {
             input.value = String(parseInt(input.value) - 1);
             input.dispatchEvent(new Event('change'));

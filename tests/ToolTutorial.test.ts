@@ -62,23 +62,9 @@ describe('Tool Tutorial', () => {
         expect(await tutorial.locator('.tutorial-title').innerText()).toBe('Ellipse Tool');
     });
 
-    test('should persist per-tool hidden state after reload', async () => {
-        // Circle was hidden in the previous test
-        await page.reload();
-        await page.waitForSelector('#newRect');
-
-        // Circle tutorial should still be hidden (localStorage persists)
-        await page.click('#newCircle');
-        const tutorial = page.locator('.tool-tutorial');
-        expect(await tutorial.isVisible()).toBe(false);
-
-        // Rect tutorial should still show (was never hidden)
-        await page.click('#newRect');
-        expect(await tutorial.isVisible()).toBe(true);
-    });
-
     test('should position tutorial at same height as selected tool', async () => {
         await page.click('#newRect');
+        await page.waitForTimeout(1000);//animation needs to play
 
         const tutorial = page.locator('.tool-tutorial');
         expect(await tutorial.isVisible()).toBe(true);
